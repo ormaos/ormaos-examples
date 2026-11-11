@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  order-sync:
+    name: order-sync on Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run from a copy outside the repository
+        run: |
+          cp -r order-sync "$RUNNER_TEMP/order-sync"
+          cd "$RUNNER_TEMP/order-sync"
+          ./reset.sh
+          test "$(python3 job.py)" = "sync finished: OK"
+          test "$(python3 job.py)" = "sync finished: OK"
+      - name: Check the stock levels after the CSV run
+        run: python3 .github/scripts/check_order_sync.py "$RUNNER_TEMP/order-sync"
+      - name: Run with the local API as the source
+        run: |
+          cd "$RUNNER_TEMP/order-sync"
+          ./reset.sh
+          test "$(python3 job.py --source api)" = "sync finished: OK"
+      - name: Check the stock levels after the API run
+        run: python3 .github/scripts/check_order_sync.py "$RUNNER_TEMP/order-sync"
+
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    env:
+      GITLEAKS_VERSION: "8.21.2"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks
+        run: |
+          curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | tar -xz -C "$RUNNER_TEMP" gitleaks
+      - name: Scan the full history
+        run: '"$RUNNER_TEMP/gitleaks" git --redact --verbose --exit-code 1 .'
