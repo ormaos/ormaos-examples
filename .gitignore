@@ -1,0 +1,17 @@
+# Ormaos recordings
+.ormaos/
+
+# Working data of the examples (rebuilt by reset.sh)
+order-sync/data/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
