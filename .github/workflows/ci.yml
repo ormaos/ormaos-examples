@@ -41,6 +41,10 @@ jobs:
           test "$(python3 job.py --source api)" = "sync finished: OK"
       - name: Check the stock levels after the API run
         run: python3 .github/scripts/check_order_sync.py "$RUNNER_TEMP/order-sync"
+      - name: Build the morning after a night run
+        run: python3 scenarios/morning_after.py "$RUNNER_TEMP/morning-after"
+      - name: Check the morning after
+        run: python3 .github/scripts/check_morning_after.py "$RUNNER_TEMP/morning-after"
 
   gitleaks:
     name: gitleaks
