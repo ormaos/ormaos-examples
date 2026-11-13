@@ -3,10 +3,12 @@
 Two sources:
 
 - a CSV export (the default), one order per line;
-- the sales API, which answers ``GET /orders`` with a JSON list.
+- the sales API, which answers ``GET /orders`` with a JSON list of the orders
+  placed since the fetch before (it keeps the cursor; an order is handed over
+  once, except that the last ones before a fetch may come again).
 
 There is no real sales API in this repository. ``local_api`` starts a small
-stand-in on 127.0.0.1 that serves the same orders from the CSV export.
+stand-in on 127.0.0.1 that serves the orders in the CSV file.
 """
 
 import csv

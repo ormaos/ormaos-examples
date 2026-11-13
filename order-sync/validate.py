@@ -31,7 +31,21 @@ def check_quantity(quantity):
         raise QuantityError(f"quantity {quantity} is above the limit {MAX_QUANTITY}")
 
 
+# An order line counts single items ("each") or whole packs.
+UNITS = ("each", "pack")
+
+
+class UnitError(ValidationError):
+    pass
+
+
+def check_unit(unit):
+    if unit not in UNITS:
+        raise UnitError(f"unit {unit!r} is not one of {', '.join(UNITS)}")
+
+
 def check_order(order):
     """Raise ValidationError if the order must not be applied."""
     check_sku(order.sku)
     check_quantity(order.quantity)
+    check_unit(order.unit)

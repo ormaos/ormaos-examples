@@ -1,9 +1,9 @@
-sku,name,on_hand
-KBD-0101,Mechanical keyboard,120
-MSE-0102,Wireless mouse,200
-MON-0201,27-inch monitor,45
-HUB-0301,USB-C hub,80
-CAB-0302,HDMI cable 2 m,300
-WEB-0401,Webcam 1080p,60
-HDS-0402,Headset,75
-DOC-0501,Laptop dock,30
+sku,name,on_hand,pack_size
+KBD-0101,Mechanical keyboard,120,1
+MSE-0102,Wireless mouse,200,5
+MON-0201,27-inch monitor,45,1
+HUB-0301,USB-C hub,80,4
+CAB-0302,HDMI cable 2 m,300,10
+WEB-0401,Webcam 1080p,60,1
+HDS-0402,Headset,75,2
+DOC-0501,Laptop dock,30,1

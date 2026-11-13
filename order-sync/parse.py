@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from datetime import datetime
 
 FIELDS = ("order_id", "placed_at", "sku", "quantity", "channel")
+# Optional column: "each" (single items, the default) or "pack".
+DEFAULT_UNIT = "each"
 
 
 class ParseError(ValueError):
@@ -17,6 +19,7 @@ class Order:
     sku: str
     quantity: int
     channel: str
+    unit: str = DEFAULT_UNIT
 
 
 def parse_row(row):
@@ -35,6 +38,7 @@ def parse_row(row):
         sku=row["sku"],
         quantity=quantity,
         channel=row["channel"].strip(),
+        unit=(row.get("unit") or DEFAULT_UNIT).strip().lower(),
     )
 
 
