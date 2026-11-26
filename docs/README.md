@@ -59,3 +59,5 @@ To show a recording on the page, add an element with its file name where it belo
 ```html
 <div class="cast" data-cast="casts/without.cast"></div>
 ```
+
+Before it plays, each recording shows the session two seconds in: the first command, typed, and nothing else. For a recording whose first command takes longer to appear, add `data-poster="npt:0:05"` (minutes:seconds) to the element.
