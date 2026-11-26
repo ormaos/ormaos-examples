@@ -16,3 +16,13 @@ __pycache__/
 .idea/
 .vscode/
 .DS_Store
+
+# agent-bench: what build.py makes and what run.py writes
+agent-bench/.build/
+agent-bench/results/
+agent-bench/bugs/*/arms/
+agent-bench/bugs/*/task/data/
+agent-bench/bugs/*/task/inbox/
+agent-bench/bugs/*/task/TASK.md
+agent-bench/bugs/order-sync/task/
+agent-bench/bugs/freight-quote/task/
