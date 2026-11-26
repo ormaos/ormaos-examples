@@ -563,9 +563,9 @@ footer ul {
     <p>On neither side could a run say what exactly was wrong in the text of the rejected values: Ormaos records shapes (types, lengths, structure), never values.</p>
     <p>Below, one more run per side, recorded in a terminal. They are not among the runs counted above.</p>
   </div>
-  <div class="cast" id="cast-without" data-cast="casts/without.cast" data-poster="npt:0:01"></div>
+  <div class="cast" id="cast-without" data-cast="casts/without.cast" data-poster="npt:0:12" data-rows="49"></div>
   <p class="caption">Without the recording. The agent finds the five orders that were skipped and the <code>except</code> that skips them, and says it cannot tell why they failed.</p>
-  <div class="cast" id="cast-with" data-cast="casts/with.cast" data-poster="npt:0:01"></div>
+  <div class="cast" id="cast-with" data-cast="casts/with.cast" data-poster="npt:0:16" data-rows="42"></div>
   <p class="caption">With the recording. The agent reads it first and gives the exception type, the five times it was raised, and the lines where it was raised and handled.</p>
   <p class="caption">Real sessions, not edited; pauses are shortened during playback. Each step of the agent is printed as it arrives: what it runs, the first 12 lines of each result, and its answer.</p>
 
@@ -631,14 +631,19 @@ python3 -m venv .venv &amp;&amp; .venv/bin/pip install git+https://github.com/or
             "or play the file in a terminal with \"asciinema play docs/" + file + "\".";
           continue;
         }
-        players.push(AsciinemaPlayer.create(file, place, {
+        var options = {
           fit: "width",
           theme: "ormaos",
           idleTimeLimit: 1.5,
           poster: place.getAttribute("data-poster") || "npt:0:02",
           preload: true,
           controls: true
-        }));
+        };
+        // A recording whose last screen is longer than the terminal it was
+        // recorded in gives the number of rows that shows it whole.
+        var rows = parseInt(place.getAttribute("data-rows"), 10);
+        if (rows) options.rows = rows;
+        players.push(AsciinemaPlayer.create(file, place, options));
       }
     }
 

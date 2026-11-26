@@ -38,8 +38,10 @@ All are real runs, recorded with `asciinema rec` and never edited. The scripts a
 
 ```bash
 cp -r order-sync /tmp/order-sync && cd /tmp/order-sync
-asciinema rec --cols 120 --rows 34 -c "/path/to/scenarios/casts/human.sh r1:c130" human.cast
+PIP_DISABLE_PIP_VERSION_CHECK=1 asciinema rec --cols 120 --rows 34 -c "/path/to/scenarios/casts/human.sh r1:c130" human.cast
 ```
+
+The variable keeps pip from ending its output with a notice about a newer pip.
 
 The address after `human.sh` is the call that handled the exception: the one `ormaos exceptions r1:e1` prints after "handled at". It is `r1:c130` on Python 3.14 and not the same on every Python version.
 
@@ -60,4 +62,6 @@ To show a recording on the page, add an element with its file name where it belo
 <div class="cast" data-cast="casts/without.cast"></div>
 ```
 
-Before it plays, each recording shows the session two seconds in: for `human.cast`, the first command, typed, and nothing else. The moment is counted in playback time, where every pause is cut to 1.5 seconds. The agent recordings print their two commands at once and the first step follows a pause, so their elements carry `data-poster="npt:0:01"` (minutes:seconds).
+Before it plays, `human.cast` shows the session two seconds in: the first command, typed, and nothing else. The moment is counted in playback time, where every pause is cut to 1.5 seconds; an element gives its own moment with `data-poster="npt:0:12"` (minutes:seconds).
+
+The agent recordings show their last screen before they play: the agent's whole answer. Their `data-poster` is the first whole second after the end of the recording in playback time (12 and 16), which the player shows as the last frame. The answers are longer than the 34 rows they were recorded in, so each element also carries `data-rows`, the number of rows that holds its answer (49 and 42): the player is then as tall as the answer, and nothing of it is scrolled away. Pressing play starts from the beginning.
