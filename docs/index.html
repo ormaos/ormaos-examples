@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ormaos demo</title>
+<meta name="description" content="Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.">
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/asciinema-player@3.19.0/dist/bundle/asciinema-player.css"
+      integrity="sha384-Yn8PvH1/b3JcY3/foiDV8Uh+1CrHj//nlQEvCkWelMiyeP864lRMxx4ywG2RYNqj"
+      crossorigin="anonymous">
+<style>
+  :root {
+    --ground: #f6f4ef;
+    --ink: #1d1f1c;
+    --quiet: #5c6058;
+    --line: #d9d5ca;
+    --mark: #9a3b1e;
+    --panel: #ffffff;
+    --code: #ecE8dd;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #151614;
+      --ink: #e9e6dd;
+      --quiet: #a3a69b;
+      --line: #34362f;
+      --mark: #e68a63;
+      --panel: #1d1f1c;
+      --code: #272922;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font: 17px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 60rem; margin: 0 auto; padding: 3.5rem 1.25rem 4rem; }
+  .text { max-width: 42rem; }
+  h1 {
+    font: 600 1rem/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mark);
+    margin: 0 0 1.25rem;
+  }
+  .sentence {
+    font-size: clamp(1.6rem, 4.2vw, 2.5rem);
+    line-height: 1.2;
+    font-weight: 650;
+    letter-spacing: -0.015em;
+    margin: 0 0 1.5rem;
+    max-width: 22em;
+    text-wrap: balance;
+  }
+  h2 {
+    font-size: 1.3rem;
+    line-height: 1.25;
+    margin: 3.5rem 0 0.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+  }
+  h3 { font-size: 1.05rem; margin: 2rem 0 0.4rem; }
+  p { margin: 0 0 1rem; }
+  a { color: inherit; text-decoration-color: var(--mark); text-underline-offset: 0.18em; }
+  a:hover { color: var(--mark); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.88em; }
+  code { background: var(--code); padding: 0.1em 0.35em; border-radius: 3px; }
+  pre {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1rem 1.1rem;
+    overflow-x: auto;
+    line-height: 1.55;
+    margin: 0 0 1rem;
+  }
+  pre code { background: none; padding: 0; font-size: 1em; }
+  .cast { margin: 1rem 0 0.5rem; border-radius: 6px; overflow: hidden; }
+  .cast-note {
+    border: 1px dashed var(--line);
+    border-radius: 6px;
+    padding: 1rem 1.1rem;
+    color: var(--quiet);
+    font-size: 0.95rem;
+  }
+  .caption { color: var(--quiet); font-size: 0.95rem; }
+  .measured {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 1.25rem 0 0.75rem;
+  }
+  .measured div {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1rem 1.1rem;
+  }
+  .measured strong {
+    display: block;
+    font-size: 2rem;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 0.3rem;
+  }
+  .measured span { color: var(--quiet); font-size: 0.95rem; }
+  @media (max-width: 34rem) { .measured { grid-template-columns: 1fr; } }
+  ul { padding-left: 1.2rem; margin: 0 0 1rem; }
+  li { margin-bottom: 0.35rem; }
+  footer {
+    margin-top: 4rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+    color: var(--quiet);
+    font-size: 0.95rem;
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="text">
+    <h1>Ormaos</h1>
+    <p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+
+    <h2>The problem</h2>
+    <p>A scheduled Python job prints <code>sync finished: OK</code>, exits without an error, and in the morning the stock of some products is wrong. The run cannot be repeated and nothing was logged, so whoever investigates, a person or a coding agent, has only the code and the data that is left.</p>
+  </div>
+
+  <h2>Reading a recording by hand</h2>
+  <div class="text">
+    <p>The demo job, <a href="https://github.com/ormaos/ormaos-examples/tree/main/order-sync"><code>order-sync</code></a>, in a fresh copy: install Ormaos, record one run, then read the recording. The summary names an exception that was caught and never seen; the next commands show where it was raised and handled, the calls below the handler, and the I/O they did.</p>
+  </div>
+  <div class="cast" id="cast-human" data-cast="casts/human.cast"></div>
+  <p class="caption">A real terminal session, not edited. Pauses are shortened during playback.</p>
+
+  <h2>An agent, without and with the recording</h2>
+  <div class="text">
+    <p>The same job on the morning after a night run that cannot be repeated. A coding agent gets the folder and one sentence: the run said OK, some products have wrong stock, find out why. On one side the folder has last night's recording, on the other it has not.</p>
+  </div>
+  <div class="measured">
+    <div><strong>5 of 5</strong><span>runs with the recording stated the cause as proven</span></div>
+    <div><strong>0 of 5</strong><span>runs without the recording stated the cause as proven</span></div>
+  </div>
+  <div class="text">
+    <p class="caption">Measured: N = 5 runs per side, model <code>claude-opus-5-5</code>, each run started with only the prompt, in a sandbox that holds only its own folder.</p>
+    <p>On both sides, every run named the <code>except</code> that skips orders and the orders that were skipped. The difference is the reason for the skips. With the recording, the answer gave the exception type, how many times it was raised, and the lines where it was raised and handled, as what happened last night. Without it, every answer said the reason could not be confirmed and left other causes open.</p>
+    <p>On neither side could a run say what exactly was wrong in the text of the rejected values: Ormaos records shapes (types, lengths, structure), never values.</p>
+    <p>A terminal recording of one run per side is not on this page yet.</p>
+  </div>
+
+  <h2>Try it in 3 commands</h2>
+  <div class="text">
+<pre><code>git clone https://github.com/ormaos/ormaos-examples &amp;&amp; cd ormaos-examples/order-sync
+python3 -m venv .venv &amp;&amp; .venv/bin/pip install git+https://github.com/ormaos/ormaos-python
+./reset.sh &amp;&amp; .venv/bin/ormaos run -- .venv/bin/python job.py</code></pre>
+    <p>The job's own output comes first, unchanged. Then Ormaos prints a short summary on stderr, and its last line gives the next command to run. What is needed to install it, and everything else, is in the <a href="https://github.com/ormaos/ormaos-python#readme">README</a>.</p>
+  </div>
+
+  <h2>Not yet</h2>
+  <div class="text">
+    <ul>
+      <li>A package on PyPI. Install from GitHub.</li>
+      <li>A stable file format. Today's is provisional.</li>
+      <li>Windows and macOS: not tested.</li>
+      <li>Reading commands for a folder other than <code>./.ormaos</code>.</li>
+      <li>Line-by-line reading for <code>tree</code>, <code>exceptions</code>, <code>io</code>, <code>path</code> and <code>diff</code>.</li>
+      <li>A way to know which signal ended a process that nothing waited for.</li>
+      <li>Web servers that start worker processes (uvicorn, gunicorn) in the compatibility matrix.</li>
+    </ul>
+  </div>
+
+  <footer>
+    <a href="https://github.com/ormaos/ormaos-python">ormaos-python</a> (the recorder and the command line) ·
+    <a href="https://github.com/ormaos/ormaos-examples">ormaos-examples</a> (the demo job and this page) ·
+    Apache License. This page loads one third-party script, the asciinema player, and nothing else.
+  </footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/asciinema-player@3.19.0/dist/bundle/asciinema-player.min.js"
+        integrity="sha384-qTBQdeRrowWuLIkBCroZZq9W/+FD0pN2NB9VTcRb+4N3PacAr77DxMj5acMuPtmQ"
+        crossorigin="anonymous"></script>
+<script>
+  (function () {
+    var places = document.querySelectorAll("[data-cast]");
+    for (var i = 0; i < places.length; i++) {
+      var place = places[i];
+      var file = place.getAttribute("data-cast");
+      // A browser does not let a page opened from the file system read a
+      // file next to it, so the recordings play only when the page is served.
+      if (location.protocol === "file:" || typeof AsciinemaPlayer === "undefined") {
+        place.className = "cast-note";
+        place.textContent =
+          "The recording (" + file + ") plays when this page is served over HTTP: " +
+          "run \"python3 -m http.server -d docs\" in the repository and open the address it prints, " +
+          "or play the file in a terminal with \"asciinema play docs/" + file + "\".";
+        continue;
+      }
+      AsciinemaPlayer.create(file, place, {
+        fit: "width",
+        idleTimeLimit: 1.5,
+        poster: "npt:0:27",
+        preload: true,
+        controls: true
+      });
+    }
+  })();
+</script>
+</body>
+</html>

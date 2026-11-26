@@ -46,6 +46,17 @@ jobs:
       - name: Check the morning after
         run: python3 .github/scripts/check_morning_after.py "$RUNNER_TEMP/morning-after"
 
+  docs:
+    name: demo page
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Check the page and its recordings
+        run: python3 .github/scripts/check_docs.py docs
+
   gitleaks:
     name: gitleaks
     runs-on: ubuntu-latest
