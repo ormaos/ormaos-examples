@@ -21,6 +21,10 @@ python3 scenarios/morning_after.py /tmp/order-sync-recorded --record  # last nig
 
 With `--record` the folder gets a `.venv` with Ormaos, and last night's recording is in its `.ormaos/`; read it with `.venv/bin/ormaos show last`. `--ormaos PATH` installs from a checkout of `ormaos-python` instead of GitHub.
 
+## The demo page
+
+[`docs/`](docs/) is the demo page, published at <https://demo.ormaos.com>: the job, a recorded terminal session, and how to try it. [`docs/README.md`](docs/README.md) says how the recordings are made and how the page is deployed.
+
 Each example is self-contained and uses only the Python standard library. Its README says how to run it and how to record a run with Ormaos.
 
 ## License
