@@ -20,7 +20,7 @@ The site is a Cloudflare Pages project named `ormaos-demo`, connected to this re
 - a deployment starts when a push to `main` changes a file under `docs/`; other branches and pull requests are not deployed;
 - the custom domain `demo.ormaos.com` is attached to the project (one `CNAME` record, `demo` to `ormaos-demo.pages.dev`, in the `ormaos.com` zone).
 
-**To redeploy after a change: commit the change under `docs/` and push to `main`.** Nothing else is needed. The deployments and their logs are in the Cloudflare dashboard under Workers & Pages, `ormaos-demo`.
+**To redeploy after a change: commit the change under `docs/` and push to `main`.** Nothing else is needed. The deployments and their logs are in the Cloudflare dashboard under Workers & Pages, `ormaos-demo`; a deployment of `main` can also be started or retried by hand there. To check what is served: `curl -s https://demo.ormaos.com/ | sha256sum` gives the same sum as `sha256sum docs/index.html`.
 
 ## The recordings
 
