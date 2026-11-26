@@ -60,4 +60,4 @@ To show a recording on the page, add an element with its file name where it belo
 <div class="cast" data-cast="casts/without.cast"></div>
 ```
 
-Before it plays, each recording shows the session two seconds in: the first command, typed, and nothing else. For a recording whose first command takes longer to appear, add `data-poster="npt:0:05"` (minutes:seconds) to the element.
+Before it plays, each recording shows the session two seconds in: for `human.cast`, the first command, typed, and nothing else. The moment is counted in playback time, where every pause is cut to 1.5 seconds. The agent recordings print their two commands at once and the first step follows a pause, so their elements carry `data-poster="npt:0:01"` (minutes:seconds).
