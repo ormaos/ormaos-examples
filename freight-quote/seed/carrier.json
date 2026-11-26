@@ -1,0 +1,72 @@
+{
+  "account": "WH-1001",
+  "calls_per_day": 60,
+  "calls_used_today": 41,
+  "tariff": {
+    "lanes": {
+      "EST-EST": [
+        620,
+        34
+      ],
+      "EST-MID": [
+        900,
+        54
+      ],
+      "EST-NTH": [
+        1260,
+        72
+      ],
+      "EST-STH": [
+        1270,
+        74
+      ],
+      "EST-WST": [
+        1620,
+        94
+      ],
+      "MID-MID": [
+        670,
+        34
+      ],
+      "MID-NTH": [
+        950,
+        54
+      ],
+      "MID-STH": [
+        890,
+        56
+      ],
+      "MID-WST": [
+        900,
+        58
+      ],
+      "NTH-NTH": [
+        640,
+        42
+      ],
+      "NTH-STH": [
+        1610,
+        86
+      ],
+      "NTH-WST": [
+        1280,
+        70
+      ],
+      "STH-STH": [
+        670,
+        38
+      ],
+      "STH-WST": [
+        1300,
+        74
+      ],
+      "WST-WST": [
+        620,
+        42
+      ]
+    },
+    "minimum_cents": 1100,
+    "express_factor": 1.6,
+    "fuel_surcharge_percent": 12
+  }
+}

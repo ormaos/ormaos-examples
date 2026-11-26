@@ -3,6 +3,7 @@
 
 # Working data of the examples (rebuilt by reset.sh)
 order-sync/data/
+freight-quote/data/
 
 # Python
 __pycache__/
