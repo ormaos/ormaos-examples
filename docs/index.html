@@ -569,6 +569,24 @@ footer ul {
   <p class="caption">With the recording. The agent reads it first and gives the exception type, the five times it was raised, and the lines where it was raised and handled.</p>
   <p class="caption">Real sessions, not edited; pauses are shortened during playback. Each step of the agent is printed as it arrives: what it runs, the first 12 lines of each result, and its answer.</p>
 
+  <h2>A second job, two nights compared</h2>
+  <div class="text">
+    <p>Another job, <a href="https://github.com/ormaos/ormaos-examples/tree/main/freight-quote"><code>freight-quote</code></a>, asks a carrier's API for the freight of tomorrow's shipments and writes the quotes to a database. Last night it printed <code>quotes finished: OK</code>, and this morning 17 of its 26 quotes are lower than what the carrier charged. The night before was fine, and its quotes are gone: each run replaces them. Both nights were recorded, and <code>ormaos diff</code> says what the second one did that the first did not.</p>
+  </div>
+  <div class="cast" id="cast-diff" data-cast="casts/diff.cast" data-poster="npt:0:07" data-rows="37"></div>
+  <p class="caption">A real terminal session, not edited. In the second night, 17 of the 26 calls to the carrier were answered with 429, 17 <code>urllib.error.HTTPError</code> were caught at <code>job.py:43</code>, and <code>rate</code> in <code>ratecard.py</code> ran 17 times. In the first night, none of the three.</p>
+  <div class="text">
+    <p>The same comparison as above, on this job: a coding agent gets the folder and one sentence, that the run said OK and some quotes are lower than what the carrier charged. On one side the folder has the recordings of the two nights, on the other it has not.</p>
+  </div>
+  <dl class="facts text">
+    <div><dt>runs with the recordings gave the carrier's 429 as what happened</dt><dd>5 of 5</dd></div>
+    <div><dt>runs without the recordings gave the carrier's 429 as what happened</dt><dd>0 of 5</dd></div>
+  </dl>
+  <div class="text">
+    <p class="caption">Measured: N = 5 runs per side, model <code>claude-opus-5-5</code>, each run started with only the prompt, in a sandbox that holds only its own folder.</p>
+    <p>On both sides, every run named the <code>except</code> that prices a shipment from an older rate card when the call to the carrier fails, and the 17 quotes that are equal to that rate card. Without the recordings, all five runs produced a 429 themselves on a copy, named a used-up daily allowance of calls as the most likely reason, and said they could not confirm which error it was last night. With the recordings, all five gave it as what happened: 9 calls answered with 200, 17 with 429, and 17 exceptions caught at <code>job.py:43</code>.</p>
+  </div>
+
   <h2>Try it in 3 commands</h2>
   <div class="text">
 <pre><code>git clone https://github.com/ormaos/ormaos-examples &amp;&amp; cd ormaos-examples/order-sync

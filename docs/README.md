@@ -56,6 +56,14 @@ asciinema rec --cols 120 --rows 34 -c "scenarios/casts/agent.sh /tmp/morning-rec
 
 `agent.sh` starts `claude -p` with only the prompt, inside `isolated.sh` (bubblewrap: the system read-only, the agent's own folder, nothing else of the machine). `render.py` prints each step of the agent's stream as it arrives; the whole stream is kept in the `.jsonl` file, outside the agent's folder. Before a recording is committed, read the stream for anything the agent reached outside its folder, and read the cast for anything that should not be public.
 
+`diff.cast`, in a folder built by the second scenario, with both nights recorded:
+
+```bash
+python3 scenarios/two_nights.py /tmp/freight-quote-recorded --record
+cd /tmp/freight-quote-recorded
+asciinema rec --cols 120 --rows 34 -c /path/to/scenarios/casts/diff.sh diff.cast
+```
+
 To show a recording on the page, add an element with its file name where it belongs in `index.html`:
 
 ```html
@@ -64,4 +72,4 @@ To show a recording on the page, add an element with its file name where it belo
 
 Before it plays, `human.cast` shows the session two seconds in: the first command, typed, and nothing else. The moment is counted in playback time, where every pause is cut to 1.5 seconds; an element gives its own moment with `data-poster="npt:0:12"` (minutes:seconds).
 
-The agent recordings show their last screen before they play: the agent's whole answer. Their `data-poster` is the first whole second after the end of the recording in playback time (12 and 16), which the player shows as the last frame. The answers are longer than the 34 rows they were recorded in, so each element also carries `data-rows`, the number of rows that holds its answer (49 and 42): the player is then as tall as the answer, and nothing of it is scrolled away. Pressing play starts from the beginning.
+The agent recordings show their last screen before they play: the agent's whole answer. Their `data-poster` is the first whole second after the end of the recording in playback time (12 and 16), which the player shows as the last frame. The answers are longer than the 34 rows they were recorded in, so each element also carries `data-rows`, the number of rows that holds its answer (49 and 42): the player is then as tall as the answer, and nothing of it is scrolled away. Pressing play starts from the beginning. `diff.cast` shows its last screen too (`npt:0:07`, 37 rows).
