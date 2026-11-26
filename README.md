@@ -31,6 +31,10 @@ python3 scenarios/two_nights.py /tmp/freight-quote-recorded --record  # both nig
 
 With `--record` the two recordings are `r1` and `r2` in the folder's `.ormaos/`; compare them with `.venv/bin/ormaos diff r1 r2`.
 
+## The benchmark
+
+[`agent-bench/`](agent-bench/) measures whether a coding agent fixes a bug more often with an Ormaos recording of the run that went wrong than with nothing, or with a raw trace: eight small jobs with one bug each, three arms, a hidden check per bug. Its README says how to build and run it.
+
 ## The demo page
 
 [`docs/`](docs/) is the demo page, published at <https://ormaos.com/demo>: the job, a recorded terminal session, and how to try it. [`docs/README.md`](docs/README.md) says how the recordings are made and how the page is deployed.
