@@ -2,7 +2,7 @@
 
 `index.html` is the whole page: static, no build step. `casts/` holds the terminal recordings it plays (asciinema, format v2). The page loads one third-party script, the asciinema player, from a pinned version on jsDelivr with an integrity hash, and nothing else.
 
-It is published at <https://demo.ormaos.com>.
+It is published at <https://ormaos.com/demo>. `404.html` is what any other address below it answers.
 
 ## Looking at it locally
 
@@ -18,15 +18,17 @@ The site is a Cloudflare Pages project named `ormaos-demo`, connected to this re
 
 - production branch `main`, no build command, output directory `docs`: what is served is exactly the content of this folder at the commit that was deployed;
 - only `main` is deployed; other branches and pull requests are not;
-- the custom domain `demo.ormaos.com` is attached to the project (one `CNAME` record, `demo` to `ormaos-demo.pages.dev`, in the `ormaos.com` zone).
+- every push to `main` starts a deployment: the workflow [`deploy-demo.yml`](../.github/workflows/deploy-demo.yml) calls the project's deploy hook, whose address is the repository secret `DEMO_DEPLOY_HOOK`. It is live in under a minute.
 
-**To redeploy after a change:**
+Visitors read it at `https://ormaos.com/demo/`. A small Worker, `ormaos-demo-proxy`, on the route `ormaos.com/demo*`, passes each request to the Pages project; its source is in the site's repository ([`demo-proxy/`](https://github.com/ormaos/ormaos-site/tree/main/demo-proxy)). Every path in `index.html` is relative, so the page works below `/demo/` as it does at the root of a local server. `https://demo.ormaos.com` redirects to `https://ormaos.com/demo/` (a redirect rule in the `ormaos.com` zone).
 
-1. Commit the change under `docs/` and push to `main`.
-2. Start a deployment of `main`: in the Cloudflare dashboard, Workers & Pages, `ormaos-demo`, "Create deployment", branch `main`. Through the Cloudflare API it is `POST /accounts/{account_id}/pages/projects/ormaos-demo/deployments` with the form field `branch=main`. It takes the last commit of `main` and is live in under a minute.
-3. Check what is served: `curl -s https://demo.ormaos.com/ | sha256sum` gives the same sum as `sha256sum docs/index.html`.
+**To check what is served** after a push:
 
-The deployments and their logs are on the same dashboard page.
+```bash
+curl -s https://ormaos.com/demo/ | sha256sum; sha256sum docs/index.html
+```
+
+The two sums are the same. The deployments and their logs are in the Cloudflare dashboard, Workers & Pages, `ormaos-demo`; "Create deployment" there, branch `main`, starts one by hand.
 
 ## The recordings
 

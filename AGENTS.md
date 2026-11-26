@@ -2,7 +2,7 @@
 
 ## What this repository is
 
-Example programs for Ormaos, and the hackathon demo page (in `docs/`, published at demo.ormaos.com with Cloudflare Pages). Public, Apache 2.0. Ormaos itself lives in the sibling repository `ormaos-python`; install it with `pip install -e ../ormaos-python`.
+Example programs for Ormaos, and the hackathon demo page (in `docs/`, published at ormaos.com/demo with Cloudflare Pages). Public, Apache 2.0. Ormaos itself lives in the sibling repository `ormaos-python`; install it with `pip install -e ../ormaos-python`.
 
 ## The demo app: `order-sync/`
 
