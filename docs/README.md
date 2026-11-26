@@ -17,10 +17,16 @@ Then open the address it prints. Opened straight from the file system (`docs/ind
 The site is a Cloudflare Pages project named `ormaos-demo`, connected to this repository:
 
 - production branch `main`, no build command, output directory `docs`: what is served is exactly the content of this folder at the last push;
-- a deployment starts when a push to `main` changes a file under `docs/`; other branches and pull requests are not deployed;
+- only `main` is deployed; other branches and pull requests are not;
 - the custom domain `demo.ormaos.com` is attached to the project (one `CNAME` record, `demo` to `ormaos-demo.pages.dev`, in the `ormaos.com` zone).
 
-**To redeploy after a change: commit the change under `docs/` and push to `main`.** Nothing else is needed. The deployments and their logs are in the Cloudflare dashboard under Workers & Pages, `ormaos-demo`; a deployment of `main` can also be started or retried by hand there. To check what is served: `curl -s https://demo.ormaos.com/ | sha256sum` gives the same sum as `sha256sum docs/index.html`.
+**To redeploy after a change:**
+
+1. Commit the change under `docs/` and push to `main`.
+2. Start a deployment of `main`: in the Cloudflare dashboard, Workers & Pages, `ormaos-demo`, "Create deployment", branch `main`. Through the Cloudflare API it is `POST /accounts/{account_id}/pages/projects/ormaos-demo/deployments` with the form field `branch=main`. It takes the last commit of `main` and is live in under a minute.
+3. Check what is served: `curl -s https://demo.ormaos.com/ | sha256sum` gives the same sum as `sha256sum docs/index.html`.
+
+The deployments and their logs are on the same dashboard page.
 
 ## The recordings
 
