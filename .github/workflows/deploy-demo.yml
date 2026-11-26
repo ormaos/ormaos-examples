@@ -1,0 +1,24 @@
+name: Deploy the demo page
+
+# Every push to main publishes docs/ again: Cloudflare Pages takes the last
+# commit of main when its deploy hook is called. The hook address is a
+# repository secret; it can start a deployment and nothing else.
+on:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: deploy-demo
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: start a deployment of main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the deploy hook
+        env:
+          DEMO_DEPLOY_HOOK: ${{ secrets.DEMO_DEPLOY_HOOK }}
+        run: curl --fail --silent --show-error --output /dev/null -X POST "$DEMO_DEPLOY_HOOK"
