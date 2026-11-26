@@ -9,6 +9,7 @@ Ormaos records and shows what happened inside your Python execution — the runt
 | Folder | What it is |
 |---|---|
 | [`order-sync/`](order-sync/) | a scheduled job that syncs orders from a sales system into an inventory (CSV or a local HTTP API in, SQLite out) |
+| [`freight-quote/`](freight-quote/) | a scheduled job that asks a carrier's API for the freight of tomorrow's shipments and writes the quotes (a local HTTP API in, SQLite out) |
 
 ## A run that already happened
 
@@ -20,6 +21,15 @@ python3 scenarios/morning_after.py /tmp/order-sync-recorded --record  # last nig
 ```
 
 With `--record` the folder gets a `.venv` with Ormaos, and last night's recording is in its `.ormaos/`; read it with `.venv/bin/ormaos show last`. `--ormaos PATH` installs from a checkout of `ormaos-python` instead of GitHub.
+
+`scenarios/two_nights.py` does the same for `freight-quote`, with two night runs: the night before last the carrier answered every call; last night the job printed `quotes finished: OK`, and this morning some of its quotes are lower than what the carrier charged. The quotes of the night before last are gone: each run replaces them.
+
+```bash
+python3 scenarios/two_nights.py /tmp/freight-quote-morning            # nothing recorded
+python3 scenarios/two_nights.py /tmp/freight-quote-recorded --record  # both nights recorded with Ormaos
+```
+
+With `--record` the two recordings are `r1` and `r2` in the folder's `.ormaos/`; compare them with `.venv/bin/ormaos diff r1 r2`.
 
 ## The demo page
 

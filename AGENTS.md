@@ -18,6 +18,17 @@ A scheduled Python job that syncs orders from a sales system into an inventory.
 
 **Written only for the demo.** It must not resemble any other bug collection.
 
+## The second demo app: `freight-quote/`
+
+A scheduled Python job that quotes the freight of tomorrow's shipments.
+
+- **Input:** a dispatch list (CSV) and a carrier's rate API: a fake local HTTP API (standard library `http.server`, started by the script), whose state is one JSON file.
+- **Output:** one quote per shipment in a local SQLite database; each run replaces them.
+- **The bug, on purpose:** when the carrier refuses a call (429: the account's calls for the day are used up), a `try/except Exception: log.warning(...)` prices the shipment from the contract rate card, `ratecard.csv`, which is older and lower than the carrier's tariff. The job prints "quotes finished: OK" and exits 0, and those quotes are too low.
+- Standard library only, five modules (`job`, `shipments`, `carrier`, `ratecard`, `quotes`), with a README that describes it as a normal job and a `reset.sh`.
+- Other code paths that also change a price and are correct: the volume weight, the half-kilo rounding, the express factor, the minimum charge. Nothing in `freight-quote/` says where the bug is.
+- `scenarios/two_nights.py` builds, in a new folder, the morning after a good night and a bad night; with `--record`, both runs are recorded with Ormaos (`r1`, `r2`), for `ormaos diff`.
+
 ## The demo page: `docs/`
 
 A static page, no build step, that shows without installing anything:

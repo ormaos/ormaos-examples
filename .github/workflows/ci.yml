@@ -46,6 +46,31 @@ jobs:
       - name: Check the morning after
         run: python3 .github/scripts/check_morning_after.py "$RUNNER_TEMP/morning-after"
 
+  freight-quote:
+    name: freight-quote on Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run from a copy outside the repository
+        run: |
+          cp -r freight-quote "$RUNNER_TEMP/freight-quote"
+          cd "$RUNNER_TEMP/freight-quote"
+          ./reset.sh
+          test "$(python3 job.py)" = "quotes finished: OK"
+      - name: Check the quotes
+        run: python3 .github/scripts/check_freight_quote.py "$RUNNER_TEMP/freight-quote"
+      - name: Build the morning after two night runs
+        run: python3 scenarios/two_nights.py "$RUNNER_TEMP/two-nights"
+      - name: Check the morning after
+        run: python3 .github/scripts/check_two_nights.py "$RUNNER_TEMP/two-nights"
+
   docs:
     name: demo page
     runs-on: ubuntu-latest
