@@ -16,7 +16,7 @@ Then open the address it prints. Opened straight from the file system (`docs/ind
 
 The site is a Cloudflare Pages project named `ormaos-demo`, connected to this repository:
 
-- production branch `main`, no build command, output directory `docs`: what is served is exactly the content of this folder at the last push;
+- production branch `main`, no build command, output directory `docs`: what is served is exactly the content of this folder at the commit that was deployed;
 - only `main` is deployed; other branches and pull requests are not;
 - the custom domain `demo.ormaos.com` is attached to the project (one `CNAME` record, `demo` to `ormaos-demo.pages.dev`, in the `ormaos.com` zone).
 
