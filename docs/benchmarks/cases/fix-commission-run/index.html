@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>commission-run, in fix · Ormaos benchmarks</title>
+<meta name="description" content="commission-run, in fix: what happened, what the agent was given, run 1 of each arm side by side, and every run.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/cases/fix-commission-run.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long bench">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://docs.ormaos.com/">Docs</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<p class="kicker">Situation · fix</p>
+<h1 id="top-title">commission-run, in fix</h1>
+<p class="lead">A scheduled job. By its README, it works out sales commissions. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/bugs/commission-run/task"><code>agent-bench/bugs/commission-run/task</code></a>.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<p>Passed the check, first attempts: <code>none</code> 3/3, <code>raw</code> 3/3, <code>ormaos</code> 3/3 (3 runs per arm). Agent: <code>claude-code / claude-opus-5-5</code>.</p>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#happened">What happened</a></li>
+  <li><a href="#given">What the agent was given</a></li>
+  <li><a href="#side-by-side">Run 1 of each arm, side by side</a></li>
+  <li><a href="#runs">Every run</a></li>
+  <li><a href="#files">The results files</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="happened" aria-labelledby="happened-title">
+<h2 id="happened-title">What happened</h2>
+<p>That night cron ran <code>python3 job.py</code>; it printed <code>commissions finished: OK</code> and exited with code 0. This morning the payouts of 4 reps for yesterday are not what finance worked out: <code>R-12</code>, <code>R-13</code>, <code>R-15</code> and <code>R-17</code>. Where it behaved otherwise than its README: a value kept from one item to the next.</p>
+<p>The items are those the scenario&#x27;s own check of the data found, in <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/build.json"><code>build.json</code></a>.</p>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label">The symptom, from <code>TASK.md</code> in the agent&#x27;s folder</span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s commission run said OK, but this morning the payouts of some reps for yesterday are not what finance worked out (data/finance_check.csv).</code></pre>
+</figure>
+</section>
+
+<section class="band" id="given" aria-labelledby="given-title">
+<h2 id="given-title">What the agent was given</h2>
+<p>Its folder (the code, its README, <code>TASK.md</code> and the data that night left, with what the arm adds) and the task text, the same in every arm but for the arm&#x27;s last sentence:</p>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>none</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s commission run said OK, but this morning the payouts of some reps for yesterday are not what finance worked out (data/finance_check.csv). The job runs from cron with `python3 job.py`. Find the cause and fix it.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>raw</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s commission run said OK, but this morning the payouts of some reps for yesterday are not what finance worked out (data/finance_check.csv). The job runs from cron with `python3 job.py`. Find the cause and fix it. A VizTracer trace of that run is in result.json, in the Chrome Trace Event format (JSON; &quot;traceEvents&quot; has one entry per function call, with its name, its start &quot;ts&quot; and its duration &quot;dur&quot; in microseconds); read it with python3.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s commission run said OK, but this morning the payouts of some reps for yesterday are not what finance worked out (data/finance_check.csv). The job runs from cron with `python3 job.py`. Find the cause and fix it. That run was recorded with Ormaos: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+</section>
+
+<section class="band" id="side-by-side" aria-labelledby="side-by-side-title">
+<h2 id="side-by-side-title">Run 1 of each arm, side by side</h2>
+<p>Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent&#x27;s tool calls in order; under each <code>ormaos</code> command, the first 15 lines of its output, with a link to the full output in the stream.</p>
+<div class="sbs" style="--cols:3">
+<article class="arm-col a1">
+<h4><code>none</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/commission-run-none-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">5 tool calls, 74,266 tokens, 36 s</p>
+<p class="part">Commands, in order (5)</p><ol class="steps">
+<li><pre class="cmd-text">ls -laR | head -50 &amp;&amp; cat job.py</pre></li>
+<li><pre class="cmd-text">cat README.md TASK.md deals.py payouts.py rates.py data/cron.log data/finance_check.csv</pre></li>
+<li><pre class="cmd-text">python3 payouts.py --compare data/finance_check.csv; python3 payouts.py; sqlite3 data/commissions.db &quot;select * from rate_table; select * from reps;&quot; 2&gt;/dev/null || python3 -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;data/commissions.db&#x27;)
+for t in [&#x27;rate_table&#x27;,&#x27;reps&#x27;]: print(t, c.execute(f&#x27;select * from {t}&#x27;).fetchall())&quot;</pre></li>
+<li><pre class="cmd-text">python3 - &lt;&lt;&#x27;EOF&#x27;
+import re
+p=&#x27;rates.py&#x27;; s=open(p).read()
+s=s.replace(&#x27;&#x27;&#x27;    if rep_id not in _looked_up:&#x27;&#x27;&#x27;,&#x27;&#x27;&#x27;    key = (rep_id, product_line)
+    if key not in _looked_up:&#x27;&#x27;&#x27;)
+s=s.replace(&#x27;&#x27;&#x27;        _looked_up[rep_id] = row[0]
+    return _looked_up[rep_id]&#x27;&#x27;&#x27;,&#x27;&#x27;&#x27;        _looked_up[key] = row[0]
+    return _looked_up[key]&#x27;&#x27;&#x27;)
+s=s.replace(&#x27;# The quarter-end run has tens of thousands of deals: a rate is read once a run.&#x27;,
+ &#x27;# The quarter-end run has tens of thousands of deals: a rate is read once a run.\n# Keyed by (rep, product line): a rep can have different rates per line.&#x27;)
+open(p,&#x27;w&#x27;).write(s)
+EOF</pre><p class="note">… 1 more line of this command</p></li>
+<li><pre class="cmd-text">T=$(mktemp -d) &amp;&amp; cp data/commissions.db $T/ &amp;&amp; mkdir $T/inbox &amp;&amp; cat &gt; $T/inbox/deals-20260125.csv &lt;&lt;&#x27;EOF&#x27;
+deal_id,rep,product_line,amount_cents,status
+D1,R-12,hardware,100000,won
+D2,R-12,software,100000,won
+D3,R-15,hardware,100000,won
+D4,R-15,software,100000,won
+EOF
+python3 job.py --inbox $T/inbox --db $T/commissions.db --date 2099-01-01 &amp;&amp; python3 -c &quot;
+import sqlite3;print(sqlite3.connect(&#x27;$T/commissions.db&#x27;).execute(\&quot;select * from payouts where day=&#x27;2099-01-01&#x27;\&quot;).fetchall())&quot;; rm -rf $T</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/rates.py
++++ rates.py
+@@ -9,12 +9,14 @@
+ BIG_DEAL_EXTRA_BP = 50
+ 
+ # The quarter-end run has tens of thousands of deals: a rate is read once a run.
++# Keyed by (rep, product line): a rep can have different rates per line.
+ _looked_up = {}
+ 
+ 
+ def rate_bp(conn, rep_id, product_line):
+     &quot;&quot;&quot;The rate of a rep for a product line, in basis points.&quot;&quot;&quot;
+-    if rep_id not in _looked_up:
++    key = (rep_id, product_line)
++    if key not in _looked_up:
+         row = conn.execute(
+             &quot;SELECT rate_bp FROM rate_table WHERE rep_id = ? AND product_line = ?&quot;,
+             (rep_id, product_line),
+@@ -26,8 +28,8 @@
+             ).fetchone()
+         if row is None:
+             raise KeyError(f&quot;no rate for product line {product_line!r}&quot;)
+-        _looked_up[rep_id] = row[0]
+-    return _looked_up[rep_id]
++        _looked_up[key] = row[0]
++    return _looked_up[key]
+ 
+ 
+ def commission_cents(conn, deal, rep_id):</code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  reps sell in two product lines: exit 0, payouts not as expected: none
+pass  every rep sells in one product line: exit 0, payouts not as expected: none
+fixed</code></pre>
+</figure>
+</article>
+<article class="arm-col a2">
+<h4><code>raw</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/commission-run-raw-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">10 tool calls, 167,382 tokens, 58 s</p>
+<p class="part">Commands, in order (10)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/commission-run; ls -la; ls data; cat job.py; head data/finance_check.csv</pre></li>
+<li><pre class="cmd-text">cd /srv/commission-run; cat README.md TASK.md deals.py payouts.py rates.py; cat data/cron.log; ls inbox; cat data/finance_check.csv | wc -l</pre></li>
+<li><pre class="cmd-text">cd /srv/commission-run; ls -la inbox; python3 payouts.py --compare data/finance_check.csv; sqlite3 data/commissions.db &quot;select * from rate_table; select * from reps;&quot; 2&gt;/dev/null || python3 -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;data/commissions.db&#x27;);print(c.execute(&#x27;select * from rate_table&#x27;).fetchall());print(c.execute(&#x27;select * from reps&#x27;).fetchall())&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/commission-run; mkdir -p /tmp/ana; cat &gt; /tmp/ana/t.py &lt;&lt;&#x27;EOF&#x27;
+import json,collections,sys
+d=json.load(open(sys.argv[1]))
+ev=d[&quot;traceEvents&quot;]
+print(len(ev), d.keys())
+c=collections.Counter(e.get(&quot;name&quot;) for e in ev)
+for k,v in c.most_common(60): print(v,k)
+print([e for e in ev if &quot;args&quot; in e][:5])
+EOF
+python3 -I /tmp/ana/t.py result.json</pre></li>
+<li><pre class="cmd-text">cd /srv/commission-run; cat &gt; /tmp/ana/t2.py &lt;&lt;&#x27;EOF&#x27;
+import json,sys
+d=json.load(open(sys.argv[1]))
+ev=sorted([e for e in d[&quot;traceEvents&quot;] if e.get(&quot;ph&quot;)==&quot;X&quot;],key=lambda e:e[&quot;ts&quot;])
+keep=(&quot;commission-run&quot;,&quot;sqlite3&quot;,&quot;Connection&quot;,&quot;Cursor&quot;,&quot;unlink&quot;,&quot;glob&quot;,&quot;print&quot;,&quot;write&quot;,&quot;exit&quot;,&quot;Deal.&quot;,&quot;fetch&quot;)
+for e in ev:
+    n=e[&quot;name&quot;]
+    if any(k in n for k in keep) and &quot;importlib&quot; not in n:
+        print(round(e[&quot;ts&quot;]), round(e[&quot;dur&quot;]), n)
+EOF
+python3 -I /tmp/ana/t2.py result.json | head -150</pre></li>
+<li><pre class="cmd-text">cd /srv/commission-run; python3 -I /tmp/ana/t2.py result.json | sed -n &#x27;150,400p&#x27; | grep -v RLock</pre></li>
+<li><pre class="cmd-text">Edit rates.py</pre></li>
+<li><pre class="cmd-text">Edit rates.py</pre></li>
+<li><pre class="cmd-text">cd /tmp/ana &amp;&amp; rm -rf t &amp;&amp; mkdir -p t/inbox &amp;&amp; cp /srv/commission-run/data/commissions.db t/ &amp;&amp; cat &gt; t/inbox/deals-20261125.csv &lt;&lt;&#x27;EOF&#x27;
+deal_id,rep,product_line,amount_cents,status
+D1,R-12,software,100000,won
+D2,R-12,hardware,100000,won
+D3,R-12+R-15,hardware,2000000,won
+D4,R-17,services,100000,won
+D5,R-17,software,100000,won
+EOF
+cd /srv/commission-run &amp;&amp; python3 job.py --inbox /tmp/ana/t/inbox --db /tmp/ana/t/commissions.db --date 2030-01-01; python3 payouts.py --db /tmp/ana/t/commissions.db | grep 2030</pre></li>
+<li><pre class="cmd-text">find / -name &#x27;deals-2026112*&#x27; 2&gt;/dev/null; ls /srv/commission-run/data</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/rates.py
++++ rates.py
+@@ -14,7 +14,9 @@
+ 
+ def rate_bp(conn, rep_id, product_line):
+     &quot;&quot;&quot;The rate of a rep for a product line, in basis points.&quot;&quot;&quot;
+-    if rep_id not in _looked_up:
++    # The rate depends on the rep *and* the product line: cache on both.
++    key = (rep_id, product_line)
++    if key not in _looked_up:
+         row = conn.execute(
+             &quot;SELECT rate_bp FROM rate_table WHERE rep_id = ? AND product_line = ?&quot;,
+             (rep_id, product_line),
+@@ -26,8 +28,8 @@
+             ).fetchone()
+         if row is None:
+             raise KeyError(f&quot;no rate for product line {product_line!r}&quot;)
+-        _looked_up[rep_id] = row[0]
+-    return _looked_up[rep_id]
++        _looked_up[key] = row[0]
++    return _looked_up[key]
+ 
+ 
+ def commission_cents(conn, deal, rep_id):</code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  reps sell in two product lines: exit 0, payouts not as expected: none
+pass  every rep sells in one product line: exit 0, payouts not as expected: none
+fixed</code></pre>
+</figure>
+</article>
+<article class="arm-col a3">
+<h4><code>ormaos</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/commission-run-ormaos-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">5 tool calls, 88,453 tokens, 34 s</p>
+<p class="part">Commands, in order (5)</p><ol class="steps">
+<li><pre class="cmd-text">.venv/bin/ormaos guide; ls -la; ls -la .ormaos data</pre><pre class="out">ormaos: what happened inside a Python run, to read instead of guessing.
+
+WHEN TO USE IT
+- A Python program runs, and its output does not explain what it did: a job
+  that prints OK, an error that never shows, a result you cannot trace.
+- You want to see what ran: the project&#x27;s calls with the shape of their
+  arguments, every exception (also the caught ones), the SQL statements,
+  files, subprocesses and HTTP requests.
+
+WHERE TO START
+1. Record:  ormaos run -- &lt;command&gt;
+   The command runs unchanged (same output, same exit code); its Python must
+   have ormaos installed. In a script or notebook: `with ormaos.record():`.
+2. Read the summary printed on stderr: at most 5 lines, each starting with
+   &quot;ormaos:&quot;. To see it again, with more: ormaos show</pre><p class="note">Output: the first 15 of 77 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/commission-run-ormaos-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">cat README.md TASK.md job.py deals.py payouts.py rates.py data/cron.log data/finance_check.csv; ls -la inbox; .venv/bin/ormaos show</pre><pre class="out"># commission-run
+
+A scheduled job that works out sales commissions: the CRM&#x27;s export drops the day&#x27;s deals in `inbox/` every evening, and at night the job writes each rep&#x27;s commission on them to a database, where payroll reads it.
+
+It uses only the Python standard library (Python 3.12 or newer). The folder is self-contained: copy it anywhere and it runs.
+
+## Run it
+
+```bash
+python3 job.py       # work out the deals in inbox/
+python3 payouts.py   # show the payouts, per day
+```
+
+The job prints `commissions finished: OK` and exits with code 0 when every file in `inbox/` was handled. If it cannot run (no database, a product line without a rate), it prints `commissions failed: ...` on stderr and exits with code 2.
+</pre><p class="note">Output: the first 15 of 336 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/commission-run-ormaos-1.jsonl?plain=1#L7">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos io r1; .venv/bin/ormaos tree r1:c1 --depth 3; python3 payouts.py --compare data/finance_check.csv; sqlite3 data/commissions.db &quot;select * from rate_table order by 1,2; select * from reps;&quot; 2&gt;&amp;1 || python3 -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;data/commissions.db&#x27;)
+print(c.execute(&#x27;select * from rate_table order by 1,2&#x27;).fetchall());print(c.execute(&#x27;select * from reps&#x27;).fetchall())&quot;</pre><pre class="out">r1: 31 io events (sqlite 30, file 1)
+  1x sqlite connect data/commissions.db  at payouts.py:39 in connect  [r1:i1]
+  1x sqlite CREATE TABLE IF NOT EXISTS reps ( rep_id TEXT PRIMARY KEY, name TEXT ...  at payouts.py:40 in connect  [r1:i2]
+  1x sqlite CREATE TABLE IF NOT EXISTS rate_table ( rep_id TEXT NOT NULL, product...  at payouts.py:40 in connect  [r1:i3]
+  1x sqlite CREATE TABLE IF NOT EXISTS payouts ( day TEXT NOT NULL, rep_id TEXT N...  at payouts.py:40 in connect  [r1:i4]
+  1x file open inbox/deals-20261125.csv (read)  at deals.py:27 in read  [r1:i5]
+  1x sqlite SELECT rep_id FROM reps  at payouts.py:45 in known_reps  [r1:i6]
+  8x sqlite SELECT rate_bp FROM rate_table WHERE rep_id = ? AND product_line = ?  at rates.py:18 in rate_bp  [r1:i7]
+  6x sqlite SELECT rate_bp FROM rate_table WHERE rep_id = ? AND product_line = ?  at rates.py:23 in rate_bp  [r1:i8]
+  1x sqlite BEGIN  at payouts.py:51 in write_day  [r1:i21]
+  1x sqlite DELETE FROM payouts WHERE day = ?  at payouts.py:51 in write_day  [r1:i22]
+  8x sqlite INSERT INTO payouts (day, rep_id, deals, commission_cents) VALUES (?,...  at payouts.py:52 in write_day  [r1:i23]
+  1x sqlite COMMIT  at payouts.py:50 in write_day  [r1:i24]
+next: ormaos io r1:i1 | ormaos io r1:i2 | ormaos io r1:c11 | ormaos exceptions r1
+r1:c1 &lt;module&gt;() -&gt; raised  job.py:1  30.4ms  io 31  calls below: 4</pre><p class="note">Output: the first 15 of 66 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/commission-run-ormaos-1.jsonl?plain=1#L11">Full output</a></p></li>
+<li><pre class="cmd-text">python3 - &lt;&lt;&#x27;EOF&#x27;
+p=&#x27;rates.py&#x27;; s=open(p).read()
+s=s.replace(&quot;&quot;&quot;    if rep_id not in _looked_up:&quot;&quot;&quot;,&quot;&quot;&quot;    key = (rep_id, product_line)
+    if key not in _looked_up:&quot;&quot;&quot;)
+s=s.replace(&quot;&quot;&quot;        _looked_up[rep_id] = row[0]
+    return _looked_up[rep_id]&quot;&quot;&quot;,&quot;&quot;&quot;        _looked_up[key] = row[0]
+    return _looked_up[key]&quot;&quot;&quot;)
+open(p,&#x27;w&#x27;).write(s)
+EOF
+sed -n 13,35p rates.py
+mkdir -p /tmp/crtest &amp;&amp; cp data/commissions.db /tmp/crtest/t.db &amp;&amp; cd /tmp/crtest &amp;&amp; mkdir -p in &amp;&amp; cat &gt; in/deals-20261125.csv &lt;&lt;&#x27;EOF&#x27;
+deal_id,rep,product_line,amount_cents,status</pre><p class="note">… 7 more lines of this command</p></li>
+<li><pre class="cmd-text">rm -rf /tmp/crtest</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/rates.py
++++ rates.py
+@@ -14,7 +14,8 @@
+ 
+ def rate_bp(conn, rep_id, product_line):
+     &quot;&quot;&quot;The rate of a rep for a product line, in basis points.&quot;&quot;&quot;
+-    if rep_id not in _looked_up:
++    key = (rep_id, product_line)
++    if key not in _looked_up:
+         row = conn.execute(
+             &quot;SELECT rate_bp FROM rate_table WHERE rep_id = ? AND product_line = ?&quot;,
+             (rep_id, product_line),
+@@ -26,8 +27,8 @@
+             ).fetchone()
+         if row is None:
+             raise KeyError(f&quot;no rate for product line {product_line!r}&quot;)
+-        _looked_up[rep_id] = row[0]
+-    return _looked_up[rep_id]
++        _looked_up[key] = row[0]
++    return _looked_up[key]
+ 
+ 
+ def commission_cents(conn, deal, rep_id):</code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  reps sell in two product lines: exit 0, payouts not as expected: none
+pass  every rep sells in one product line: exit 0, payouts not as expected: none
+fixed</code></pre>
+</figure>
+</article>
+</div>
+</section>
+
+<section class="band" id="runs" aria-labelledby="runs-title">
+<h2 id="runs-title">Every run</h2>
+<p>The first attempt of every run of every arm.</p>
+<div class="table-wrap">
+<table class="plain runs">
+<thead><tr><th scope="col">Arm</th><th scope="col">Run</th><th scope="col">Check</th><th scope="col">Last line</th><th scope="col">Tool calls</th><th scope="col">Tokens</th><th scope="col">Wall time</th><th scope="col">Stream</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>5</td><td>74,266</td><td>36 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/commission-run-none-1.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>6</td><td>97,309</td><td>49 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/commission-run-none-2.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>6</td><td>75,645</td><td>38 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/commission-run-none-3.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>10</td><td>167,382</td><td>58 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/commission-run-raw-1.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>7</td><td>117,610</td><td>44 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/commission-run-raw-2.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>5</td><td>87,995</td><td>39 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/commission-run-raw-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>5</td><td>88,453</td><td>34 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/commission-run-ormaos-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>7</td><td>85,815</td><td>34 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/commission-run-ormaos-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>6</td><td>96,978</td><td>38 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/commission-run-ormaos-3.jsonl">stream</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="files" aria-labelledby="files-title">
+<h2 id="files-title">The results files</h2>
+<ul class="rows">
+  <li>The benchmark: <a href="/benchmarks/fix/">fix</a></li>
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703"><code>agent-bench/results/20261126-220703</code></a></li>
+</ul>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>

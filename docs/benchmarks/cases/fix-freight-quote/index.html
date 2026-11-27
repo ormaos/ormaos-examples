@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>freight-quote, in fix · Ormaos benchmarks</title>
+<meta name="description" content="freight-quote, in fix: what happened, what the agent was given, run 1 of each arm side by side, and every run.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/cases/fix-freight-quote.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long bench">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://docs.ormaos.com/">Docs</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<p class="kicker">Situation · fix</p>
+<h1 id="top-title">freight-quote, in fix</h1>
+<p class="lead">A scheduled job. By its README, it quotes freight from a carrier&#x27;s API. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/freight-quote"><code>freight-quote</code></a>.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<p>Passed the check, first attempts: <code>none</code> 3/3, <code>raw</code> 3/3, <code>ormaos</code> 3/3 (3 runs per arm). Agent: <code>claude-code / claude-opus-5-5</code>.</p>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#happened">What happened</a></li>
+  <li><a href="#given">What the agent was given</a></li>
+  <li><a href="#side-by-side">Run 1 of each arm, side by side</a></li>
+  <li><a href="#runs">Every run</a></li>
+  <li><a href="#files">The results files</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="happened" aria-labelledby="happened-title">
+<h2 id="happened-title">What happened</h2>
+<p>That night cron ran <code>python3 job.py</code>; it printed <code>quotes finished: OK</code> and exited with code 0. This morning 17 quotes of last night are not what the carrier charged in <code>data/booked.csv</code>: <code>FR-8136</code> to <code>FR-8152</code>. Where it behaved otherwise than its README: a fallback, with nothing printed, after HTTP calls that returned an error.</p>
+<p>The items are those the scenario&#x27;s own check of the data found, in <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/build.json"><code>build.json</code></a>.</p>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label">The symptom, from <code>TASK.md</code> in the agent&#x27;s folder</span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s freight-quote run said OK, but this morning some of its quotes are lower than what the carrier charged (data/booked.csv).</code></pre>
+</figure>
+</section>
+
+<section class="band" id="given" aria-labelledby="given-title">
+<h2 id="given-title">What the agent was given</h2>
+<p>Its folder (the code, its README, <code>TASK.md</code> and the data that night left, with what the arm adds) and the task text, the same in every arm but for the arm&#x27;s last sentence:</p>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>none</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s freight-quote run said OK, but this morning some of its quotes are lower than what the carrier charged (data/booked.csv). The job runs from cron with `python3 job.py`. Find the cause and fix it.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>raw</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s freight-quote run said OK, but this morning some of its quotes are lower than what the carrier charged (data/booked.csv). The job runs from cron with `python3 job.py`. Find the cause and fix it. A VizTracer trace of that run is in result.json, in the Chrome Trace Event format (JSON; &quot;traceEvents&quot; has one entry per function call, with its name, its start &quot;ts&quot; and its duration &quot;dur&quot; in microseconds); read it with python3.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s freight-quote run said OK, but this morning some of its quotes are lower than what the carrier charged (data/booked.csv). The job runs from cron with `python3 job.py`. Find the cause and fix it. That run was recorded with Ormaos: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+</section>
+
+<section class="band" id="side-by-side" aria-labelledby="side-by-side-title">
+<h2 id="side-by-side-title">Run 1 of each arm, side by side</h2>
+<p>Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent&#x27;s tool calls in order; under each <code>ormaos</code> command, the first 15 lines of its output, with a link to the full output in the stream.</p>
+<div class="sbs" style="--cols:3">
+<article class="arm-col a1">
+<h4><code>none</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/freight-quote-none-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">10 tool calls, 142,606 tokens, 67 s</p>
+<p class="part">Commands, in order (10)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; ls -la data &amp;&amp; cat job.py</pre></li>
+<li><pre class="cmd-text">cat README.md TASK.md carrier.py quotes.py ratecard.py ratecard.csv shipments.py; cd data; cat booked.csv carrier.json cron.log shipments.csv; sqlite3 quotes.db .dump 2&gt;/dev/null || python3 -c &quot;import sqlite3;c=sqlite3.connect(&#x27;quotes.db&#x27;);print(c.execute(&#x27;select sql from sqlite_master&#x27;).fetchall());[print(r) for r in c.execute(&#x27;select * from quotes&#x27;)]&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/freight-quote &amp;&amp; python3 -I - &lt;&lt;&#x27;EOF&#x27;
+import json,sqlite3,sys
+sys.path.insert(0,&#x27;.&#x27;)
+import carrier, ratecard
+t=json.load(open(&#x27;data/carrier.json&#x27;))[&#x27;tariff&#x27;]
+card=ratecard.load()
+for sid,lane,svc,kg,c,_ in sqlite3.connect(&#x27;data/quotes.db&#x27;).execute(&#x27;select * from quotes&#x27;):
+    tp=carrier.tariff_price(t,lane,kg,svc)
+    b,p=card[lane]; rc=max(950,b+p*kg)*(1.5 if svc==&#x27;express&#x27; else 1); rc=round(rc)
+    print(sid,c,&#x27;carrier&#x27; if c==tp else (&#x27;RATECARD&#x27; if c==rc else &#x27;?&#x27;))
+EOF
+ls seed reset.sh 2&gt;&amp;1; env | grep -i FREIGHT</pre></li>
+<li><pre class="cmd-text">T=$(mktemp -d) &amp;&amp; cp data/* $T/ &amp;&amp; python3 -I - $T &lt;&lt;&#x27;EOF&#x27;
+import json,sys
+p=sys.argv[1]+&#x27;/carrier.json&#x27;; s=json.load(open(p)); s[&#x27;calls_used_today&#x27;]=51; json.dump(s,open(p,&#x27;w&#x27;))
+EOF
+cat &gt; $T/s.csv &lt;&lt;&#x27;EOF&#x27;
+shipment_id,origin,destination,weight_kg,length_cm,width_cm,height_cm,service
+A1,MID,MID,40,30,20,10,express
+EOF
+for i in $(seq 9); do tail -1 $T/s.csv | sed &quot;s/^A1/A$((i+1))/&quot; &gt;&gt; $T/s.csv; done
+FREIGHT_QUOTE_LOG_LEVEL=WARNING python3 -I job.py --shipments $T/s.csv --db $T/quotes.db --carrier $T/carrier.json; echo exit=$?; echo $T</pre></li>
+<li><pre class="cmd-text">T=/tmp/tmp.Pu7byuG4zO &amp;&amp; FREIGHT_QUOTE_LOG_LEVEL=WARNING python3 job.py --shipments $T/s.csv --db $T/quotes.db --carrier $T/carrier.json; echo exit=$?</pre></li>
+<li><pre class="cmd-text">Edit job.py</pre></li>
+<li><pre class="cmd-text">Edit job.py</pre></li>
+<li><pre class="cmd-text">Edit job.py</pre></li>
+<li><pre class="cmd-text">Edit job.py</pre></li>
+<li><pre class="cmd-text">T=$(mktemp -d) &amp;&amp; cp data/* $T/ &amp;&amp; python3 - $T &lt;&lt;&#x27;EOF&#x27;
+import json,sys
+p=sys.argv[1]+&#x27;/carrier.json&#x27;; s=json.load(open(p)); s[&#x27;calls_used_today&#x27;]=55; json.dump(s,open(p,&#x27;w&#x27;))
+EOF
+echo &quot;--- quota runs out mid-run:&quot;; python3 job.py --db $T/quotes.db --carrier $T/carrier.json; echo exit=$?
+python3 quotes.py --db $T/quotes.db | head -2
+python3 - $T &lt;&lt;&#x27;EOF&#x27;
+import json,sys
+p=sys.argv[1]+&#x27;/carrier.json&#x27;; s=json.load(open(p)); s[&#x27;calls_used_today&#x27;]=0; json.dump(s,open(p,&#x27;w&#x27;))
+EOF
+echo &quot;--- quota available:&quot;; python3 job.py --db $T/quotes.db --carrier $T/carrier.json; echo exit=$?
+python3 quotes.py --db $T/quotes.db</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/job.py
++++ job.py
+@@ -5,8 +5,9 @@
+     python job.py
+ 
+ For every shipment on the dispatch list it asks the carrier for a rate and
+-writes the quote to the database. Exit code 0 means the quotes were written;
+-anything else means the job could not run.
++writes the quote to the database. Exit code 0 means every quote is the
++carrier&#x27;s rate and all were written; 1 means the carrier gave no rate for
++some shipment (nothing written); 2 means the job could not run.
+ &quot;&quot;&quot;
+ 
+ import argparse
+@@ -17,7 +18,6 @@
+ 
+ import carrier
+ import quotes
+-import ratecard
+ import shipments
+ 
+ HERE = Path(__file__).resolve().parent
+@@ -36,21 +36,32 @@
+     )
+ 
+ 
+-def price(base_url, card, shipment):
+-    &quot;&quot;&quot;The freight of one shipment, in cents.&quot;&quot;&quot;
+-    try:
+-        return carrier.rate(base_url, shipment)
+-    except Exception as exc:
+-        log.warning(&quot;no carrier rate for %s: %s&quot;, shipment.shipment_id, exc)
+-        return ratecard.rate(card, shipment)
++class CarrierRateError(RuntimeError):
++    &quot;&quot;&quot;The carrier gave no rate for one or more shipments.&quot;&quot;&quot;
+ 
+ 
+-def quote_all(base_url, card, todo):
+-    &quot;&quot;&quot;One quote per shipment, in the order of the dispatch list.&quot;&quot;&quot;
+-    rows = []
++def quote_all(base_url, todo):
++    &quot;&quot;&quot;One quote per shipment, in the order of the dispatch list.
++
++    Every quote must be the carrier&#x27;s own rate. The contract rate card is out
++    of date (lower prices, no fuel surcharge), so it is never used in place of
++    a missing carrier rate: if any shipment has no carrier rate, the whole
++    run fails and nothing is written.
++    &quot;&quot;&quot;
++    rows, failed = [], []
+     for shipment in todo:
+-        cents = price(base_url, card, shipment)
++        try:
++            cents = carrier.rate(base_url, shipment)
++        except Exception as exc:
++            log.error(&quot;no carrier rate for %s: %s&quot;, shipment.shipment_id, exc)
++            failed.append(f&quot;{shipment.shipment_id} ({exc})&quot;)
++            continue
+         rows.append(quotes.Quote.of(shipment, cents))
++    if failed:
++        raise CarrierRateError(
++            f&quot;no carrier rate for {len(failed)} of {len(todo)} shipments: &quot;
++            + &quot;, &quot;.join(failed)
++        )
+     return rows
+ 
+ 
+@@ -64,15 +75,19 @@
+ 
+     try:
+         todo = shipments.read(args.shipments)
+-        card = ratecard.load()
+         conn = quotes.connect(args.db)
+     except (OSError, ValueError) as exc:
+         print(f&quot;quotes failed: {exc}&quot;, file=sys.stderr)
+         return 2
+ 
+-    with carrier.local_api(args.carrier) as base_url:
+-        log.info(&quot;asking %s for %d rates&quot;, base_url, len(todo))
+-        rows = quote_all(base_url, card, todo)
++    try:
++        with carrier.local_api(args.carrier) as base_url:
++            log.info(&quot;asking %s for %d rates&quot;, base_url, len(todo))
++            rows = quote_all(base_url, todo)
++    except CarrierRateError as exc:
++        conn.close()
++        print(f&quot;quotes failed: {exc}; no quotes written&quot;, file=sys.stderr)
++        return 1
+     quotes.replace_all(conn, rows)
+     conn.close()
+     log.info(&quot;%d quotes written&quot;, len(rows))</code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  the carrier refuses calls: exit 1, said OK: False, 26 shipments not quoted at the carrier&#x27;s price
+pass  the carrier answers every call: exit 0, said OK: True, 0 shipments not quoted at the carrier&#x27;s price
+fixed</code></pre>
+</figure>
+</article>
+<article class="arm-col a2">
+<h4><code>raw</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/freight-quote-raw-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">9 tool calls, 284,126 tokens, 73 s</p>
+<p class="part">Commands, in order (9)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/freight-quote; ls -la; find . -type f -not -path &#x27;./.git/*&#x27; | head -50; cat job.py</pre></li>
+<li><pre class="cmd-text">cd /srv/freight-quote; cat TASK.md README.md carrier.py ratecard.py ratecard.csv quotes.py shipments.py; cat data/cron.log | tail -20; head -5 data/booked.csv data/shipments.csv; head -c 600 data/carrier.json</pre></li>
+<li><pre class="cmd-text">cd /srv/freight-quote; python3 -I - &lt;&lt;&#x27;EOF&#x27;
+import json,collections
+d=json.load(open(&#x27;result.json&#x27;))
+ev=d[&#x27;traceEvents&#x27;]
+print(len(ev))
+c=collections.Counter(e.get(&#x27;name&#x27;) for e in ev)
+for n,k in c.most_common(40): print(k,n)
+EOF
+wc -l data/*.csv; python3 -c &quot;import json;d=json.load(open(&#x27;data/carrier.json&#x27;));print({k:v for k,v in d.items() if k!=&#x27;tariff&#x27;}, {k:v for k,v in d[&#x27;tariff&#x27;].items() if k!=&#x27;lanes&#x27;})&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/freight-quote; python3 -I - &lt;&lt;&#x27;EOF&#x27;
+import json
+d=json.load(open(&#x27;result.json&#x27;))
+ev=[e for e in d[&#x27;traceEvents&#x27;] if e.get(&#x27;ph&#x27;)==&#x27;X&#x27;]
+for e in sorted(ev,key=lambda e:e[&#x27;ts&#x27;]):
+    n=e[&#x27;name&#x27;]
+    if any(s in n for s in (&#x27;job.py&#x27;,&#x27;carrier.py&#x27;,&#x27;ratecard.py&#x27;,&#x27;quotes.py&#x27;,&#x27;send_error&#x27;,&#x27;HTTPError&#x27;,&#x27;urlopen&#x27;,&#x27;warning&#x27;)) :
+        print(e[&#x27;ts&#x27;],e.get(&#x27;dur&#x27;),e.get(&#x27;tid&#x27;),n, e.get(&#x27;args&#x27;,&#x27;&#x27;))
+EOF</pre></li>
+<li><pre class="cmd-text">cd /srv/freight-quote; python3 quotes.py --booked data/booked.csv; cat data/shipments.csv; ls seed reset.sh 2&gt;&amp;1</pre></li>
+<li><pre class="cmd-text">cd /srv/freight-quote; python3 -I - &lt;&lt;&#x27;EOF&#x27;
+import json
+d=json.load(open(&#x27;result.json&#x27;))
+ev=[e for e in d[&#x27;traceEvents&#x27;] if e.get(&#x27;ph&#x27;)==&#x27;X&#x27;]
+t0=198734853.16; t1=t0+343.3
+for e in sorted(ev,key=lambda e:e[&#x27;ts&#x27;]):
+    if t0&lt;=e[&#x27;ts&#x27;]&lt;=t1 and e[&#x27;tid&#x27;]==13: print(e[&#x27;ts&#x27;],e[&#x27;dur&#x27;],e[&#x27;name&#x27;],e.get(&#x27;args&#x27;,&#x27;&#x27;))
+print(d.get(&#x27;viztracer_metadata&#x27;), [k for k in d if k!=&#x27;traceEvents&#x27;])
+EOF</pre></li>
+<li><pre class="cmd-text">cd /srv/freight-quote; python3 - &lt;&lt;&#x27;EOF&#x27;
+p=&#x27;job.py&#x27;; s=open(p).read()
+s=s.replace(&#x27;&#x27;&#x27;writes the quote to the database. Exit code 0 means the quotes were written;
+anything else means the job could not run.
+&quot;&quot;&quot;&#x27;&#x27;&#x27;,&#x27;&#x27;&#x27;writes the quote to the database. Exit code 0 means every shipment got a
+carrier rate and the quotes were written. Exit code 1 means the carrier did not
+price some shipments: nothing is written. Exit code 2 means the job could not run.
+&quot;&quot;&quot;&#x27;&#x27;&#x27;)
+s=s.replace(&quot;import ratecard\n&quot;,&quot;&quot;)
+s=s.replace(&#x27;&#x27;&#x27;def price(base_url, card, shipment):
+    &quot;&quot;&quot;The freight of one shipment, in cents.&quot;&quot;&quot;
+    try:</pre><p class="note">… 50 more lines of this command</p></li>
+<li><pre class="cmd-text">cd /srv/freight-quote; T=$(mktemp -d); cp data/carrier.json data/quotes.db data/shipments.csv $T/
+python3 job.py --db $T/quotes.db --carrier $T/carrier.json --shipments $T/shipments.csv; echo exit=$?; python3 quotes.py --db $T/quotes.db | head -3
+python3 - $T/carrier.json &lt;&lt;&#x27;EOF&#x27;
+import json,sys;p=sys.argv[1];d=json.load(open(p));d[&#x27;calls_used_today&#x27;]=55;json.dump(d,open(p,&#x27;w&#x27;))
+EOF
+cp $T/quotes.db $T/before.db
+python3 job.py --db $T/quotes.db --carrier $T/carrier.json --shipments $T/shipments.csv; echo exit=$?
+cmp $T/quotes.db $T/before.db &amp;&amp; echo &quot;db untouched&quot;; rm -r $T</pre></li>
+<li><pre class="cmd-text">Edit README.md</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/README.md
++++ README.md
+@@ -12,7 +12,7 @@
+ python3 quotes.py  # show the quotes
+ ```
+ 
+-The job prints `quotes finished: OK` and exits with code 0 when the quotes are written. If it cannot run (no database, an unreadable dispatch list), it prints `quotes failed: ...` on stderr and exits with code 2.
++The job prints `quotes finished: OK` and exits with code 0 when every shipment got a carrier rate and the quotes are written. If the carrier does not price some shipment (quota used up, unknown lane, too heavy, carrier unreachable), it logs each one, prints `quotes failed: no carrier rate for ...` on stderr, writes nothing and exits with code 1: a quote is only ever the carrier&#x27;s own rate, never a guess from the rate card. If it cannot run (no database, an unreadable dispatch list), it prints `quotes failed: ...` on stderr and exits with code 2.
+ 
+ Each run replaces the quotes: the table holds the quotes of the current dispatch list and no other.
+ 
+--- task/job.py
++++ job.py
+@@ -5,8 +5,9 @@
+     python job.py
+ 
+ For every shipment on the dispatch list it asks the carrier for a rate and
+-writes the quote to the database. Exit code 0 means the quotes were written;
+-anything else means the job could not run.
++writes the quote to the database. Exit code 0 means every shipment got a
++carrier rate and the quotes were written. Exit code 1 means the carrier did not
++price some shipments: nothing is written. Exit code 2 means the job could not run.
+ &quot;&quot;&quot;
+ 
+ import argparse
+@@ -17,7 +18,6 @@
+ 
+ import carrier
+ import quotes
+-import ratecard
+ import shipments
+ 
+ HERE = Path(__file__).resolve().parent
+@@ -36,22 +36,25 @@
+     )
+ 
+ 
+-def price(base_url, card, shipment):
+-    &quot;&quot;&quot;The freight of one shipment, in cents.&quot;&quot;&quot;
+-    try:
+-        return carrier.rate(base_url, shipment)
+-    except Exception as exc:
+-        log.warning(&quot;no carrier rate for %s: %s&quot;, shipment.shipment_id, exc)
+-        return ratecard.rate(card, shipment)
++def quote_all(base_url, todo):
++    &quot;&quot;&quot;One quote per shipment, in the order of the dispatch list.
+ 
+-
+-def quote_all(base_url, card, todo):
+-    &quot;&quot;&quot;One quote per shipment, in the order of the dispatch list.&quot;&quot;&quot;
+-    rows = []
++    Returns (rows, failures). The carrier&#x27;s rate is the price it charges, so a
++    shipment it does not price gets no quote; it is listed in failures as
++    (shipment_id, reason). Falling back to the contract rate card would quote
++    below what the carrier charges (the card has no fuel surcharge and older
++    prices).
++    &quot;&quot;&quot;
++    rows, failures = [], []
+     for shipment in todo:
+-        cents = price(base_url, card, shipment)
++        try:
++            cents = carrier.rate(base_url, shipment)
++        except Exception as exc:
++            log.error(&quot;no carrier rate for %s: %s&quot;, shipment.shipment_id, exc)
++            failures.append((shipment.shipment_id, str(exc)))
++            continue
+         rows.append(quotes.Quote.of(shipment, cents))
+-    return rows
++    return rows, failures
+ 
+ 
+ def main(argv=None):
+@@ -64,7 +67,6 @@
+ 
+     try:
+         todo = shipments.read(args.shipments)
+-        card = ratecard.load()
+         conn = quotes.connect(args.db)
+     except (OSError, ValueError) as exc:
+         print(f&quot;quotes failed: {exc}&quot;, file=sys.stderr)
+@@ -72,7 +74,16 @@
+ 
+     with carrier.local_api(args.carrier) as base_url:
+         log.info(&quot;asking %s for %d rates&quot;, base_url, len(todo))
+-        rows = quote_all(base_url, card, todo)
++        rows, failures = quote_all(base_url, todo)
++    if failures:
++        conn.close()
++        first_id, first_reason = failures[0]
++        print(
++            f&quot;quotes failed: no carrier rate for {len(failures)} of {len(todo)} &quot;
++            f&quot;shipments ({first_id}: {first_reason}); nothing written&quot;,
++            file=sys.stderr,
++        )
++        return 1
+     quotes.replace_all(conn, rows)
+     conn.close()
+     log.info(&quot;%d quotes written&quot;, len(rows))</code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  the carrier refuses calls: exit 1, said OK: False, 26 shipments not quoted at the carrier&#x27;s price
+pass  the carrier answers every call: exit 0, said OK: True, 0 shipments not quoted at the carrier&#x27;s price
+fixed</code></pre>
+</figure>
+</article>
+<article class="arm-col a3">
+<h4><code>ormaos</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/freight-quote-ormaos-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">8 tool calls, 158,156 tokens, 56 s</p>
+<p class="part">Commands, in order (8)</p><ol class="steps">
+<li><pre class="cmd-text">.venv/bin/ormaos guide; ls -la; ls .ormaos</pre><pre class="out">ormaos: what happened inside a Python run, to read instead of guessing.
+
+WHEN TO USE IT
+- A Python program runs, and its output does not explain what it did: a job
+  that prints OK, an error that never shows, a result you cannot trace.
+- You want to see what ran: the project&#x27;s calls with the shape of their
+  arguments, every exception (also the caught ones), the SQL statements,
+  files, subprocesses and HTTP requests.
+
+WHERE TO START
+1. Record:  ormaos run -- &lt;command&gt;
+   The command runs unchanged (same output, same exit code); its Python must
+   have ormaos installed. In a script or notebook: `with ormaos.record():`.
+2. Read the summary printed on stderr: at most 5 lines, each starting with
+   &quot;ormaos:&quot;. To see it again, with more: ormaos show</pre><p class="note">Output: the first 15 of 65 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/freight-quote-ormaos-1.jsonl?plain=1#L4">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos show; .venv/bin/ormaos exceptions last; cat TASK.md</pre><pre class="out">r1 exit 0 in 0.63s: 1 Python process, 430 calls, 20 exceptions (17 swallowed, 0 uncaught, 2 StopIteration taken by the interpreter)
+command: .venv/bin/python job.py
+swallowed 17x urllib.error.HTTPError at job.py:43 in price, raised at /usr/lib/python3.14/urllib/request.py:611  [r1:e3]
+io: 103 events (file 47, sqlite 30, http 26)
+not collected: io: reads of the 1 file opened at shipments.py:58: opened for reading, and no `read` call by Python code was seen on a file of that name: if it was read, that was inside C code (a file that is iterated, `for line in f`, `csv.reader`)
+not collected: io: reads of the 1 file opened at ratecard.py:18: opened for reading, and no `read` call by Python code was seen on a file of that name: if it was read, that was inside C code (a file that is iterated, `for line in f`, `csv.reader`)
+not collected: io: sockets, at carrier.py:94 (once): a socket was connected or bound there; sockets are not recorded, only HTTP made through http.client or httpx is
+never recorded: values, and 13 more kinds of things (`ormaos show --json` lists them with the reason)
+next: ormaos exceptions r1:e3 | ormaos tree r1:c1 | ormaos io r1
+r1: 20 exceptions (17 swallowed, 0 uncaught, 2 StopIteration taken by the interpreter)
+r1:e3 swallowed urllib.error.HTTPError  raised at /usr/lib/python3.14/urllib/request.py:611  handled at job.py:43 in price
+r1:e4 swallowed urllib.error.HTTPError  raised at /usr/lib/python3.14/urllib/request.py:611  handled at job.py:43 in price
+r1:e5 swallowed urllib.error.HTTPError  raised at /usr/lib/python3.14/urllib/request.py:611  handled at job.py:43 in price
+r1:e6 swallowed urllib.error.HTTPError  raised at /usr/lib/python3.14/urllib/request.py:611  handled at job.py:43 in price
+r1:e7 swallowed urllib.error.HTTPError  raised at /usr/lib/python3.14/urllib/request.py:611  handled at job.py:43 in price</pre><p class="note">Output: the first 15 of 31 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/freight-quote-ormaos-1.jsonl?plain=1#L6">Full output</a></p></li>
+<li><pre class="cmd-text">cat job.py carrier.py quotes.py ratecard.py ratecard.csv shipments.py README.md; ls data; head -5 data/*.csv</pre></li>
+<li><pre class="cmd-text">.venv/bin/ormaos exceptions r1:e3; .venv/bin/ormaos io r1 --kind http; cat data/carrier.json; cat data/cron.log; wc -l data/*.csv</pre><pre class="out">r1:e3 urllib.error.HTTPError: swallowed
+  raised at   /usr/lib/python3.14/urllib/request.py:611 in HTTPDefaultErrorHandler.http_error_default  [r1:c176]  (not your code; first seen at carrier.py:37 in rate)
+  left calls   rate [r1:c176]
+  handled at  job.py:43 in price  [r1:c175]  and not raised again
+  message     not recorded; args: tuple[0]
+  same type, same handler: 17 in all: r1:e3 r1:e4 r1:e5 r1:e6 r1:e7 ...
+next: ormaos tree r1:c175 | ormaos io r1:c175 | ormaos tree r1:c176 | ormaos exceptions r1:e4 | ormaos path r1:e3
+r1: 103 io events (file 47, sqlite 30, http 26), showing http
+  9x http GET http://127.0.0.1:35511/v1/rates?(not recorded) -&gt; 200  at carrier.py:37 in rate  [r1:i4]
+  17x http GET http://127.0.0.1:35511/v1/rates?(not recorded) -&gt; 429  at carrier.py:37 in rate  [r1:i41]
+next: ormaos io r1:i4 | ormaos io r1:i41 | ormaos io r1:c77 | ormaos exceptions r1
+{
+  &quot;account&quot;: &quot;WH-1001&quot;,
+  &quot;calls_per_day&quot;: 60,
+  &quot;calls_used_today&quot;: 4,</pre><p class="note">Output: the first 15 of 87 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/freight-quote-ormaos-1.jsonl?plain=1#L13">Full output</a></p></li>
+<li><pre class="cmd-text">python3 quotes.py --booked data/booked.csv; .venv/bin/ormaos io r1 --kind sqlite | head; ls seed 2&gt;&amp;1</pre><pre class="out">Exit code 2
+FR-8127  EST-EST  standard     4.0 kg     12.32  charged    12.32     +0.00
+FR-8128  NTH-NTH  standard    38.5 kg     25.28  charged    25.28     +0.00
+FR-8129  STH-STH  standard   120.0 kg     58.58  charged    58.58     +0.00
+FR-8130  MID-WST  express     14.5 kg     31.20  charged    31.20     +0.00
+FR-8131  NTH-NTH  express     75.0 kg     67.92  charged    67.92     +0.00
+FR-8132  MID-STH  standard     6.5 kg     14.04  charged    14.04     +0.00
+FR-8133  EST-MID  express     16.0 kg     31.61  charged    31.61     +0.00
+FR-8134  NTH-STH  standard   120.0 kg    133.62  charged   133.62     +0.00
+FR-8135  MID-NTH  standard    38.5 kg     33.92  charged    33.92     +0.00
+FR-8136  MID-STH  standard    16.0 kg     15.28  charged    20.00     -4.72
+FR-8137  STH-WST  express    115.5 kg    127.53  charged   176.46    -48.93
+FR-8138  EST-MID  standard    18.0 kg     15.98  charged    20.97     -4.99
+FR-8139  EST-MID  standard   120.0 kg     62.90  charged    82.66    -19.76
+FR-8140  MID-MID  standard     6.5 kg      9.50  charged    12.32     -2.82</pre><p class="note">Output: the first 15 of 35 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/freight-quote-ormaos-1.jsonl?plain=1#L20">Full output</a></p></li>
+<li><pre class="cmd-text">cp job.py /tmp/job.py.orig &amp;&amp; python3 - &lt;&lt;&#x27;EOF&#x27;
+from pathlib import Path
+p = Path(&quot;job.py&quot;); s = p.read_text()
+old_price = s[s.index(&quot;def price(&quot;):s.index(&quot;def main(&quot;)]
+new_price = &#x27;&#x27;&#x27;class QuoteError(Exception):
+    &quot;&quot;&quot;A shipment the carrier gave no rate for: the job must not write a guess.&quot;&quot;&quot;
+
+
+def price(base_url, shipment):
+    &quot;&quot;&quot;The freight of one shipment, in cents, as the carrier quotes it today.&quot;&quot;&quot;
+    try:
+        return carrier.rate(base_url, shipment)</pre><p class="note">… 41 more lines of this command</p></li>
+<li><pre class="cmd-text">T=$(mktemp -d) &amp;&amp; cp data/shipments.csv data/carrier.json data/quotes.db $T/ &amp;&amp; cp $T/carrier.json $T/full.json &amp;&amp; cp $T/quotes.db $T/q2.db &amp;&amp; python3 -c &quot;
+import json,sys;p=sys.argv[1];s=json.load(open(p));s[&#x27;calls_used_today&#x27;]=s[&#x27;calls_per_day&#x27;]-3;json.dump(s,open(p,&#x27;w&#x27;))&quot; $T/full.json
+echo &quot;== normal&quot;; python3 job.py --shipments $T/shipments.csv --carrier $T/carrier.json --db $T/quotes.db; echo &quot;exit=$?&quot;; python3 quotes.py --db $T/quotes.db | head -3
+echo &quot;== quota runs out&quot;; python3 job.py --shipments $T/shipments.csv --carrier $T/full.json --db $T/q2.db; echo &quot;exit=$?&quot;; python3 quotes.py --db $T/q2.db | head -3
+cmp data/quotes.db $T/q2.db &amp;&amp; echo &quot;q2 untouched&quot;</pre></li>
+<li><pre class="cmd-text">Edit README.md</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/README.md
++++ README.md
+@@ -12,7 +12,7 @@
+ python3 quotes.py  # show the quotes
+ ```
+ 
+-The job prints `quotes finished: OK` and exits with code 0 when the quotes are written. If it cannot run (no database, an unreadable dispatch list), it prints `quotes failed: ...` on stderr and exits with code 2.
++The job prints `quotes finished: OK` and exits with code 0 when the quotes are written. If it cannot run (no database, an unreadable dispatch list), it prints `quotes failed: ...` on stderr and exits with code 2. If the carrier gives no rate for a shipment (401, 404, 422, 429 or no answer), it prints `quotes failed: &lt;shipment&gt;: ...` on stderr, writes nothing, and exits with code 1. Every quote comes from the carrier: the contract rate card has no fuel surcharge and older prices, so it is never used in place of the carrier.
+ 
+ Each run replaces the quotes: the table holds the quotes of the current dispatch list and no other.
+ 
+--- task/job.py
++++ job.py
+@@ -5,19 +5,21 @@
+     python job.py
+ 
+ For every shipment on the dispatch list it asks the carrier for a rate and
+-writes the quote to the database. Exit code 0 means the quotes were written;
+-anything else means the job could not run.
++writes the quote to the database. Exit code 0 means every quote came from the
++carrier and was written; 1 means the carrier gave no rate for a shipment (for
++example 429, the day&#x27;s calls are used up) and nothing was written; 2 means the
++job could not run.
+ &quot;&quot;&quot;
+ 
+ import argparse
+ import logging
+ import os
+ import sys
++import urllib.error
+ from pathlib import Path
+ 
+ import carrier
+ import quotes
+-import ratecard
+ import shipments
+ 
+ HERE = Path(__file__).resolve().parent
+@@ -36,20 +38,30 @@
+     )
+ 
+ 
+-def price(base_url, card, shipment):
+-    &quot;&quot;&quot;The freight of one shipment, in cents.&quot;&quot;&quot;
++class QuoteError(Exception):
++    &quot;&quot;&quot;A shipment the carrier gave no rate for: the job must not write a guess.&quot;&quot;&quot;
++
++
++def price(base_url, shipment):
++    &quot;&quot;&quot;The freight of one shipment, in cents, as the carrier quotes it today.&quot;&quot;&quot;
+     try:
+         return carrier.rate(base_url, shipment)
+-    except Exception as exc:
+-        log.warning(&quot;no carrier rate for %s: %s&quot;, shipment.shipment_id, exc)
+-        return ratecard.rate(card, shipment)
++    except urllib.error.HTTPError as exc:
++        raise QuoteError(f&quot;{shipment.shipment_id}: carrier refused the rate: HTTP {exc.code}&quot;) from exc
++    except (OSError, ValueError, KeyError) as exc:
++        raise QuoteError(f&quot;{shipment.shipment_id}: no carrier rate: {exc}&quot;) from exc
+ 
+ 
+-def quote_all(base_url, card, todo):
+-    &quot;&quot;&quot;One quote per shipment, in the order of the dispatch list.&quot;&quot;&quot;
++def quote_all(base_url, todo):
++    &quot;&quot;&quot;One quote per shipment, in the order of the dispatch list.
++
++    Every quote must come from the carrier. The contract rate card is not a
++    stand-in for it: it has no fuel surcharge and older prices, so a quote
++    from it is lower than what the carrier charges.
++    &quot;&quot;&quot;
+     rows = []
+     for shipment in todo:
+-        cents = price(base_url, card, shipment)
++        cents = price(base_url, shipment)
+         rows.append(quotes.Quote.of(shipment, cents))
+     return rows
+ 
+@@ -64,7 +76,6 @@
+ 
+     try:
+         todo = shipments.read(args.shipments)
+-        card = ratecard.load()
+         conn = quotes.connect(args.db)
+     except (OSError, ValueError) as exc:
+         print(f&quot;quotes failed: {exc}&quot;, file=sys.stderr)
+@@ -72,7 +83,12 @@
+ 
+     with carrier.local_api(args.carrier) as base_url:
+         log.info(&quot;asking %s for %d rates&quot;, base_url, len(todo))
+-        rows = quote_all(base_url, card, todo)
++        try:
++            rows = quote_all(base_url, todo)
++        except QuoteError as exc:
++            conn.close()
++            print(f&quot;quotes failed: {exc}; no quotes written&quot;, file=sys.stderr)
++            return 1
+     quotes.replace_all(conn, rows)
+     conn.close()
+     log.info(&quot;%d quotes written&quot;, len(rows))</code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  the carrier refuses calls: exit 1, said OK: False, 26 shipments not quoted at the carrier&#x27;s price
+pass  the carrier answers every call: exit 0, said OK: True, 0 shipments not quoted at the carrier&#x27;s price
+fixed</code></pre>
+</figure>
+</article>
+</div>
+</section>
+
+<section class="band" id="runs" aria-labelledby="runs-title">
+<h2 id="runs-title">Every run</h2>
+<p>The first attempt of every run of every arm.</p>
+<div class="table-wrap">
+<table class="plain runs">
+<thead><tr><th scope="col">Arm</th><th scope="col">Run</th><th scope="col">Check</th><th scope="col">Last line</th><th scope="col">Tool calls</th><th scope="col">Tokens</th><th scope="col">Wall time</th><th scope="col">Stream</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>10</td><td>142,606</td><td>67 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/freight-quote-none-1.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>11</td><td>149,277</td><td>70 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/freight-quote-none-2.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>10</td><td>122,825</td><td>62 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/freight-quote-none-3.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>9</td><td>284,126</td><td>73 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/freight-quote-raw-1.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>8</td><td>243,272</td><td>59 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/freight-quote-raw-2.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>8</td><td>134,028</td><td>62 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/freight-quote-raw-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>8</td><td>158,156</td><td>56 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/freight-quote-ormaos-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>9</td><td>184,036</td><td>60 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/freight-quote-ormaos-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>6</td><td>129,574</td><td>53 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/freight-quote-ormaos-3.jsonl">stream</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="files" aria-labelledby="files-title">
+<h2 id="files-title">The results files</h2>
+<ul class="rows">
+  <li>The benchmark: <a href="/benchmarks/fix/">fix</a></li>
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703"><code>agent-bench/results/20261126-220703</code></a></li>
+</ul>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>

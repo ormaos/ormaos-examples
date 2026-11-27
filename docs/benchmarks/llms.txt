@@ -6,11 +6,33 @@ Each page is plain Markdown at the address below; the HTML page is the same addr
 
 ## Pages
 
-- [Benchmarks](https://ormaos.com/benchmarks.md): what is measured, one card per benchmark, and what the benchmarks do not show
+- [Benchmarks](https://ormaos.com/benchmarks.md): where Ormaos changed the result and where it did not, situation by situation, what Ormaos data answered, one card per benchmark, and what is not measured yet
 - [knows2: what an agent knows about an execution](https://ormaos.com/benchmarks/knows2.md): the method, the charts, every question with the oracle's answer and every run's answer, and what the agents said when they could not answer
 - [knows: the earlier run](https://ormaos.com/benchmarks/knows.md): the earlier run of the same executions, and why knows2 replaced it
-- [fix: 8 programs whose behaviour differed from their README](https://ormaos.com/benchmarks/fix.md): 8 programs, 3 arms, the metric fixed, scored by the first attempt of every slot
+- [fix: 8 programs that behaved otherwise than their README](https://ormaos.com/benchmarks/fix.md): 8 programs, 3 arms, the metric fixed, scored by the first attempt of every slot
 - [overhead: what recording adds to the time of a run](https://ormaos.com/benchmarks/overhead.md): the time a recorded run takes, per capability set, on 2 workloads
+
+## Situations
+
+One page per situation: what happened, what the agent was given, run 1 of each arm side by side, and every run.
+
+- [web-backend, in knows2](https://ormaos.com/benchmarks/cases/knows2-web-backend.md)
+- [data-pipeline, in knows2](https://ormaos.com/benchmarks/cases/knows2-data-pipeline.md)
+- [notebook, in knows2](https://ormaos.com/benchmarks/cases/knows2-notebook.md)
+- [ml-training, in knows2](https://ormaos.com/benchmarks/cases/knows2-ml-training.md)
+- [rl-env, in knows2](https://ormaos.com/benchmarks/cases/knows2-rl-env.md)
+- [ai-app, in knows2](https://ormaos.com/benchmarks/cases/knows2-ai-app.md)
+- [agent-change, in knows2](https://ormaos.com/benchmarks/cases/knows2-agent-change.md)
+- [order-sync, in knows2](https://ormaos.com/benchmarks/cases/knows2-order-sync.md)
+- [freight-quote, in knows2](https://ormaos.com/benchmarks/cases/knows2-freight-quote.md)
+- [order-sync, in fix](https://ormaos.com/benchmarks/cases/fix-order-sync.md)
+- [freight-quote, in fix](https://ormaos.com/benchmarks/cases/fix-freight-quote.md)
+- [late-fees, in fix](https://ormaos.com/benchmarks/cases/fix-late-fees.md)
+- [statement-import, in fix](https://ormaos.com/benchmarks/cases/fix-statement-import.md)
+- [fx-rates, in fix](https://ormaos.com/benchmarks/cases/fix-fx-rates.md)
+- [price-import, in fix](https://ormaos.com/benchmarks/cases/fix-price-import.md)
+- [points-grant, in fix](https://ormaos.com/benchmarks/cases/fix-points-grant.md)
+- [commission-run, in fix](https://ormaos.com/benchmarks/cases/fix-commission-run.md)
 
 ## Results files
 

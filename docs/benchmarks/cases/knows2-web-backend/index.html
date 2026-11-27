@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>web-backend, in knows2 · Ormaos benchmarks</title>
+<meta name="description" content="web-backend, in knows2: what happened, what the agent was given, run 1 of each arm side by side, and every run.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/cases/knows2-web-backend.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long bench">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://docs.ormaos.com/">Docs</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<p class="kicker">Situation · knows2</p>
+<h1 id="top-title">web-backend, in knows2</h1>
+<p class="lead">A web backend. A FastAPI service over a SQLite database of customers, products and orders, with one route that lists a customer&#x27;s orders, each with its total. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/web-backend"><code>use-cases/web-backend</code></a>.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<p>Mean score over every run: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 0.96, <code>ormaos-values</code> 1.00 (3 runs per arm). Agent: <code>claude-code / claude-opus-5-5</code>.</p>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#happened">What happened</a></li>
+  <li><a href="#given">What the agent was given</a></li>
+  <li><a href="#side-by-side">Run 1 of each arm, side by side</a></li>
+  <li><a href="#answered">What Ormaos data answered</a></li>
+  <li><a href="#runs">Every run</a></li>
+  <li><a href="#files">The results files</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="happened" aria-labelledby="happened-title">
+<h2 id="happened-title">What happened</h2>
+<p>During the one request that <code>main.py</code> made, the route answered with the customer <code>Clara</code> and orders whose <code>total_cents</code> add up to 18200; the largest is order 8, with 3660. Handling it ran 38 SQL statements and called <code>price_of</code> 24 times; <code>discount_for</code> returned 0, from its <code>except KeyError</code> branch. Before the request, <code>store.create()</code> inserted 38 rows into <code>order_items</code>.</p>
+<p>The numbers are the oracle&#x27;s answers to the questions below: <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/oracle/web-backend.json"><code>oracle/web-backend.json</code></a>.</p>
+</section>
+
+<section class="band" id="given" aria-labelledby="given-title">
+<h2 id="given-title">What the agent was given</h2>
+<p>The folder the execution left, with what the arm adds, and 8 questions in <code>questions.json</code>, written by a model that was not told about Ormaos. The oracle&#x27;s answers were not in the folder.</p>
+<div class="table-wrap">
+<table class="plain questions">
+<thead><tr><th scope="col">Question</th><th scope="col">Asked</th><th scope="col">Format</th><th scope="col">The oracle&#x27;s answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>What customer name did the route put in the &quot;customer&quot; field of the response body it returned for this request?</td><td>A single name exactly as stored in the database, e.g. &quot;Name&quot;</td><td><code>&quot;Clara&quot;</code></td></tr>
+<tr><td>q2</td><td>What discount percentage did discount_for return for the requested customer during this request, and was it reached through the except KeyError branch?</td><td>An integer followed by yes or no, e.g. &quot;7, no&quot;</td><td><code>[0, true]</code></td></tr>
+<tr><td>q3</td><td>What was the id of the first order in the &quot;orders&quot; list of the response?</td><td>An integer</td><td><code>8</code></td></tr>
+<tr><td>q4</td><td>What was the sum of the &quot;total_cents&quot; values across all orders in the response?</td><td>An integer number of cents</td><td><code>18200</code></td></tr>
+<tr><td>q5</td><td>Which order in the response had the largest &quot;total_cents&quot;, and what was that value?</td><td>Order id and total, as &quot;id, cents&quot; (two integers)</td><td><code>[8, 3660]</code></td></tr>
+<tr><td>q6</td><td>How many times was price_of called while the request was handled?</td><td>An integer</td><td><code>24</code></td></tr>
+<tr><td>q7</td><td>In total, how many SQL statements were run with db.execute on the request&#x27;s database connection while list_orders handled the request (counting find_customer, the orders query, items_of, price_of and product_names calls)?</td><td>An integer</td><td><code>38</code></td></tr>
+<tr><td>q8</td><td>How many rows did store.create() insert into the order_items table when it rebuilt orders.db before the request?</td><td>An integer</td><td><code>38</code></td></tr>
+</tbody>
+</table>
+</div>
+<details class="text">
+<summary>The prompt of each arm, verbatim</summary>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>none</code></span></figcaption>
+<pre tabindex="0"><code>`.venv/bin/python main.py` ran once in this folder. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>raw</code></span></figcaption>
+<pre tabindex="0"><code>`.venv/bin/python main.py` ran once in this folder. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. A VizTracer trace of that execution is in result.json, in the Chrome Trace Event format (JSON; &quot;traceEvents&quot; has one entry per function call, with its name, its start &quot;ts&quot; and its duration &quot;dur&quot; in microseconds); read it with python3.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos</code></span></figcaption>
+<pre tabindex="0"><code>`.venv/bin/python main.py` ran once in this folder. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. That execution was recorded with Ormaos: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos-values</code></span></figcaption>
+<pre tabindex="0"><code>`.venv/bin/python main.py` ran once in this folder. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. That execution was recorded with Ormaos, values included: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+</details>
+</section>
+
+<section class="band" id="side-by-side" aria-labelledby="side-by-side-title">
+<h2 id="side-by-side-title">Run 1 of each arm, side by side</h2>
+<p>Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent&#x27;s tool calls in order; under each <code>ormaos</code> command, the lines of its output that hold a value the agent wrote in <code>answers.json</code>, or its first 15 lines, with a link to the full output in the stream.</p>
+<div class="sbs" style="--cols:4">
+<article class="arm-col a1">
+<h4><code>none</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-none-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">4 tool calls, 49,569 tokens, 25 s</p>
+<p class="part">Commands, in order (4)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/web-backend; ls -la; cat questions.json; cat main.py</pre></li>
+<li><pre class="cmd-text">cd /srv/web-backend; cat app.py store.py README.md requirements.txt</pre></li>
+<li><pre class="cmd-text">cd /srv/web-backend; python3 -I -c &quot;
+import sqlite3
+c=sqlite3.connect(&#x27;orders.db&#x27;)
+print(c.execute(&#x27;select * from customers&#x27;).fetchall())
+print(c.execute(&#x27;select * from products&#x27;).fetchall())
+print(c.execute(&#x27;select count(*) from order_items&#x27;).fetchall())
+os=c.execute(&#x27;select id,placed from orders where customer_id=3 order by placed&#x27;).fetchall()
+print(os)
+tot=[];calls=0;ex=2
+for o,p in os:
+  its=c.execute(&#x27;select product_id,quantity from order_items where order_id=?&#x27;,(o,)).fetchall(); ex+=1
+  t=0</pre><p class="note">… 5 more lines of this command</p></li>
+<li><pre class="cmd-text">cd /srv/web-backend; cat &gt; answers.json &lt;&lt;&#x27;E&#x27;
+{&quot;q1&quot;: &quot;Clara&quot;, &quot;q2&quot;: &quot;0, yes&quot;, &quot;q3&quot;: 8, &quot;q4&quot;: 18200, &quot;q5&quot;: &quot;8, 3660&quot;, &quot;q6&quot;: 24, &quot;q7&quot;: 38, &quot;q8&quot;: 38}
+E
+cat answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>&quot;Clara&quot;</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>&quot;0, yes&quot;</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>8</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>18200</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>&quot;8, 3660&quot;</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>24</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>38</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a2">
+<h4><code>raw</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-raw-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">5 tool calls, 72,462 tokens, 36 s</p>
+<p class="part">Commands, in order (5)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/web-backend; ls -la; cat questions.json; python3 -c &quot;
+import json;d=json.load(open(&#x27;result.json&#x27;));e=d[&#x27;traceEvents&#x27;];print(len(e));print(e[:3])&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/web-backend; cat README.md app.py main.py store.py requirements.txt</pre></li>
+<li><pre class="cmd-text">cd /srv/web-backend; python3 -c &quot;
+import json,collections;d=json.load(open(&#x27;result.json&#x27;));e=d[&#x27;traceEvents&#x27;]
+c=collections.Counter(x[&#x27;name&#x27;] for x in e if &#x27;app.py&#x27; in x.get(&#x27;name&#x27;,&#x27;&#x27;) or &#x27;store.py&#x27; in x.get(&#x27;name&#x27;,&#x27;&#x27;) or &#x27;main.py&#x27; in x.get(&#x27;name&#x27;,&#x27;&#x27;))
+for k,v in c.items():print(v,k)
+for x in e:
+  if any(s in x.get(&#x27;name&#x27;,&#x27;&#x27;) for s in [&#x27;list_orders&#x27;,&#x27;discount_for&#x27;,&#x27;find_customer&#x27;,&#x27;main.py&#x27;]): print(x)
+print([k for k in d if k!=&#x27;traceEvents&#x27;])
+&quot; | head -50</pre></li>
+<li><pre class="cmd-text">cd /srv/web-backend; python3 -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;orders.db&#x27;)
+print(c.execute(&#x27;select * from customers&#x27;).fetchall())
+print(c.execute(&#x27;select * from products&#x27;).fetchall())
+print(c.execute(&#x27;select count(*) from order_items&#x27;).fetchall())
+r=[]
+for oid,pl in c.execute(&#x27;select id,placed from orders where customer_id=3 order by placed&#x27;).fetchall():
+  t=sum(c.execute(&#x27;select cents from products where id=?&#x27;,(p,)).fetchone()[0]*q for p,q in c.execute(&#x27;select product_id,quantity from order_items where order_id=?&#x27;,(oid,)))
+  r.append((oid,t))
+print(r,sum(t for _,t in r),max(r,key=lambda x:x[1]))
+&quot;
+python3 -c &quot;</pre><p class="note">… 5 more lines of this command</p></li>
+<li><pre class="cmd-text">cd /srv/web-backend; cat &gt; answers.json &lt;&lt;&#x27;E&#x27;
+{&quot;q1&quot;: &quot;Clara&quot;, &quot;q2&quot;: &quot;0, yes&quot;, &quot;q3&quot;: 8, &quot;q4&quot;: 18200, &quot;q5&quot;: &quot;8, 3660&quot;, &quot;q6&quot;: 24, &quot;q7&quot;: 38, &quot;q8&quot;: 38}
+E
+cat answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>&quot;Clara&quot;</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>&quot;0, yes&quot;</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>8</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>18200</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>&quot;8, 3660&quot;</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>24</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>38</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a3">
+<h4><code>ormaos</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-ormaos-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">5 tool calls, 94,507 tokens, 28 s</p>
+<p class="part">Commands, in order (5)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/web-backend; ls -la; cat questions.json; .venv/bin/ormaos guide</pre><pre class="out">total 56
+drwxrwxr-x 4 levimbraga levimbraga  4096 Nov 27 16:56 .
+drwx------ 3 levimbraga levimbraga    60 Nov 27 16:58 ..
+drwxrwxr-x 3 levimbraga levimbraga  4096 Nov 27 16:56 .ormaos
+drwxrwxr-x 5 levimbraga levimbraga  4096 Nov 27 13:56 .venv
+-rw-rw-r-- 1 levimbraga levimbraga   802 Nov 27 13:20 README.md
+-rw-rw-r-- 1 levimbraga levimbraga  2102 Nov 27 13:19 app.py
+-rw-rw-r-- 1 levimbraga levimbraga   523 Nov 27 13:19 main.py
+-rw-r--r-- 1 levimbraga levimbraga 20480 Nov 27 16:56 orders.db
+-rw-rw-r-- 1 levimbraga levimbraga  1729 Nov 27 16:56 questions.json
+-rw-rw-r-- 1 levimbraga levimbraga    27 Nov 27 13:19 requirements.txt
+-rw-rw-r-- 1 levimbraga levimbraga  1705 Nov 27 13:19 store.py
+{
+  &quot;questions&quot;: [
+    {</pre><p class="note">Output: the first 15 of 181 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-ormaos-1.jsonl?plain=1#L4">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/web-backend; cat main.py app.py store.py README.md; .venv/bin/ormaos list; .venv/bin/ormaos show last --full</pre><pre class="out">CUSTOMERS = [(1, &quot;Ana&quot;, &quot;gold&quot;), (2, &quot;Bruno&quot;, &quot;silver&quot;), (3, &quot;Clara&quot;, &quot;trial&quot;)]</pre><p class="note">Output: the 1 line of 214 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-ormaos-1.jsonl?plain=1#L6">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/web-backend; .venv/bin/ormaos io r1; .venv/bin/ormaos tree r1 --depth 4 | head -60; .venv/bin/ormaos tree r1 --function price_of | tail -5; .venv/bin/ormaos exceptions r1</pre><pre class="out">r1:c10 list_orders(customer_id: int, names: bool, db: sqlite3.Connection) -&gt; dict[2]  app.py:53  3.2ms  io 38  thread 2  calls below: 14</pre><p class="note">Output: the 1 line of 60 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-ormaos-1.jsonl?plain=1#L12">Full output</a></p></li>
+<li><pre class="cmd-text">cd /tmp &amp;&amp; python3 -I -c &quot;
+import sqlite3
+c=sqlite3.connect(&#x27;file:/srv/web-backend/orders.db?mode=ro&#x27;,uri=True)
+print(c.execute(&#x27;select * from customers where id=3&#x27;).fetchall())
+os=c.execute(&#x27;select id,placed from orders where customer_id=3 order by placed&#x27;).fetchall()
+tot=[]
+for i,p in os:
+  t=sum(c.execute(&#x27;select cents from products where id=?&#x27;,(pid,)).fetchone()[0]*q for pid,q in c.execute(&#x27;select product_id,quantity from order_items where order_id=?&#x27;,(i,)).fetchall())
+  tot.append((i,p,t))
+print(tot, sum(t for _,_,t in tot), max(tot,key=lambda x:x[2]))
+print(c.execute(&#x27;select count(*) from order_items&#x27;).fetchone())
+&quot;</pre></li>
+<li><pre class="cmd-text">Write answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>&quot;Clara&quot;</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>&quot;0, yes&quot;</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>8</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>18200</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>&quot;8, 3660&quot;</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>24</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>38</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a4">
+<h4><code>ormaos-values</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-ormaos-values-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">6 tool calls, 120,101 tokens, 32 s</p>
+<p class="part">Commands, in order (6)</p><ol class="steps">
+<li><pre class="cmd-text">.venv/bin/ormaos guide; cat questions.json; ls -la</pre><pre class="out">ormaos: what actually happened inside a Python execution.
+It records a run and shows it. It does not judge: you decide whether what
+happened is what should have happened.
+
+WHAT ORMAOS ANSWERS
+- What ran: the calls of the project&#x27;s code, as a tree, with the shape of
+  each argument and result (`orders: list[36 Order]`), never the values.
+- How often: counts by function, by line of code, by kind of I/O.
+- What was raised and caught: every exception, where it was raised and where
+  it was handled. &quot;swallowed&quot; = it entered an `except` and was not raised
+  again. Also &quot;uncaught&quot;, &quot;replaced&quot;, &quot;exit&quot;.
+- What I/O happened: SQL statements, files, subprocesses, HTTP requests, each
+  with the line of the project&#x27;s code that caused it.
+- What was logged: `logging` records by level, logger and message template,
+  with the line that asked for each; also the ones the level dropped.</pre><p class="note">Output: the first 15 of 181 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-ormaos-values-1.jsonl?plain=1#L4">Full output</a></p></li>
+<li><pre class="cmd-text">cat README.md app.py main.py store.py; .venv/bin/ormaos list; .venv/bin/ormaos show last --full</pre><pre class="out">CUSTOMERS = [(1, &quot;Ana&quot;, &quot;gold&quot;), (2, &quot;Bruno&quot;, &quot;silver&quot;), (3, &quot;Clara&quot;, &quot;trial&quot;)]</pre><p class="note">Output: the 1 line of 215 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-ormaos-values-1.jsonl?plain=1#L6">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos tree r1 --limit 200; .venv/bin/ormaos io r1 --limit 200 | head -80; .venv/bin/ormaos exceptions r1:e1; .venv/bin/ormaos logs r1 --dropped</pre><pre class="out">r1:c10 list_orders(customer_id: int=3, names: bool=False, db: sqlite3.Connection) -&gt; dict[2]=&quot;{\&quot;customer\&quot;: \&quot;Clara\&quot;, \&quot;orders\&quot;: \&quot;&lt;another type&gt;\&quot;}&quot;  app.py:53  3.3ms  io 38  thread 2  calls below: 14
+  r1:c13 order_total(db: sqlite3.Connection, order_id: int=8) -&gt; int=3660  app.py:49  353us  io 4  thread 2  calls below: 2</pre><p class="note">Output: the 2 lines of 75 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-ormaos-values-1.jsonl?plain=1#L11">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos tree r1 --function price_of --limit 100 | tail -5; .venv/bin/ormaos tree r1 --function price_of --json | python3 -c &quot;import sys,json;d=json.load(sys.stdin);print(list(d.keys()))&quot;</pre><pre class="out">r1:c63 price_of(db: sqlite3.Connection, product_id: int=4) -&gt; int=260  app.py:40  48us  io 1  thread 2
+r1:c67 price_of(db: sqlite3.Connection, product_id: int=3) -&gt; int=990  app.py:40  47us  io 1  thread 2
+r1:c71 price_of(db: sqlite3.Connection, product_id: int=4) -&gt; int=260  app.py:40  48us  io 1  thread 2
+r1:c72 price_of(db: sqlite3.Connection, product_id: int=1) -&gt; int=450  app.py:40  50us  io 1  thread 2
+next: ormaos tree r1:c16 | ormaos tree r1:c17 | ormaos tree r1 | ormaos exceptions r1
+[&#x27;kind&#x27;, &#x27;version&#x27;, &#x27;recording&#x27;, &#x27;address&#x27;, &#x27;root&#x27;, &#x27;ancestors&#x27;, &#x27;filter&#x27;, &#x27;looked_at&#x27;, &#x27;matched&#x27;, &#x27;by_fn&#x27;, &#x27;raised&#x27;, &#x27;depth&#x27;, &#x27;limit&#x27;, &#x27;offset&#x27;, &#x27;nodes&#x27;, &#x27;not_shown&#x27;, &#x27;matches_not_shown&#x27;, &#x27;program_data&#x27;, &#x27;next&#x27;, &#x27;next_commands&#x27;]</pre><p class="note">Output: all 6 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-ormaos-values-1.jsonl?plain=1#L18">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos tree r1 --function price_of --json | python3 -c &quot;import sys,json;d=json.load(sys.stdin);print(d[&#x27;matched&#x27;],d[&#x27;looked_at&#x27;],len(d[&#x27;nodes&#x27;]))&quot;</pre><pre class="out">24 72 24</pre><p class="note">Output: the 1 line of 1 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-ormaos-values-1.jsonl?plain=1#L20">Full output</a></p></li>
+<li><pre class="cmd-text">Write answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>&quot;Clara&quot;</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>&quot;0, yes&quot;</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>8</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>18200</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>&quot;8, 3660&quot;</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>24</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>38</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+</div>
+</section>
+
+<section class="band" id="answered" aria-labelledby="answered-title">
+<h2 id="answered-title">What Ormaos data answered</h2>
+<p>Read from the streams: in each run of an Ormaos arm, the <code>ormaos</code> verbs in its commands up to its last write of <code>answers.json</code>. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them.</p>
+<div class="table-wrap">
+<table class="plain">
+<thead><tr><th scope="col">Question</th><th scope="col"><code>ormaos</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th><th scope="col"><code>ormaos-values</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>show 3, tree 3, io 3, guide 3, exceptions 1, list 1</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q2</td><td>show 3, tree 3, io 3, guide 3, exceptions 1, list 1</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q3</td><td>show 3, tree 3, io 3, guide 3, exceptions 1, list 1</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q4</td><td>show 3, tree 3, io 3, guide 3, exceptions 1, list 1</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q5</td><td>show 3, tree 3, io 3, guide 3, exceptions 1, list 1</td><td>3/3</td><td>2/3</td><td>show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q6</td><td>show 3, tree 3, io 3, guide 3, exceptions 1, list 1</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q7</td><td>show 3, tree 3, io 3, guide 3, exceptions 1, list 1</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q8</td><td>show 3, tree 3, io 3, guide 3, exceptions 1, list 1</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 2</td><td>3/3</td><td>3/3</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="runs" aria-labelledby="runs-title">
+<h2 id="runs-title">Every run</h2>
+<p>Every run of every arm.</p>
+<div class="table-wrap">
+<table class="plain runs">
+<thead><tr><th scope="col">Arm</th><th scope="col">Run</th><th scope="col">Score</th><th scope="col">Right</th><th scope="col">Null</th><th scope="col">Wrong</th><th scope="col"><code>ormaos</code> verbs before answers.json</th><th scope="col">Tool calls</th><th scope="col">Tokens</th><th scope="col">Wall time</th><th scope="col">Stream</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>49,569</td><td>25 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-none-1.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>6</td><td>80,197</td><td>32 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-none-2.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>6</td><td>82,828</td><td>31 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-none-3.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>5</td><td>72,462</td><td>36 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-raw-1.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>5</td><td>91,945</td><td>44 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-raw-2.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>5</td><td>90,646</td><td>38 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-raw-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, io, tree, exceptions</td><td>5</td><td>94,507</td><td>28 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-ormaos-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, show, io, tree</td><td>5</td><td>85,062</td><td>31 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-ormaos-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>3</td><td>0.88</td><td>7</td><td>0</td><td>1</td><td>guide, show, io, tree</td><td>5</td><td>101,044</td><td>31 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-ormaos-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree, io, exceptions, logs</td><td>6</td><td>120,101</td><td>32 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-ormaos-values-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree, io, exceptions</td><td>5</td><td>97,309</td><td>27 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-ormaos-values-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree, io, logs</td><td>5</td><td>98,270</td><td>29 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/web-backend-ormaos-values-3.jsonl">stream</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="files" aria-labelledby="files-title">
+<h2 id="files-title">The results files</h2>
+<ul class="rows">
+  <li>The benchmark: <a href="/benchmarks/knows2/#web-backend">knows2</a></li>
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801"><code>agent-bench/knows2/results/20261127-165801</code></a></li>
+</ul>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>

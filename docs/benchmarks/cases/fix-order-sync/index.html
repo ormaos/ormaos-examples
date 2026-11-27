@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>order-sync, in fix · Ormaos benchmarks</title>
+<meta name="description" content="order-sync, in fix: what happened, what the agent was given, run 1 of each arm side by side, and every run.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/cases/fix-order-sync.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long bench">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://docs.ormaos.com/">Docs</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<p class="kicker">Situation · fix</p>
+<h1 id="top-title">order-sync, in fix</h1>
+<p class="lead">A scheduled job. By its README, it applies orders to an inventory. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/order-sync"><code>order-sync</code></a>.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<p>Passed the check, first attempts: <code>none</code> 3/3, <code>raw</code> 3/3, <code>ormaos</code> 3/3 (3 runs per arm). Agent: <code>claude-code / claude-opus-5-5</code>.</p>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#happened">What happened</a></li>
+  <li><a href="#given">What the agent was given</a></li>
+  <li><a href="#side-by-side">Run 1 of each arm, side by side</a></li>
+  <li><a href="#runs">Every run</a></li>
+  <li><a href="#files">The results files</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="happened" aria-labelledby="happened-title">
+<h2 id="happened-title">What happened</h2>
+<p>That night cron ran <code>python3 job.py --source api</code>; it printed <code>sync finished: OK</code> and exited with code 0. This morning the stock of 3 SKUs in <code>data/inventory.db</code> is not the warehouse&#x27;s count in <code>data/count.csv</code>: <code>HDS-0402</code>, <code>KBD-0101</code> and <code>MON-0201</code>. Where it behaved otherwise than its README: an exception that is caught and not shown.</p>
+<p>The items are those the scenario&#x27;s own check of the data found, in <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/build.json"><code>build.json</code></a>.</p>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label">The symptom, from <code>TASK.md</code> in the agent&#x27;s folder</span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s order sync run said OK, but this morning the stock of some products is not what the warehouse counted (data/count.csv).</code></pre>
+</figure>
+</section>
+
+<section class="band" id="given" aria-labelledby="given-title">
+<h2 id="given-title">What the agent was given</h2>
+<p>Its folder (the code, its README, <code>TASK.md</code> and the data that night left, with what the arm adds) and the task text, the same in every arm but for the arm&#x27;s last sentence:</p>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>none</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s order sync run said OK, but this morning the stock of some products is not what the warehouse counted (data/count.csv). The job runs from cron with `python3 job.py --source api`. Find the cause and fix it.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>raw</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s order sync run said OK, but this morning the stock of some products is not what the warehouse counted (data/count.csv). The job runs from cron with `python3 job.py --source api`. Find the cause and fix it. A VizTracer trace of that run is in result.json, in the Chrome Trace Event format (JSON; &quot;traceEvents&quot; has one entry per function call, with its name, its start &quot;ts&quot; and its duration &quot;dur&quot; in microseconds); read it with python3.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s order sync run said OK, but this morning the stock of some products is not what the warehouse counted (data/count.csv). The job runs from cron with `python3 job.py --source api`. Find the cause and fix it. That run was recorded with Ormaos: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+</section>
+
+<section class="band" id="side-by-side" aria-labelledby="side-by-side-title">
+<h2 id="side-by-side-title">Run 1 of each arm, side by side</h2>
+<p>Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent&#x27;s tool calls in order; under each <code>ormaos</code> command, the first 15 lines of its output, with a link to the full output in the stream.</p>
+<div class="sbs" style="--cols:3">
+<article class="arm-col a1">
+<h4><code>none</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-none-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">10 tool calls, 208,668 tokens, 93 s</p>
+<p class="part">Commands, in order (10)</p><ol class="steps">
+<li><pre class="cmd-text">ls -laR | head -50 &amp;&amp; cat job.py</pre></li>
+<li><pre class="cmd-text">cat TASK.md README.md fetch.py inventory.py parse.py validate.py; for f in data/*.csv data/cron.log; do echo &quot;== $f&quot;; cat $f; done</pre></li>
+<li><pre class="cmd-text">python3 -I inventory.py --count data/count.csv; sqlite3 data/inventory.db &quot;select * from stock; select * from applied_orders; select * from backorders;&quot; 2&gt;/dev/null || python3 -I -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;file:data/inventory.db?mode=ro&#x27;,uri=True)
+for t in (&#x27;stock&#x27;,&#x27;applied_orders&#x27;,&#x27;backorders&#x27;):
+  print(&#x27;==&#x27;,t)
+  for r in c.execute(f&#x27;select * from {t}&#x27;): print(r)&quot;</pre></li>
+<li><pre class="cmd-text">ls -la .. ; find / -path /proc -prune -o \( -name &#x27;seed&#x27; -o -name &#x27;.ormaos&#x27; -o -name &#x27;reset.sh&#x27; -o -name &#x27;*order*.csv&#x27; \) -print 2&gt;/dev/null | grep -v ^/proc | head; crontab -l 2&gt;/dev/null; ls /opt</pre></li>
+<li><pre class="cmd-text">cd /tmp &amp;&amp; rm -rf os-test &amp;&amp; mkdir os-test &amp;&amp; cp /srv/order-sync/data/inventory.db os-test/ &amp;&amp; cd /srv/order-sync &amp;&amp; ORDER_SYNC_LOG_LEVEL=INFO python3 -I job.py --source api --db /tmp/os-test/inventory.db; echo exit=$?</pre></li>
+<li><pre class="cmd-text">ORDER_SYNC_LOG_LEVEL=INFO python3 job.py --source api --db /tmp/os-test/inventory.db; echo exit=$?; python3 inventory.py --db /tmp/os-test/inventory.db --count data/count.csv</pre></li>
+<li><pre class="cmd-text">cp -a . /tmp/order-sync.bak &amp;&amp; python3 - &lt;&lt;&#x27;EOF&#x27;
+import re
+p=&#x27;inventory.py&#x27;; s=open(p).read()
+s=s.replace(&#x27;&#x27;&#x27;    quantity  INTEGER NOT NULL
+);
+&quot;&quot;&quot;
+&#x27;&#x27;&#x27;,&#x27;&#x27;&#x27;    quantity  INTEGER NOT NULL
+);
+&quot;&quot;&quot;
+
+# Orders that could not be applied. The sales API hands an order over only
+# once, so the raw row is kept here to be fixed and applied by hand.</pre><p class="note">… 45 more lines of this command</p></li>
+<li><pre class="cmd-text">python3 - &lt;&lt;&#x27;EOF&#x27;
+p=&#x27;job.py&#x27;; s=open(p).read()
+old_start=s.index(&#x27;def load_orders&#x27;); old_end=s.index(&#x27;def main&#x27;)
+s=s[:old_start]+&#x27;&#x27;&#x27;def load_rows(source, orders_csv):
+    &quot;&quot;&quot;Fetch the raw rows from the chosen source.&quot;&quot;&quot;
+    if source == &quot;api&quot;:
+        with fetch.local_api(orders_csv) as base_url:
+            log.info(&quot;fetching orders from %s&quot;, base_url)
+            return fetch.from_api(base_url)
+    log.info(&quot;reading orders from %s&quot;, orders_csv)
+    return fetch.from_csv(orders_csv)
+</pre><p class="note">… 74 more lines of this command</p></li>
+<li><pre class="cmd-text">cp data/inventory.db /tmp/os-test/inventory.db &amp;&amp; cat &gt; /tmp/os-test/bad.csv &lt;&lt;&#x27;EOF&#x27;
+order_id,placed_at,sku,quantity,channel,unit
+SO-90001,2026-11-26T06:10,kbd-0101,3,marketplace,each
+SO-90002,2026-11-26T06:11,HDS-0402,900,web,each
+SO-90003,2026-11-26T06:12,MON-0201,1,web,box
+SO-90004,2026-11-26T06:13,XYZ-9999,1,web,each
+SO-90005,2026-11-26T06:14,KBD-0101 ,2,web,each
+SO-90006,not-a-date,KBD-0101,1,web,each
+SO-90007,2026-11-26T06:15,MSE-0102,1,web,each
+EOF
+python3 job.py --source api --orders /tmp/os-test/bad.csv --db /tmp/os-test/inventory.db; echo exit=$?
+python3 -c &quot;</pre><p class="note">… 4 more lines of this command</p></li>
+<li><pre class="cmd-text">python3 - &lt;&lt;&#x27;EOF&#x27;
+p=&#x27;README.md&#x27;; s=open(p).read()
+old=&quot;The job prints `sync finished: OK` and exits with code 0 when the sync is done.&quot;
+assert old in s
+s=s.replace(old,&quot;The job prints `sync finished: OK` and exits with code 0 when every order was applied. If some orders are rejected (bad SKU, quantity, unit or date, or a SKU not in the inventory), each one is logged at ERROR, kept with its raw data and the reason in the `rejected_orders` table, and the job exits with code 1. The other orders are still applied.&quot;)
+open(p,&#x27;w&#x27;).write(s)
+EOF</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/README.md
++++ README.md
+@@ -12,7 +12,7 @@
+ python3 inventory.py  # show the stock levels
+ ```
+ 
+-The job prints `sync finished: OK` and exits with code 0 when the sync is done. If it cannot run (no database, unreadable export), it prints `sync failed: ...` on stderr and exits with code 2.
++The job prints `sync finished: OK` and exits with code 0 when every order was applied. If some orders are rejected (bad SKU, quantity, unit or date, or a SKU not in the inventory), each one is logged at ERROR, kept with its raw data and the reason in the `rejected_orders` table, and the job exits with code 1. The other orders are still applied. If it cannot run (no database, unreadable export), it prints `sync failed: ...` on stderr and exits with code 2.
+ 
+ Running the job again over the same orders is safe: an order is applied only once.
+ 
+--- task/inventory.py
++++ inventory.py
+@@ -36,6 +36,18 @@
+ );
+ &quot;&quot;&quot;
+ 
++# Orders that could not be applied. The sales API hands an order over only
++# once, so the raw row is kept here to be fixed and applied by hand.
++REJECTED_SCHEMA = &quot;&quot;&quot;
++CREATE TABLE IF NOT EXISTS rejected_orders (
++    id           INTEGER PRIMARY KEY AUTOINCREMENT,
++    order_id     TEXT,
++    raw          TEXT NOT NULL,
++    reason       TEXT NOT NULL,
++    rejected_at  TEXT NOT NULL
++);
++&quot;&quot;&quot;
++
+ 
+ class UnknownSkuError(LookupError):
+     &quot;&quot;&quot;The order names a SKU that the warehouse does not stock.&quot;&quot;&quot;
+@@ -44,7 +56,25 @@
+ def connect(db_path=DEFAULT_DB):
+     if not Path(db_path).exists():
+         raise FileNotFoundError(f&quot;{db_path} does not exist; run ./reset.sh first&quot;)
+-    return sqlite3.connect(db_path)
++    conn = sqlite3.connect(db_path)
++    with conn:
++        conn.executescript(REJECTED_SCHEMA)
++    return conn
++
++
++def record_rejected(conn, order_id, raw, reason):
++    &quot;&quot;&quot;Keep an order that could not be applied, with the reason.&quot;&quot;&quot;
++    with conn:
++        conn.execute(
++            &quot;INSERT INTO rejected_orders (order_id, raw, reason, rejected_at) &quot;
++            &quot;VALUES (?, ?, ?, ?)&quot;,
++            (
++                order_id,
++                raw,
++                reason,
++                datetime.now(timezone.utc).isoformat(timespec=&quot;seconds&quot;),
++            ),
++        )
+ 
+ 
+ def create(db_path, stock_csv):
+@@ -61,6 +91,7 @@
+     conn = sqlite3.connect(db_path)
+     with conn:
+         conn.executescript(SCHEMA)
++        conn.executescript(REJECTED_SCHEMA)
+         conn.executemany(
+             &quot;INSERT INTO stock (sku, name, on_hand, pack_size) VALUES (?, ?, ?, ?)&quot;, rows
+         )
+--- task/job.py
++++ job.py
+@@ -5,10 +5,13 @@
+     python job.py                 # read the CSV export
+     python job.py --source api    # ask the sales API instead
+ 
+-Exit code 0 means the sync finished; anything else means it could not run.
++Exit code 0 means every order was applied. Exit code 1 means some orders were
++rejected (kept in the rejected_orders table, not applied). Exit code 2 means
++the job could not run.
+ &quot;&quot;&quot;
+ 
+ import argparse
++import json
+ import logging
+ import os
+ import sys
+@@ -34,30 +37,58 @@
+     )
+ 
+ 
+-def load_orders(source, orders_csv):
+-    &quot;&quot;&quot;Fetch the raw rows from the chosen source and parse them.&quot;&quot;&quot;
++def load_rows(source, orders_csv):
++    &quot;&quot;&quot;Fetch the raw rows from the chosen source.&quot;&quot;&quot;
+     if source == &quot;api&quot;:
+         with fetch.local_api(orders_csv) as base_url:
+             log.info(&quot;fetching orders from %s&quot;, base_url)
+-            rows = fetch.from_api(base_url)
+-    else:
+-        log.info(&quot;reading orders from %s&quot;, orders_csv)
+-        rows = fetch.from_csv(orders_csv)
+-    return parse.parse_rows(rows)
++            return fetch.from_api(base_url)
++    log.info(&quot;reading orders from %s&quot;, orders_csv)
++    return fetch.from_csv(orders_csv)
+ 
+ 
+-def sync_orders(conn, orders):
+-    &quot;&quot;&quot;Apply every order to the inventory. Returns how many were applied now.&quot;&quot;&quot;
++def reject(conn, row, exc):
++    &quot;&quot;&quot;Keep a row that could not be applied and say so loudly.
++
++    The sales API hands an order over only once: a row dropped here would be
++    lost for good, so it goes to the rejected_orders table instead.
++    &quot;&quot;&quot;
++    order_id = row.get(&quot;order_id&quot;) if isinstance(row, dict) else None
++    reason = f&quot;{type(exc).__name__}: {exc}&quot;
++    log.error(&quot;order %s rejected: %s&quot;, order_id, reason)
++    inventory.record_rejected(
++        conn, order_id, json.dumps(row, default=str, sort_keys=True), reason
++    )
++
++
++def sync_orders(conn, rows):
++    &quot;&quot;&quot;Parse, check and apply every row.
++
++    Returns (applied, rejected): how many orders were applied now and how
++    many were rejected (and kept in rejected_orders).
++    &quot;&quot;&quot;
++    parsed = []
++    rejected = 0
++    for row in rows:
++        try:
++            order = parse.parse_row(row)
++            validate.check_order(order)
++        except (parse.ParseError, validate.ValidationError) as exc:
++            reject(conn, row, exc)
++            rejected += 1
++            continue
++        parsed.append((order, row))
++    parsed.sort(key=lambda item: (item[0].placed_at, item[0].order_id))
++
+     applied = 0
+-    for order in orders:
++    for order, row in parsed:
+         try:
+-            validate.check_order(order)
+             if inventory.apply_order(conn, order):
+                 applied += 1
+-        except Exception as exc:
+-            log.warning(&quot;order %s skipped: %s&quot;, order.order_id, exc)
+-            continue
+-    return applied
++        except inventory.UnknownSkuError as exc:
++            reject(conn, row, exc)
++            rejected += 1
++    return applied, rejected
+ 
+ 
+ def main(argv=None):
+@@ -70,14 +101,24 @@
+ 
+     try:
+         conn = inventory.connect(args.db)
+-        orders = load_orders(args.source, args.orders)
+-    except (OSError, parse.ParseError) as exc:
++        rows = load_rows(args.source, args.orders)
++    except OSError as exc:
+         print(f&quot;sync failed: {exc}&quot;, file=sys.stderr)
+         return 2
+ 
+-    applied = sync_orders(conn, orders)
++    applied, rejected = sync_orders(conn, rows)
+     conn.close()
+-    log.info(&quot;%d orders read, %d applied in this run&quot;, len(orders), applied)
++    log.info(
++        &quot;%d orders read, %d applied in this run, %d rejected&quot;,
++        len(rows), applied, rejected,
++    )
++    if rejected:
++        print(
++            f&quot;sync finished: {rejected} order(s) REJECTED and not applied; &quot;
++            &quot;see the rejected_orders table&quot;,
++            file=sys.stderr,
++        )
++        return 1
+     print(&quot;sync finished: OK&quot;)
+     return 0
+ 
+--- task/parse.py
++++ parse.py
+@@ -35,7 +35,7 @@
+     return Order(
+         order_id=row[&quot;order_id&quot;].strip(),
+         placed_at=placed_at,
+-        sku=row[&quot;sku&quot;],
++        sku=row[&quot;sku&quot;].strip(),
+         quantity=quantity,
+         channel=row[&quot;channel&quot;].strip(),
+         unit=(row.get(&quot;unit&quot;) or DEFAULT_UNIT).strip().lower(),</code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  orders with a SKU in a bad format: exit 1, said OK: False, stock that is not the count: [&#x27;HDS-0402&#x27;, &#x27;KBD-0101&#x27;]
+pass  the same orders, well formed: exit 0, said OK: True, stock that is not the count: none
+fixed</code></pre>
+</figure>
+</article>
+<article class="arm-col a2">
+<h4><code>raw</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-raw-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">13 tool calls, 376,322 tokens, 88 s</p>
+<p class="part">Commands, in order (13)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/order-sync; ls -la; find . -type f | grep -v &#x27;^./.git/&#x27; | head -50; wc -c result.json</pre></li>
+<li><pre class="cmd-text">cd /srv/order-sync; cat TASK.md README.md job.py fetch.py inventory.py parse.py validate.py; cat data/cron.log | tail -30; head -5 data/*.csv; wc -l data/*.csv</pre></li>
+<li><pre class="cmd-text">cd /srv/order-sync; cat data/orders.csv; python3 inventory.py --count data/count.csv; python3 -I - &lt;&lt;&#x27;EOF&#x27;
+import json,collections
+d=json.load(open(&#x27;result.json&#x27;))
+ev=d[&#x27;traceEvents&#x27;]
+print(len(ev), d.keys())
+c=collections.Counter(e.get(&#x27;name&#x27;) for e in ev)
+for n,k in c.most_common():
+    if any(s in n for s in (&#x27;job.py&#x27;,&#x27;fetch&#x27;,&#x27;parse&#x27;,&#x27;validate&#x27;,&#x27;inventory&#x27;,&#x27;Error&#x27;,&#x27;check&#x27;,&#x27;apply&#x27;)): print(k,n)
+print([e for e in ev if e.get(&#x27;ph&#x27;)!=&#x27;X&#x27;][:10])
+EOF</pre></li>
+<li><pre class="cmd-text">cd /srv/order-sync; python3 -I - &lt;&lt;&#x27;EOF&#x27;
+import json
+d=json.load(open(&#x27;result.json&#x27;))
+ev=[e for e in d[&#x27;traceEvents&#x27;] if e.get(&#x27;ph&#x27;)==&#x27;X&#x27;]
+print(d[&#x27;viztracer_metadata&#x27;])
+s=[e for e in ev if e[&#x27;name&#x27;].startswith(&#x27;sync_orders&#x27;)][0]
+t0,t1=s[&#x27;ts&#x27;],s[&#x27;ts&#x27;]+s[&#x27;dur&#x27;]
+for e in sorted(ev,key=lambda e:e[&#x27;ts&#x27;]):
+    if t0&lt;=e[&#x27;ts&#x27;]&lt;=t1 and (&#x27;order-sync&#x27; in e[&#x27;name&#x27;] or &#x27;sqlite&#x27; in e[&#x27;name&#x27;] or &#x27;warning&#x27; in e[&#x27;name&#x27;].lower() or &#x27;Error&#x27; in e[&#x27;name&#x27;]):
+        print(e[&#x27;ts&#x27;]-t0, e[&#x27;dur&#x27;], e[&#x27;name&#x27;], e.get(&#x27;args&#x27;,&#x27;&#x27;))
+EOF</pre></li>
+<li><pre class="cmd-text">cd /srv/order-sync; python3 -I - &lt;&lt;&#x27;EOF&#x27;
+import sqlite3
+c=sqlite3.connect(&#x27;file:data/inventory.db?mode=ro&#x27;,uri=True)
+for t in (&#x27;stock&#x27;,&#x27;applied_orders&#x27;,&#x27;backorders&#x27;):
+    print(t); [print(r) for r in c.execute(f&#x27;select * from {t}&#x27;)]
+EOF
+cat data/cron.log; python3 -I -c &quot;
+import json;d=json.load(open(&#x27;result.json&#x27;));print(list(d[&#x27;file_info&#x27;].keys()) if isinstance(d[&#x27;file_info&#x27;],dict) else d[&#x27;file_info&#x27;])&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/order-sync; python3 -I - &lt;&lt;&#x27;EOF&#x27;
+import json
+d=json.load(open(&#x27;result.json&#x27;))
+fi=d[&#x27;file_info&#x27;]
+print(list(fi[&#x27;files&#x27;].keys()))
+for k,v in fi[&#x27;files&#x27;].items():
+    if &#x27;order-sync&#x27; in k: print(k, type(v), (v[0][:3000] if isinstance(v,list) else str(v)[:300]) if &#x27;validate&#x27; in k or &#x27;parse&#x27; in k else &#x27;&#x27;)
+EOF</pre></li>
+<li><pre class="cmd-text">cd /srv/order-sync; mkdir -p /tmp/os-backup &amp;&amp; cp -a job.py parse.py inventory.py data/inventory.db /tmp/os-backup/; ls seed reset.sh 2&gt;&amp;1</pre></li>
+<li><pre class="cmd-text">Edit parse.py</pre></li>
+<li><pre class="cmd-text">Edit inventory.py</pre></li>
+<li><pre class="cmd-text">Edit inventory.py</pre></li>
+<li><pre class="cmd-text">Edit inventory.py</pre></li>
+<li><pre class="cmd-text">cd /srv/order-sync; python3 - &lt;&lt;&#x27;EOF&#x27;
+p=&#x27;job.py&#x27;; s=open(p).read()
+old=s[s.index(&#x27;def sync_orders&#x27;):s.index(&#x27;def main&#x27;)]
+new=&#x27;&#x27;&#x27;def sync_orders(conn, orders):
+    &quot;&quot;&quot;Apply every order to the inventory.
+
+    Returns (applied, rejected): how many orders were applied now, and a list
+    of (order, reason) for the orders that could not be applied. Rejected
+    orders are stored in the ``rejected_orders`` table: the sales API will not
+    hand them over again, so they must not just be dropped.
+    &quot;&quot;&quot;
+    applied = 0</pre><p class="note">… 49 more lines of this command</p></li>
+<li><pre class="cmd-text">mkdir -p /tmp/os-test &amp;&amp; cd /tmp/os-test &amp;&amp; cp /tmp/os-backup/inventory.db t.db &amp;&amp; cat &gt; o.csv &lt;&lt;&#x27;EOF&#x27;
+order_id,placed_at,sku,quantity,channel,unit
+SO-90001,2026-11-26T06:10,kbd-0101 ,2,web,each
+SO-90002,2026-11-26T06:11,MON-0201,0,web,each
+SO-90003,2026-11-26T06:12,XYZ-9999,1,web,each
+SO-90004,2026-11-26T06:13,HDS-0402,1,web,each
+EOF
+cd /srv/order-sync; python3 job.py --source api --orders /tmp/os-test/o.csv --db /tmp/os-test/t.db; echo exit=$?
+python3 -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;/tmp/os-test/t.db&#x27;)
+print(c.execute(&#x27;select * from rejected_orders&#x27;).fetchall()); print(c.execute(\&quot;select * from stock where sku in (&#x27;KBD-0101&#x27;,&#x27;HDS-0402&#x27;)\&quot;).fetchall())&quot;
+python3 job.py --orders data/orders.csv --db /tmp/os-test/t.db; echo exit=$?</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/inventory.py
++++ inventory.py
+@@ -36,6 +36,21 @@
+ );
+ &quot;&quot;&quot;
+ 
++# Orders the job could not apply. The sales API hands an order over only once,
++# so a rejected order must be kept here or it is lost for good.
++REJECTED_SCHEMA = &quot;&quot;&quot;
++CREATE TABLE IF NOT EXISTS rejected_orders (
++    order_id     TEXT PRIMARY KEY,
++    placed_at    TEXT NOT NULL,
++    sku          TEXT NOT NULL,
++    quantity     INTEGER NOT NULL,
++    channel      TEXT NOT NULL,
++    unit         TEXT NOT NULL,
++    reason       TEXT NOT NULL,
++    rejected_at  TEXT NOT NULL
++);
++&quot;&quot;&quot;
++
+ 
+ class UnknownSkuError(LookupError):
+     &quot;&quot;&quot;The order names a SKU that the warehouse does not stock.&quot;&quot;&quot;
+@@ -44,7 +59,36 @@
+ def connect(db_path=DEFAULT_DB):
+     if not Path(db_path).exists():
+         raise FileNotFoundError(f&quot;{db_path} does not exist; run ./reset.sh first&quot;)
+-    return sqlite3.connect(db_path)
++    conn = sqlite3.connect(db_path)
++    with conn:
++        conn.executescript(REJECTED_SCHEMA)
++    return conn
++
++
++def record_rejected(conn, order, reason):
++    &quot;&quot;&quot;Keep an order that could not be applied, so it can be fixed and replayed.&quot;&quot;&quot;
++    with conn:
++        conn.execute(
++            &quot;INSERT OR REPLACE INTO rejected_orders &quot;
++            &quot;(order_id, placed_at, sku, quantity, channel, unit, reason, rejected_at) &quot;
++            &quot;VALUES (?, ?, ?, ?, ?, ?, ?, ?)&quot;,
++            (
++                order.order_id,
++                order.placed_at.isoformat(),
++                order.sku,
++                order.quantity,
++                order.channel,
++                order.unit,
++                reason,
++                datetime.now(timezone.utc).isoformat(timespec=&quot;seconds&quot;),
++            ),
++        )
++
++
++def clear_rejected(conn, order_id):
++    &quot;&quot;&quot;Forget an earlier rejection once the order has been applied.&quot;&quot;&quot;
++    with conn:
++        conn.execute(&quot;DELETE FROM rejected_orders WHERE order_id = ?&quot;, (order_id,))
+ 
+ 
+ def create(db_path, stock_csv):
+--- task/job.py
++++ job.py
+@@ -5,7 +5,8 @@
+     python job.py                 # read the CSV export
+     python job.py --source api    # ask the sales API instead
+ 
+-Exit code 0 means the sync finished; anything else means it could not run.
++Exit code 0 means every order was applied; 1 means the sync ran but some
++orders were rejected (see table rejected_orders); 2 means it could not run.
+ &quot;&quot;&quot;
+ 
+ import argparse
+@@ -47,17 +48,26 @@
+ 
+ 
+ def sync_orders(conn, orders):
+-    &quot;&quot;&quot;Apply every order to the inventory. Returns how many were applied now.&quot;&quot;&quot;
++    &quot;&quot;&quot;Apply every order to the inventory.
++
++    Returns (applied, rejected): how many orders were applied now, and a list
++    of (order, reason) for the orders that could not be applied. Rejected
++    orders are stored in the ``rejected_orders`` table: the sales API will not
++    hand them over again, so they must not just be dropped.
++    &quot;&quot;&quot;
+     applied = 0
++    rejected = []
+     for order in orders:
+         try:
+             validate.check_order(order)
+             if inventory.apply_order(conn, order):
+                 applied += 1
+-        except Exception as exc:
+-            log.warning(&quot;order %s skipped: %s&quot;, order.order_id, exc)
+-            continue
+-    return applied
++            inventory.clear_rejected(conn, order.order_id)
++        except (validate.ValidationError, inventory.UnknownSkuError) as exc:
++            log.error(&quot;order %s rejected: %s&quot;, order.order_id, exc)
++            inventory.record_rejected(conn, order, str(exc))
++            rejected.append((order, str(exc)))
++    return applied, rejected
+ 
+ 
+ def main(argv=None):
+@@ -75,9 +85,24 @@
+         print(f&quot;sync failed: {exc}&quot;, file=sys.stderr)
+         return 2
+ 
+-    applied = sync_orders(conn, orders)
++    applied, rejected = sync_orders(conn, orders)
+     conn.close()
+     log.info(&quot;%d orders read, %d applied in this run&quot;, len(orders), applied)
++    if rejected:
++        # Printed in full: cron mails it, and it is all that is kept of a run.
++        print(
++            f&quot;sync finished with errors: {len(rejected)} of {len(orders)} orders &quot;
++            f&quot;rejected (kept in table rejected_orders)&quot;,
++            file=sys.stderr,
++        )
++        for order, reason in rejected:
++            print(
++                f&quot;  rejected {order.order_id} placed_at={order.placed_at.isoformat()} &quot;
++                f&quot;sku={order.sku!r} quantity={order.quantity} unit={order.unit} &quot;
++                f&quot;channel={order.channel}: {reason}&quot;,
++                file=sys.stderr,
++            )
++        return 1
+     print(&quot;sync finished: OK&quot;)
+     return 0
+ 
+--- task/parse.py
++++ parse.py
+@@ -35,7 +35,9 @@
+     return Order(
+         order_id=row[&quot;order_id&quot;].strip(),
+         placed_at=placed_at,
+-        sku=row[&quot;sku&quot;],
++        # Exports and the API are not consistent about case and padding
++        # (&quot;kbd-0101&quot;, &quot;KBD-0101 &quot;); the warehouse SKU is upper case.
++        sku=row[&quot;sku&quot;].strip().upper(),
+         quantity=quantity,
+         channel=row[&quot;channel&quot;].strip(),
+         unit=(row.get(&quot;unit&quot;) or DEFAULT_UNIT).strip().lower(),</code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  orders with a SKU in a bad format: exit 0, said OK: True, stock that is not the count: none
+pass  the same orders, well formed: exit 0, said OK: True, stock that is not the count: none
+fixed</code></pre>
+</figure>
+</article>
+<article class="arm-col a3">
+<h4><code>ormaos</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-ormaos-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">14 tool calls, 300,076 tokens, 94 s</p>
+<p class="part">Commands, in order (14)</p><ol class="steps">
+<li><pre class="cmd-text">.venv/bin/ormaos guide; ls -la; ls -la .ormaos data</pre><pre class="out">ormaos: what happened inside a Python run, to read instead of guessing.
+
+WHEN TO USE IT
+- A Python program runs, and its output does not explain what it did: a job
+  that prints OK, an error that never shows, a result you cannot trace.
+- You want to see what ran: the project&#x27;s calls with the shape of their
+  arguments, every exception (also the caught ones), the SQL statements,
+  files, subprocesses and HTTP requests.
+
+WHERE TO START
+1. Record:  ormaos run -- &lt;command&gt;
+   The command runs unchanged (same output, same exit code); its Python must
+   have ormaos installed. In a script or notebook: `with ormaos.record():`.
+2. Read the summary printed on stderr: at most 5 lines, each starting with
+   &quot;ormaos:&quot;. To see it again, with more: ormaos show</pre><p class="note">Output: the first 15 of 78 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-ormaos-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos show; cat TASK.md README.md data/count.csv data/cron.log data/orders.csv</pre><pre class="out">r1 exit 0 in 0.60s: 1 Python process, 240 calls, 6 exceptions (5 swallowed, 0 uncaught)
+command: .venv/bin/python job.py --source &lt;str[3]&gt;
+swallowed 5x validate.SkuFormatError at job.py:57 in sync_orders, raised at validate.py:24  [r1:e1]
+io: 123 events (sqlite 121, http 1, file 1)
+not collected: io: reads of the 1 file opened at fetch.py:26: opened for reading, and no `read` call by Python code was seen on a file of that name: if it was read, that was inside C code (a file that is iterated, `for line in f`, `csv.reader`)
+not collected: io: sockets, at fetch.py:60 (once): a socket was connected or bound there; sockets are not recorded, only HTTP made through http.client or httpx is
+never recorded: values, and 13 more kinds of things (`ormaos show --json` lists them with the reason)
+next: ormaos exceptions r1:e1 | ormaos tree r1:c1 | ormaos io r1
+Last night&#x27;s order sync run said OK, but this morning the stock of some products is not what the warehouse counted (data/count.csv).
+# order-sync
+
+A scheduled job that takes the new orders from the sales system and applies them to the warehouse inventory: for every order, the ordered quantity leaves the stock of that SKU.
+
+It uses only the Python standard library (Python 3.12 or newer). The folder is self-contained: copy it anywhere and it runs.
+</pre><p class="note">Output: the first 15 of 127 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-ormaos-1.jsonl?plain=1#L7">Full output</a></p></li>
+<li><pre class="cmd-text">cat job.py fetch.py parse.py validate.py inventory.py</pre></li>
+<li><pre class="cmd-text">.venv/bin/ormaos exceptions r1; .venv/bin/ormaos exceptions r1:e1; .venv/bin/python inventory.py --count data/count.csv; sqlite3 data/inventory.db &quot;select * from applied_orders; select * from backorders; select * from stock&quot; 2&gt;&amp;1 || .venv/bin/python -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;data/inventory.db&#x27;)
+for t in (&#x27;applied_orders&#x27;,&#x27;backorders&#x27;,&#x27;stock&#x27;): print(t, c.execute(f&#x27;select * from {t}&#x27;).fetchall())&quot;</pre><pre class="out">r1: 6 exceptions (5 swallowed, 0 uncaught)
+r1:e1 swallowed validate.SkuFormatError  raised at validate.py:24  handled at job.py:57 in sync_orders
+r1:e2 swallowed validate.SkuFormatError  raised at validate.py:24  handled at job.py:57 in sync_orders
+r1:e3 swallowed validate.SkuFormatError  raised at validate.py:24  handled at job.py:57 in sync_orders
+r1:e4 swallowed validate.SkuFormatError  raised at validate.py:24  handled at job.py:57 in sync_orders
+r1:e5 swallowed validate.SkuFormatError  raised at validate.py:24  handled at job.py:57 in sync_orders
+r1:e6 exit SystemExit  raised at job.py:86
+next: ormaos exceptions r1:e1 | ormaos exceptions r1:e2 | ormaos tree r1:c106
+r1:e1 validate.SkuFormatError: swallowed
+  raised at   validate.py:24 in check_sku  [r1:c154]
+  left calls   check_sku [r1:c154], check_order [r1:c153]
+  handled at  job.py:57 in sync_orders  [r1:c106]  and not raised again
+  message     not recorded; args: tuple[1 str]
+  same type, same handler: 5 in all: r1:e1 r1:e2 r1:e3 r1:e4 r1:e5
+next: ormaos tree r1:c106 | ormaos io r1:c106 | ormaos tree r1:c154 | ormaos exceptions r1:e2 | ormaos path r1:e1</pre><p class="note">Output: the first 15 of 28 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-ormaos-1.jsonl?plain=1#L14">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos tree r1:c1 --depth 3 --limit 60; .venv/bin/ormaos tree r1:c153; .venv/bin/ormaos io r1</pre><pre class="out">r1:c1 &lt;module&gt;() -&gt; raised  job.py:1  567.7ms  io 122  calls below: 5
+  r1:c2 &lt;module&gt;() -&gt; NoneType  fetch.py:1  23.5ms
+  r1:c3 &lt;module&gt;() -&gt; NoneType  inventory.py:1  1.1ms  calls below: 1
+    r1:c4 UnknownSkuError() -&gt; NoneType  inventory.py:40  8us
+  r1:c5 &lt;module&gt;() -&gt; NoneType  parse.py:1  740us  calls below: 5
+    r1:c6 ParseError() -&gt; NoneType  parse.py:11  5us
+    r1:c7 Order() -&gt; NoneType  parse.py:15  6us
+    r1:c8 Order.__annotate__(format: int) -&gt; dict[6]  parse.py:15  10us
+    r1:c9 &lt;module&gt;() -&gt; NoneType  &lt;string&gt;:1  8us
+    r1:c10 __create_fn__(__dataclass_HAS_DEFAULT_FACTORY__: dataclasses._HAS_DEFAULT_FACTORY_CLASS, __dataclass_...) -&gt; tuple[6 function]  &lt;string&gt;:1  21us
+  r1:c11 &lt;module&gt;() -&gt; NoneType  validate.py:1  156us  calls below: 4
+    r1:c12 ValidationError() -&gt; NoneType  validate.py:10  6us
+    r1:c13 SkuFormatError() -&gt; NoneType  validate.py:14  5us
+    r1:c14 QuantityError() -&gt; NoneType  validate.py:18  4us
+    r1:c15 UnitError() -&gt; NoneType  validate.py:38  4us</pre><p class="note">Output: the first 15 of 78 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-ormaos-1.jsonl?plain=1#L20">Full output</a></p></li>
+<li><pre class="cmd-text">for e in 2 3 4 5; do .venv/bin/ormaos exceptions r1:e$e | head -2; done; .venv/bin/ormaos tree r1:c106 --offset 37; .venv/bin/ormaos tree r1:c27 --limit 10; .venv/bin/ormaos show --json | .venv/bin/python -m json.tool | head -80</pre><pre class="out">r1:e2 validate.SkuFormatError: swallowed
+  raised at   validate.py:24 in check_sku  [r1:c180]
+r1:e3 validate.SkuFormatError: swallowed
+  raised at   validate.py:24 in check_sku  [r1:c200]
+r1:e4 validate.SkuFormatError: swallowed
+  raised at   validate.py:24 in check_sku  [r1:c214]
+r1:e5 validate.SkuFormatError: swallowed
+  raised at   validate.py:24 in check_sku  [r1:c234]
+inside: r1:c1 &lt;module&gt; &gt; r1:c16 main
+r1:c106 sync_orders(conn: sqlite3.Connection, orders: list[26 parse.Order]) -&gt; int  job.py:49  9.8ms  io 120  [swallowed 5x validate.SkuFormatError: r1:e1]  calls below: 47
+  r1:c213 check_order(order: parse.Order) -&gt; raised  validate.py:47  45us  calls below: 1
+    r1:c214 check_sku(sku: str[8]) -&gt; raised  validate.py:22  27us
+  r1:c215 check_order(order: parse.Order) -&gt; NoneType  validate.py:47  49us  calls below: 3
+    r1:c216 check_sku(sku: str[8]) -&gt; NoneType  validate.py:22  6us
+    r1:c217 check_quantity(quantity: int) -&gt; NoneType  validate.py:27  5us</pre><p class="note">Output: the first 15 of 133 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-ormaos-1.jsonl?plain=1#L25">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/python -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;data/inventory.db&#x27;)
+ids={r[0] for r in c.execute(&#x27;select order_id from applied_orders&#x27;)}
+print([f&#x27;SO-{n}&#x27; for n in range(20501,20539) if f&#x27;SO-{n}&#x27; not in ids])&quot;; ls seed reset.sh 2&gt;&amp;1</pre></li>
+<li><pre class="cmd-text">Edit parse.py</pre></li>
+<li><pre class="cmd-text">Edit parse.py</pre></li>
+<li><pre class="cmd-text">Edit parse.py</pre></li>
+<li><pre class="cmd-text">.venv/bin/python - &lt;&lt;&#x27;EOF&#x27;
+from pathlib import Path
+p=Path(&quot;job.py&quot;); s=p.read_text()
+s=s.replace(&#x27;&#x27;&#x27;import argparse
+import logging&#x27;&#x27;&#x27;,&#x27;&#x27;&#x27;import argparse
+import csv
+import logging&#x27;&#x27;&#x27;)
+s=s.replace(&#x27;&#x27;&#x27;DEFAULT_ORDERS = HERE / &quot;data&quot; / &quot;orders.csv&quot;
+&#x27;&#x27;&#x27;,&#x27;&#x27;&#x27;DEFAULT_ORDERS = HERE / &quot;data&quot; / &quot;orders.csv&quot;
+# Orders that could not be applied. The sales API hands an order over only
+# once, so a rejected order is kept here (in the export&#x27;s format) to be fixed
+# and replayed with: python3 job.py --orders data/rejected_orders.csv</pre><p class="note">… 86 more lines of this command</p></li>
+<li><pre class="cmd-text">T=$(mktemp -d) &amp;&amp; cp data/inventory.db $T/ &amp;&amp; .venv/bin/python -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;$T/inventory.db&#x27;);c.execute(\&quot;delete from applied_orders where order_id&gt;=&#x27;SO-20538&#x27;\&quot;);c.execute(\&quot;update stock set on_hand=on_hand+4 where sku=&#x27;CAB-0302&#x27;\&quot;);c.commit()&quot; &amp;&amp; cat &gt; $T/orders.csv &lt;&lt;&#x27;EOF&#x27;
+order_id,placed_at,sku,quantity,channel,unit
+SO-90001,2026-11-26T01:00,kbd-0101,2,marketplace,each
+SO-90002,2026-11-26T01:01, HDS-0402 ,1,web,each
+SO-90003,2026-11-26T01:02,MON–0201,1,web,each
+SO-90004,2026-11-26T01:03,ＫＢＤ-0101,1,web,each
+SO-90005,2026-11-26T01:04,XYZ-9999,1,web,each
+SO-90006,2026-11-26T01:05,KBD-01O1,1,web,each
+EOF
+cat data/orders.csv | tail -n +2 &gt;&gt; $T/orders.csv
+.venv/bin/python -I job.py --source api --orders $T/orders.csv --db $T/inventory.db --rejected $T/rej.csv; echo &quot;exit=$?&quot;; cat $T/rej.csv</pre><p class="note">… 3 more lines of this command</p></li>
+<li><pre class="cmd-text">T=$(mktemp -d) &amp;&amp; cp data/inventory.db $T/ &amp;&amp; .venv/bin/python -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;$T/inventory.db&#x27;);c.execute(\&quot;delete from applied_orders where order_id&gt;=&#x27;SO-20538&#x27;\&quot;);c.execute(\&quot;update stock set on_hand=on_hand+4 where sku=&#x27;CAB-0302&#x27;\&quot;);c.commit()&quot; &amp;&amp; cat &gt; $T/orders.csv &lt;&lt;&#x27;EOF&#x27;
+order_id,placed_at,sku,quantity,channel,unit
+SO-90001,2026-11-26T01:00,kbd-0101,2,marketplace,each
+SO-90002,2026-11-26T01:01, HDS-0402 ,1,web,each
+SO-90003,2026-11-26T01:02,MON–0201,1,web,each
+SO-90004,2026-11-26T01:03,ＫＢＤ-0101,1,web,each
+SO-90005,2026-11-26T01:04,XYZ-9999,1,web,each
+SO-90006,2026-11-26T01:05,KBD-01O1,1,web,each
+EOF
+tail -n +2 data/orders.csv &gt;&gt; $T/orders.csv
+.venv/bin/python job.py --source api --orders $T/orders.csv --db $T/inventory.db --rejected $T/rej.csv; echo &quot;exit=$?&quot;; cat $T/rej.csv</pre><p class="note">… 2 more lines of this command</p></li>
+<li><pre class="cmd-text">.venv/bin/python - &lt;&lt;&#x27;EOF&#x27;
+from pathlib import Path
+p=Path(&quot;README.md&quot;); s=p.read_text()
+old=&quot;The job prints `sync finished: OK` and exits with code 0 when the sync is done. If it cannot run (no database, unreadable export), it prints `sync failed: ...` on stderr and exits with code 2.&quot;
+assert old in s
+s=s.replace(old, old+&quot;&quot;&quot;
+
+If some orders cannot be applied (a SKU not in the format `AAA-0000` or not in the inventory, a bad quantity or unit), the others are still applied, and the job prints `sync finished: N orders REJECTED (...)` on stderr and exits with code 1. The sales API does not hand an order over twice, so the rejected orders are kept in `data/rejected_orders.csv` (`--rejected PATH` for another file), in the export&#x27;s format plus a `reason` column. Fix them there and replay them with `python3 job.py --orders data/rejected_orders.csv`.
+
+SKUs are normalized before they are checked: spaces around them are removed, letters are made upper case, and full-width characters and typographic dashes become plain ones.&quot;&quot;&quot;)
+p.write_text(s)
+EOF</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/README.md
++++ README.md
+@@ -13,6 +13,10 @@
+ ```
+ 
+ The job prints `sync finished: OK` and exits with code 0 when the sync is done. If it cannot run (no database, unreadable export), it prints `sync failed: ...` on stderr and exits with code 2.
++
++If some orders cannot be applied (a SKU not in the format `AAA-0000` or not in the inventory, a bad quantity or unit), the others are still applied, and the job prints `sync finished: N orders REJECTED (...)` on stderr and exits with code 1. The sales API does not hand an order over twice, so the rejected orders are kept in `data/rejected_orders.csv` (`--rejected PATH` for another file), in the export&#x27;s format plus a `reason` column. Fix them there and replay them with `python3 job.py --orders data/rejected_orders.csv`.
++
++SKUs are normalized before they are checked: spaces around them are removed, letters are made upper case, and full-width characters and typographic dashes become plain ones.
+ 
+ Running the job again over the same orders is safe: an order is applied only once.
+ 
+--- task/job.py
++++ job.py
+@@ -9,6 +9,7 @@
+ &quot;&quot;&quot;
+ 
+ import argparse
++import csv
+ import logging
+ import os
+ import sys
+@@ -21,6 +22,11 @@
+ 
+ HERE = Path(__file__).resolve().parent
+ DEFAULT_ORDERS = HERE / &quot;data&quot; / &quot;orders.csv&quot;
++# Orders that could not be applied. The sales API hands an order over only
++# once, so a rejected order is kept here (in the export&#x27;s format) to be fixed
++# and replayed with: python3 job.py --orders data/rejected_orders.csv
++DEFAULT_REJECTED = HERE / &quot;data&quot; / &quot;rejected_orders.csv&quot;
++REJECTED_FIELDS = (&quot;order_id&quot;, &quot;placed_at&quot;, &quot;sku&quot;, &quot;quantity&quot;, &quot;channel&quot;, &quot;unit&quot;, &quot;reason&quot;)
+ 
+ log = logging.getLogger(&quot;order_sync&quot;)
+ 
+@@ -47,17 +53,46 @@
+ 
+ 
+ def sync_orders(conn, orders):
+-    &quot;&quot;&quot;Apply every order to the inventory. Returns how many were applied now.&quot;&quot;&quot;
++    &quot;&quot;&quot;Apply every order to the inventory.
++
++    Returns (applied, rejected): how many were applied now, and a list of
++    (order, reason) for the orders that break a rule or name an unknown SKU.
++    Any other error is not an order problem and stops the job.
++    &quot;&quot;&quot;
+     applied = 0
++    rejected = []
+     for order in orders:
+         try:
+             validate.check_order(order)
+             if inventory.apply_order(conn, order):
+                 applied += 1
+-        except Exception as exc:
+-            log.warning(&quot;order %s skipped: %s&quot;, order.order_id, exc)
+-            continue
+-    return applied
++        except (validate.ValidationError, inventory.UnknownSkuError) as exc:
++            log.error(&quot;order %s rejected: %s&quot;, order.order_id, exc)
++            rejected.append((order, str(exc)))
++    return applied, rejected
++
++
++def save_rejected(path, rejected):
++    &quot;&quot;&quot;Append the rejected orders to a CSV that job.py can read back.&quot;&quot;&quot;
++    path = Path(path)
++    already = set()
++    if path.exists():
++        with open(path, newline=&quot;&quot;, encoding=&quot;utf-8&quot;) as handle:
++            already = {row[&quot;order_id&quot;] for row in csv.DictReader(handle)}
++    new = [(o, reason) for o, reason in rejected if o.order_id not in already]
++    if not new:
++        return
++    path.parent.mkdir(parents=True, exist_ok=True)
++    write_header = not path.exists() or path.stat().st_size == 0
++    with open(path, &quot;a&quot;, newline=&quot;&quot;, encoding=&quot;utf-8&quot;) as handle:
++        writer = csv.writer(handle)
++        if write_header:
++            writer.writerow(REJECTED_FIELDS)
++        for o, reason in new:
++            writer.writerow(
++                (o.order_id, o.placed_at.isoformat(timespec=&quot;minutes&quot;), o.sku,
++                 o.quantity, o.channel, o.unit, reason)
++            )
+ 
+ 
+ def main(argv=None):
+@@ -65,6 +100,9 @@
+     parser.add_argument(&quot;--source&quot;, choices=(&quot;csv&quot;, &quot;api&quot;), default=&quot;csv&quot;)
+     parser.add_argument(&quot;--orders&quot;, default=DEFAULT_ORDERS, help=&quot;the CSV export&quot;)
+     parser.add_argument(&quot;--db&quot;, default=inventory.DEFAULT_DB, help=&quot;the SQLite file&quot;)
++    parser.add_argument(
++        &quot;--rejected&quot;, default=DEFAULT_REJECTED, help=&quot;where rejected orders are kept&quot;
++    )
+     args = parser.parse_args(argv)
+     configure_logging()
+ 
+@@ -75,9 +113,18 @@
+         print(f&quot;sync failed: {exc}&quot;, file=sys.stderr)
+         return 2
+ 
+-    applied = sync_orders(conn, orders)
++    applied, rejected = sync_orders(conn, orders)
+     conn.close()
+     log.info(&quot;%d orders read, %d applied in this run&quot;, len(orders), applied)
++    if rejected:
++        save_rejected(args.rejected, rejected)
++        ids = &quot;, &quot;.join(order.order_id for order, _ in rejected)
++        print(
++            f&quot;sync finished: {len(rejected)} orders REJECTED ({ids}); &quot;
++            f&quot;kept in {args.rejected}&quot;,
++            file=sys.stderr,
++        )
++        return 1
+     print(&quot;sync finished: OK&quot;)
+     return 0
+ 
+--- task/parse.py
++++ parse.py
+@@ -1,7 +1,12 @@
+ &quot;&quot;&quot;Turn raw order rows into Order records.&quot;&quot;&quot;
+ 
++import re
++import unicodedata
+ from dataclasses import dataclass
+ from datetime import datetime
++
++# Hyphen-like characters that should be read as &quot;-&quot; in a SKU.
++_DASHES = re.compile(r&quot;[‐-―−﹘﹣－]&quot;)
+ 
+ FIELDS = (&quot;order_id&quot;, &quot;placed_at&quot;, &quot;sku&quot;, &quot;quantity&quot;, &quot;channel&quot;)
+ # Optional column: &quot;each&quot; (single items, the default) or &quot;pack&quot;.
+@@ -22,6 +27,17 @@
+     unit: str = DEFAULT_UNIT
+ 
+ 
++def normalize_sku(raw):
++    &quot;&quot;&quot;Write a SKU the way the warehouse does: AAA-0000.
++
++    The sales system does not always send SKUs that way (lower case, stray
++    spaces, full-width characters, a typographic dash). Without this, those
++    orders fail the SKU check and never reach the inventory.
++    &quot;&quot;&quot;
++    sku = unicodedata.normalize(&quot;NFKC&quot;, raw).strip().upper()
++    return _DASHES.sub(&quot;-&quot;, sku)
++
++
+ def parse_row(row):
+     &quot;&quot;&quot;Build one Order from a mapping with the columns in FIELDS.&quot;&quot;&quot;
+     missing = [name for name in FIELDS if row.get(name) in (None, &quot;&quot;)]
+@@ -35,7 +51,7 @@
+     return Order(
+         order_id=row[&quot;order_id&quot;].strip(),
+         placed_at=placed_at,
+-        sku=row[&quot;sku&quot;],
++        sku=normalize_sku(row[&quot;sku&quot;]),
+         quantity=quantity,
+         channel=row[&quot;channel&quot;].strip(),
+         unit=(row.get(&quot;unit&quot;) or DEFAULT_UNIT).strip().lower(),</code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  orders with a SKU in a bad format: exit 0, said OK: True, stock that is not the count: none
+pass  the same orders, well formed: exit 0, said OK: True, stock that is not the count: none
+fixed</code></pre>
+</figure>
+</article>
+</div>
+</section>
+
+<section class="band" id="runs" aria-labelledby="runs-title">
+<h2 id="runs-title">Every run</h2>
+<p>The first attempt of every run of every arm.</p>
+<div class="table-wrap">
+<table class="plain runs">
+<thead><tr><th scope="col">Arm</th><th scope="col">Run</th><th scope="col">Check</th><th scope="col">Last line</th><th scope="col">Tool calls</th><th scope="col">Tokens</th><th scope="col">Wall time</th><th scope="col">Stream</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>10</td><td>208,668</td><td>93 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-none-1.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>9</td><td>180,866</td><td>81 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-none-2.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>17</td><td>53,451</td><td>757 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-none-3.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>13</td><td>376,322</td><td>88 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-raw-1.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>17</td><td>325,948</td><td>100 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-raw-2.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>10</td><td>171,702</td><td>63 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-raw-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>14</td><td>300,076</td><td>94 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-ormaos-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>14</td><td>348,376</td><td>90 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-ormaos-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>13</td><td>254,030</td><td>70 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/order-sync-ormaos-3.jsonl">stream</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="files" aria-labelledby="files-title">
+<h2 id="files-title">The results files</h2>
+<ul class="rows">
+  <li>The benchmark: <a href="/benchmarks/fix/">fix</a></li>
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703"><code>agent-bench/results/20261126-220703</code></a></li>
+</ul>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>
