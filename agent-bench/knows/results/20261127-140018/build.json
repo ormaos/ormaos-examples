@@ -15,7 +15,7 @@
       "venvs": {
         "none": null,
         "raw": null,
-        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/rl-env/orm"
+        "ormaos": ".build/venvs/rl-env/orm"
       }
     },
     "ai-app": {
@@ -36,7 +36,7 @@
       "venvs": {
         "none": null,
         "raw": null,
-        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/ai-app/orm"
+        "ormaos": ".build/venvs/ai-app/orm"
       }
     },
     "order-sync": {
@@ -58,7 +58,7 @@
       "venvs": {
         "none": null,
         "raw": null,
-        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/order-sync/orm"
+        "ormaos": ".build/venvs/order-sync/orm"
       }
     },
     "freight-quote": {
@@ -81,7 +81,7 @@
       "venvs": {
         "none": null,
         "raw": null,
-        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/freight-quote/orm"
+        "ormaos": ".build/venvs/freight-quote/orm"
       }
     },
     "agent-change": {
@@ -106,7 +106,7 @@
       "venvs": {
         "none": null,
         "raw": null,
-        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/agent-change/orm"
+        "ormaos": ".build/venvs/agent-change/orm"
       }
     },
     "web-backend": {
@@ -126,9 +126,9 @@
       "trace_bytes": 75737588,
       "recordings": "1 recording in .ormaos, newest first",
       "venvs": {
-        "none": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/web-backend/base",
-        "raw": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/web-backend/base",
-        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/web-backend/orm"
+        "none": ".build/venvs/web-backend/base",
+        "raw": ".build/venvs/web-backend/base",
+        "ormaos": ".build/venvs/web-backend/orm"
       }
     },
     "data-pipeline": {
@@ -149,9 +149,9 @@
       "trace_bytes": 51410546,
       "recordings": "1 recording in .ormaos, newest first",
       "venvs": {
-        "none": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/data-pipeline/base",
-        "raw": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/data-pipeline/base",
-        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/data-pipeline/orm"
+        "none": ".build/venvs/data-pipeline/base",
+        "raw": ".build/venvs/data-pipeline/base",
+        "ormaos": ".build/venvs/data-pipeline/orm"
       }
     },
     "notebook": {
@@ -171,9 +171,9 @@
       "trace_bytes": 123173760,
       "recordings": "4 recordings in .ormaos, newest first",
       "venvs": {
-        "none": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/notebook/base",
-        "raw": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/notebook/base",
-        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/notebook/orm"
+        "none": ".build/venvs/notebook/base",
+        "raw": ".build/venvs/notebook/base",
+        "ormaos": ".build/venvs/notebook/orm"
       }
     },
     "ml-training": {
@@ -191,9 +191,9 @@
       "trace_bytes": 158787021,
       "recordings": "1 recording in .ormaos, newest first",
       "venvs": {
-        "none": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/ml-training/base",
-        "raw": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/ml-training/base",
-        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/ml-training/orm"
+        "none": ".build/venvs/ml-training/base",
+        "raw": ".build/venvs/ml-training/base",
+        "ormaos": ".build/venvs/ml-training/orm"
       }
     }
   },
