@@ -8,15 +8,15 @@ It is published at <https://ormaos.com/demo>. `404.html` is what any other addre
 
 ## The benchmark pages
 
-`benchmarks/` holds the benchmark pages, meant for `https://ormaos.com/benchmarks/`: an index, one page per benchmark, each page also as Markdown (`index.html.md`), and `llms.txt`. They are written by [`site/benchmarks/build.py`](../site/benchmarks/build.py) from the results files of [`agent-bench/`](../agent-bench) and from [`site/benchmarks/overhead/RESULTS.md`](../site/benchmarks/overhead/RESULTS.md), a copy of the overhead results of ormaos-python; nothing in `benchmarks/` is edited by hand. Run the build again after a change to a results file, to the build, or to the style, header or footer of `index.html`, which the pages take from it:
+`benchmarks/` holds the benchmark pages, meant for `https://ormaos.com/benchmarks/`: an index, one page per benchmark, each page also as Markdown at the sibling path (`benchmarks.md` for the index, `benchmarks/knows2.md` for `benchmarks/knows2/`, and so on), and `llms.txt`. They are written by [`site/benchmarks/build.py`](../site/benchmarks/build.py) from the results files of [`agent-bench/`](../agent-bench) and from [`site/benchmarks/overhead/RESULTS.md`](../site/benchmarks/overhead/RESULTS.md), a copy of the overhead results of ormaos-python; nothing in `benchmarks/` is edited by hand. Run the build again after a change to a results file, to the build, or to the style, header or footer of `index.html`, which the pages take from it:
 
 ```bash
 python3 site/benchmarks/build.py
 ```
 
-CI runs it with `--check`, which fails when `benchmarks/` is not what a fresh build writes. `--overhead ../ormaos-python` first takes `bench/RESULTS.md` again from a checkout of ormaos-python, with the commit that last changed it. The build names the commit that added each results file, so it needs the full git history.
+CI runs it with `--check`, which fails when `benchmarks/` or `benchmarks.md` is not what a fresh build writes. `--overhead ../ormaos-python` first takes `bench/RESULTS.md` again from a checkout of ormaos-python, with the commit that last changed it. The build names the commit that added each results file, so it needs the full git history.
 
-The pages link to each other with absolute paths under `/benchmarks/`. On this Pages project they are at `/benchmarks/`; on ormaos.com that path needs a route to the project, as `/demo` has.
+The pages link to each other with absolute paths under `/benchmarks/`. On ormaos.com, `ormaos-demo-proxy` passes `ormaos.com/benchmarks*` to this Pages project with the path kept, as it does for `/demo`.
 
 ## Looking at it locally
 
