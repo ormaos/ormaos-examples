@@ -125,6 +125,8 @@ def git(*args):
 
 def added_in(path):
     """The commit that added a file of this repository."""
+    if git("rev-parse", "--is-shallow-repository") == "true":
+        raise SystemExit("this clone is shallow: the build needs the full history (git fetch --unshallow)")
     full = git("log", "--diff-filter=A", "--format=%H", "-1", "--", str(path.relative_to(REPO)))
     if not full:
         raise SystemExit(f"no commit adds {path.relative_to(REPO)}: the build needs the full history "
