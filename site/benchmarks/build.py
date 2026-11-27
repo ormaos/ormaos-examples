@@ -676,10 +676,12 @@ class Frame:
         self.header_script = re.search(r"</header>\n(<script>.*?</script>)", text, re.S).group(1)
         self.footer = re.search(r"(<footer>.*?</footer>)", text, re.S).group(1)
         demo = '<a href="./" aria-current="page">Demo</a>'
-        if demo not in header:
-            raise SystemExit("docs/index.html: the header has no Demo link marked as the current page")
-        self.header = header.replace(demo, f'<a href="{SITE}/demo/">Demo</a>\n      '
-                                           '<a href="/benchmarks/"{current}>Benchmarks</a>')
+        bench = '<a href="/benchmarks/">Benchmarks</a>'
+        if demo not in header or bench not in header:
+            raise SystemExit("docs/index.html: the header has no Demo link marked as the current page, or no "
+                             "Benchmarks link")
+        self.header = (header.replace(demo, f'<a href="{SITE}/demo/">Demo</a>')
+                       .replace(bench, '<a href="/benchmarks/"{current}>Benchmarks</a>'))
 
     def page(self, path, title, description, sections, current=False):
         out = ['<!doctype html>', '<html lang="en">', '<head>', '<meta charset="utf-8">',
@@ -819,14 +821,6 @@ main .band > details.text {
 
 main .band > p.sentence {
   margin-top: 16px;
-}
-
-/* The header has one link more than the demo page's: on a narrow screen
-   the link to the guide is left out, as the demo page leaves out the
-   contact link, and the links sit closer. */
-@media (max-width: 30rem) {
-  .nav-links { gap: 10px; }
-  .nav-links a[href="https://ormaos.com/guide/"] { display: none; }
 }
 
 /* From 64rem the benchmark pages use a wider column, 1100 px: charts,
