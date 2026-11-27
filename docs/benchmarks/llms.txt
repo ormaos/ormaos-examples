@@ -1,16 +1,16 @@
 # Ormaos benchmarks
 
-> Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you. These pages measure what a coding agent knows about an execution and what it fixes, with nothing, a raw trace or an Ormaos recording, and what recording costs in time. Every number is read from a results file by site/benchmarks/build.py in ormaos-examples.
+> Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you. These pages measure what a coding agent knows about an execution and whether the code it changes passes a check, with nothing, a raw trace or an Ormaos recording, and what recording costs in time. Every number is read from a results file by site/benchmarks/build.py in ormaos-examples.
 
-Each page is plain Markdown at the address below; the HTML page is the same address without `index.html.md`.
+Each page is plain Markdown at the address below; the HTML page is the same address with a slash in place of `.md`.
 
 ## Pages
 
-- [Benchmarks](https://ormaos.com/benchmarks/index.html.md): what is measured, one card per benchmark, and what the benchmarks do not show
-- [knows2: what an agent knows about an execution](https://ormaos.com/benchmarks/knows2/index.html.md): the method, the charts, every question with the oracle's answer and every run's answer, and what the agents said when they could not answer
-- [knows: the earlier run](https://ormaos.com/benchmarks/knows/index.html.md): the earlier run of the same executions, and why knows2 replaced it
-- [fix: 8 bugs, fixed or not](https://ormaos.com/benchmarks/fix/index.html.md): 8 bugs, 3 arms, scored by the first attempt of every slot
-- [overhead: what recording adds to the time of a run](https://ormaos.com/benchmarks/overhead/index.html.md): the time a recorded run takes, per capability set, on 2 workloads
+- [Benchmarks](https://ormaos.com/benchmarks.md): what is measured, one card per benchmark, and what the benchmarks do not show
+- [knows2: what an agent knows about an execution](https://ormaos.com/benchmarks/knows2.md): the method, the charts, every question with the oracle's answer and every run's answer, and what the agents said when they could not answer
+- [knows: the earlier run](https://ormaos.com/benchmarks/knows.md): the earlier run of the same executions, and why knows2 replaced it
+- [fix: 8 programs that do otherwise than their README says](https://ormaos.com/benchmarks/fix.md): 8 programs, 3 arms, the metric fixed, scored by the first attempt of every slot
+- [overhead: what recording adds to the time of a run](https://ormaos.com/benchmarks/overhead.md): the time a recorded run takes, per capability set, on 2 workloads
 
 ## Results files
 

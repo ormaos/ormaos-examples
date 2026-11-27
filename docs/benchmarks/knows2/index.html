@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
-<link rel="alternate" type="text/markdown" href="/benchmarks/knows2/index.html.md">
+<link rel="alternate" type="text/markdown" href="/benchmarks/knows2.md">
 
 <script>
   (function () {
@@ -1861,7 +1861,7 @@
 
 <section class="band" id="order-sync" aria-labelledby="order-sync-title">
 <h2 id="order-sync-title">For scheduled jobs: order-sync</h2>
-<p>A scheduled job that applies the new orders of a sales system to a warehouse inventory; the execution is the night that printed its OK line while some stock came out wrong. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/order-sync"><code>order-sync</code></a>.</p>
+<p>A scheduled job that applies the new orders of a sales system to a warehouse inventory; the execution is a night on which it printed its OK line and some orders did not reach the inventory. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/order-sync"><code>order-sync</code></a>.</p>
 <p>The execution: Last night cron ran <code>python3 job.py --source api</code> in this folder; since then the sales system has replaced its orders with today&#x27;s.</p>
 <p>Mean score: <code>none</code> 0.38, <code>raw</code> 1.00, <code>ormaos</code> 0.92, <code>ormaos-values</code> 1.00.</p>
 <figure class="chart">

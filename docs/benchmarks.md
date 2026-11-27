@@ -6,7 +6,7 @@ Ormaos records and shows what happened inside your Python execution — the runt
 
 ## What is measured
 
-Whether a coding agent knows what happened in an execution it did not see, and whether it fixes a bug from a night that went wrong, when it has the folder the execution left and nothing more (`none`), a VizTracer trace of the execution (`raw`), or its Ormaos recording (`ormaos`, and in knows2 also `ormaos-values`); the agent is `claude-opus-5-5`, in a sandbox, and its answers or its code are graded by an oracle or a check that reads neither the trace nor the recording. And how much time recording adds to a Python program.
+Whether a coding agent knows what happened in an execution it did not see, and whether the code it leaves passes a check, for a program whose behaviour on one night differed from what its README says, when it has the folder the execution left and nothing more (`none`), a VizTracer trace of the execution (`raw`), or its Ormaos recording (`ormaos`, and in knows2 also `ormaos-values`); the agent is `claude-opus-5-5`, in a sandbox, and its answers or its code are graded by an oracle or a check that reads neither the trace nor the recording. And how much time recording adds to a Python program.
 
 ### What an agent knows about an execution
 
@@ -33,17 +33,17 @@ The same executions, with questions written by the people who make Ormaos; repla
 
 [The run, and why knows2 replaced it](https://ormaos.com/benchmarks/knows/)
 
-### 8 bugs, fixed or not
+### 8 programs that do otherwise than their README says
 
 *fix · 2026-11-26 · claude-opus-5-5 · N = 72 runs, 24 per arm*
 
-A coding agent fixes a bug from the night it happened; a hidden check decides. Fixed per arm:
+A coding agent changes a program whose behaviour on one night differed from what its README says; a check it does not see runs that night again. The metric `fixed`, per arm:
 
 - **21/24**: `none`, 95% interval 69% to 96%
 - **23/24**: `raw`, 95% interval 80% to 99%
 - **24/24**: `ormaos`, 95% interval 86% to 100%
 
-[The bugs, the check and every run](https://ormaos.com/benchmarks/fix/)
+[The programs, the check and every run](https://ormaos.com/benchmarks/fix/)
 
 ### What recording adds to the time of a run
 
@@ -58,7 +58,7 @@ The default capability set, as a multiple of the same run without Ormaos, with t
 
 ## What these benchmarks do not show
 
-- The programs, the executions and the bugs were written for these benchmarks by the people who make Ormaos; they are not a sample of real programs or real bugs.
+- The programs and their executions were written for these benchmarks by the people who make Ormaos; they are not a sample of real programs.
 - One model, one prompt per arm, one tracer with its default settings, and few runs: 27 per arm in knows2, 24 in fix. Several 95% intervals overlap; each page says which.
 - In knows2 the question writer and the agents are the same model, and in 4 of 9 tasks every arm scored 1.00.
 - The overhead was timed on 2 workloads on one machine; another program has another cost.
@@ -66,6 +66,6 @@ The default capability set, as a multiple of the same run without Ormaos, with t
 
 ## The pages as files
 
-- Each page is also Markdown, at its address followed by `index.html.md`.
+- Each page is also Markdown, at its address with `.md` in place of the last slash: [`/benchmarks.md`](https://ormaos.com/benchmarks.md), [`/benchmarks/knows2.md`](https://ormaos.com/benchmarks/knows2.md), and so on.
 - [`/benchmarks/llms.txt`](https://ormaos.com/benchmarks/llms.txt) lists them for agents.
 - The pages are written by [`site/benchmarks/build.py`](https://github.com/ormaos/ormaos-examples/blob/main/site/benchmarks/build.py) from the results files.

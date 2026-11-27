@@ -8,7 +8,7 @@
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
-<link rel="alternate" type="text/markdown" href="/benchmarks/index.html.md">
+<link rel="alternate" type="text/markdown" href="/benchmarks.md">
 
 <script>
   (function () {
@@ -94,7 +94,7 @@
 
 <section class="band" id="measured" aria-labelledby="measured-title">
 <h2 id="measured-title">What is measured</h2>
-<p>Whether a coding agent knows what happened in an execution it did not see, and whether it fixes a bug from a night that went wrong, when it has the folder the execution left and nothing more (<code>none</code>), a VizTracer trace of the execution (<code>raw</code>), or its Ormaos recording (<code>ormaos</code>, and in knows2 also <code>ormaos-values</code>); the agent is <code>claude-opus-5-5</code>, in a sandbox, and its answers or its code are graded by an oracle or a check that reads neither the trace nor the recording. And how much time recording adds to a Python program.</p>
+<p>Whether a coding agent knows what happened in an execution it did not see, and whether the code it leaves passes a check, for a program whose behaviour on one night differed from what its README says, when it has the folder the execution left and nothing more (<code>none</code>), a VizTracer trace of the execution (<code>raw</code>), or its Ormaos recording (<code>ormaos</code>, and in knows2 also <code>ormaos-values</code>); the agent is <code>claude-opus-5-5</code>, in a sandbox, and its answers or its code are graded by an oracle or a check that reads neither the trace nor the recording. And how much time recording adds to a Python program.</p>
 <ul class="cards">
 <li class="card">
 <p class="kicker">knows2 · 2026-11-27 · claude-opus-5-5 · N = 108 runs, 27 per arm</p>
@@ -121,14 +121,14 @@
 </li>
 <li class="card">
 <p class="kicker">fix · 2026-11-26 · claude-opus-5-5 · N = 72 runs, 24 per arm</p>
-<h3>8 bugs, fixed or not</h3>
-<p>A coding agent fixes a bug from the night it happened; a hidden check decides. Fixed per arm:</p>
+<h3>8 programs that do otherwise than their README says</h3>
+<p>A coding agent changes a program whose behaviour on one night differed from what its README says; a check it does not see runs that night again. The metric <code>fixed</code>, per arm:</p>
 <dl class="facts bench">
   <div><dt><code>none</code>, 95% interval 69% to 96%</dt><dd>21/24</dd></div>
   <div><dt><code>raw</code>, 95% interval 80% to 99%</dt><dd>23/24</dd></div>
   <div><dt><code>ormaos</code>, 95% interval 86% to 100%</dt><dd>24/24</dd></div>
 </dl>
-<p class="more"><a href="/benchmarks/fix/">The bugs, the check and every run</a></p>
+<p class="more"><a href="/benchmarks/fix/">The programs, the check and every run</a></p>
 </li>
 <li class="card">
 <p class="kicker">overhead · 2026-11-27 · N = 20 runs per row</p>
@@ -146,7 +146,7 @@
 <section class="band" id="not-shown" aria-labelledby="not-shown-title">
 <h2 id="not-shown-title">What these benchmarks do not show</h2>
 <ul class="rows">
-  <li>The programs, the executions and the bugs were written for these benchmarks by the people who make Ormaos; they are not a sample of real programs or real bugs.</li>
+  <li>The programs and their executions were written for these benchmarks by the people who make Ormaos; they are not a sample of real programs.</li>
   <li>One model, one prompt per arm, one tracer with its default settings, and few runs: 27 per arm in knows2, 24 in fix. Several 95% intervals overlap; each page says which.</li>
   <li>In knows2 the question writer and the agents are the same model, and in 4 of 9 tasks every arm scored 1.00.</li>
   <li>The overhead was timed on 2 workloads on one machine; another program has another cost.</li>
@@ -157,7 +157,7 @@
 <section class="band" id="files" aria-labelledby="files-title">
 <h2 id="files-title">The pages as files</h2>
 <ul class="rows">
-  <li>Each page is also Markdown, at its address followed by <code>index.html.md</code>.</li>
+  <li>Each page is also Markdown, at its address with <code>.md</code> in place of the last slash: <a href="/benchmarks.md"><code>/benchmarks.md</code></a>, <a href="/benchmarks/knows2.md"><code>/benchmarks/knows2.md</code></a>, and so on.</li>
   <li><a href="/benchmarks/llms.txt"><code>/benchmarks/llms.txt</code></a> lists them for agents.</li>
   <li>The pages are written by <a href="https://github.com/ormaos/ormaos-examples/blob/main/site/benchmarks/build.py"><code>site/benchmarks/build.py</code></a> from the results files.</li>
 </ul>

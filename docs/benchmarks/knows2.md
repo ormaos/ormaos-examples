@@ -1095,7 +1095,7 @@ This folder is a git repository with two commits. `python3 run.py` ran once at t
 
 ## For scheduled jobs: order-sync
 
-A scheduled job that applies the new orders of a sales system to a warehouse inventory; the execution is the night that printed its OK line while some stock came out wrong. Source: [`order-sync`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/order-sync).
+A scheduled job that applies the new orders of a sales system to a warehouse inventory; the execution is a night on which it printed its OK line and some orders did not reach the inventory. Source: [`order-sync`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/order-sync).
 
 The execution: Last night cron ran `python3 job.py --source api` in this folder; since then the sales system has replaced its orders with today's.
 
