@@ -1190,6 +1190,96 @@ main .band > p.sentence {
   .nav-links a[href="https://ormaos.com/guide/"] { display: none; }
 }
 
+/* From 64rem the benchmark pages use a wider column, 1100 px: charts,
+   tables and cards take all of it, text stays near 70 characters a line.
+   Each wide chart is drawn twice; the style shows the one that fits. */
+.narrow-only { display: none; }
+
+@media (max-width: 63.99rem) {
+  .wide-only { display: none; }
+  .narrow-only { display: block; }
+}
+
+@media (min-width: 64rem) {
+  .bench main .band {
+    max-width: 68.75rem;
+    margin-inline: auto;
+  }
+
+  .bench main .band > * {
+    max-width: none;
+    margin-inline: 0;
+  }
+
+  .bench main .band > :is(p, h1, h2, h3, ul.rows, nav.toc, details, figure.code) {
+    max-width: 70ch;
+    margin-inline: 0;
+  }
+
+  .bench .chart svg {
+    min-width: 0;
+  }
+}
+
+.bench main .band > p.headline {
+  margin-top: 32px;
+  font-size: 20px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px 48px;
+}
+
+@media (min-width: 64rem) {
+  .pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.pair .table-wrap,
+.card .table-wrap {
+  margin-top: 12px;
+}
+
+main .band > .facts.three {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px 40px;
+  margin-top: 40px;
+}
+
+@media (min-width: 48rem) {
+  main .band > .facts.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.facts.three dt a {
+  text-decoration: underline;
+}
+
+.cards.grid {
+  border-top: 0;
+}
+
+.cards.grid .card {
+  border-top: 1px solid var(--line);
+  border-bottom: 0;
+  padding-bottom: 24px;
+}
+
+@media (min-width: 64rem) {
+  .cards.grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 48px;
+  }
+}
+
+.card .chart {
+  margin-top: 12px;
+}
+
 /* A grid of cells fits the column; the other charts keep a readable font
    and scroll sideways on a narrow screen. */
 .chart svg.fit {

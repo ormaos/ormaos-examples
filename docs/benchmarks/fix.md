@@ -1,4 +1,4 @@
-# fix: 8 programs that do otherwise than their README says
+# fix: 8 programs whose behaviour differed from their README
 
 N = 72 runs: 8 programs x 3 arms x 3 runs, the first attempt of every slot, model `claude-opus-5-5`, 2026-11-26. A coding agent gets a scheduled program whose behaviour on one night differs from what its README says, the data that night left and a one-sentence symptom. A check it does not see then plays that night again on the code the agent left; `fixed` is the name of the metric that counts the runs whose code passed it.
 
