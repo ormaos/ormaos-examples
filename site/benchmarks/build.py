@@ -368,13 +368,13 @@ class Commands(Block):
 class Facts(Block):
     """Big values over small labels: (value, label)."""
 
-    def __init__(self, items):
-        self.items = items
+    def __init__(self, items, cls=""):
+        self.items, self.cls = items, cls
 
     def html(self):
         items = "\n".join(f"  <div><dt>{inline(label)}</dt><dd>{inline(value)}</dd></div>"
                           for value, label in self.items)
-        return f'<dl class="facts bench">\n{items}\n</dl>'
+        return f'<dl class="facts bench {self.cls}">\n{items}\n</dl>'.replace(" \">", "\">")
 
     def md(self):
         return "\n".join(f"- **{to_markdown_inline(value)}**: {to_markdown_inline(label)}"
@@ -384,11 +384,11 @@ class Facts(Block):
 class Cards(Block):
     """(kicker, title, blocks, link text, url)."""
 
-    def __init__(self, cards):
-        self.cards = cards
+    def __init__(self, cards, grid=False):
+        self.cards, self.grid = cards, grid
 
     def html(self):
-        out = ['<ul class="cards">']
+        out = ['<ul class="cards grid">' if self.grid else '<ul class="cards">']
         for kicker, title, blocks, more, url in self.cards:
             inner = "\n".join(b.html() for b in blocks)
             out.append(f'<li class="card">\n<p class="kicker">{inline(kicker)}</p>\n<h3>{inline(title)}</h3>\n'
@@ -404,6 +404,20 @@ class Cards(Block):
         return "\n\n".join(out)
 
 
+class Pair(Block):
+    """Two blocks side by side on a wide screen, one under the other on a
+    narrow one."""
+
+    def __init__(self, blocks):
+        self.blocks = blocks
+
+    def html(self):
+        return '<div class="pair">\n' + "\n".join(f"<div>\n{b.html()}\n</div>" for b in self.blocks) + "\n</div>"
+
+    def md(self):
+        return "\n\n".join(b.md() for b in self.blocks)
+
+
 class Toc(Block):
     def __init__(self, items):
         self.items = items
@@ -417,13 +431,23 @@ class Toc(Block):
 
 
 class Chart(Block):
-    """An inline SVG chart, then the table of its numbers."""
+    """An inline SVG chart, then the table of its numbers. `svg` is the SVG,
+    or a function (id suffix, width) that draws it: drawn at `width`, or,
+    without one, twice: WIDE for a wide screen and W for a narrow one, of
+    which the style shows one."""
 
-    def __init__(self, svg, title, desc, table):
-        self.svg, self.title, self.desc, self.table = svg, title, desc, table
+    def __init__(self, svg, title, desc, table, width=None):
+        self.svg, self.title, self.desc, self.table, self.width = svg, title, desc, table, width
 
     def html(self):
-        return f'<figure class="chart">\n{self.svg}\n</figure>\n{self.table.html()}'
+        if isinstance(self.svg, str):
+            body = self.svg
+        elif self.width:
+            body = self.svg("", self.width)
+        else:
+            body = (f'<div class="wide-only">\n{self.svg("", WIDE)}\n</div>\n'
+                    f'<div class="narrow-only">\n{self.svg("-n", W)}\n</div>')
+        return f'<figure class="chart">\n{body}\n</figure>\n{self.table.html()}'
 
     def md(self):
         return f"**{self.title}.** {self.desc}\n\n{self.table.md()}"
@@ -449,7 +473,8 @@ class Section:
 
 # ---------------------------------------------------------------- charts
 
-W = 600
+W = 600       # a chart in the text column, and every chart on a narrow screen
+WIDE = 1060   # a chart across the wide column of a wide screen
 FONT = 13
 
 
@@ -468,8 +493,8 @@ def nice_ticks(high, count=4):
     return ticks
 
 
-def svg_open(cid, title, desc, height):
-    return [f'<svg viewBox="0 0 {W} {height}" role="img" aria-labelledby="{cid}-t {cid}-d" '
+def svg_open(cid, title, desc, height, width=W):
+    return [f'<svg viewBox="0 0 {width} {height}" role="img" aria-labelledby="{cid}-t {cid}-d" '
             f'xmlns="http://www.w3.org/2000/svg">',
             f'<title id="{cid}-t">{esc(title)}</title>', f'<desc id="{cid}-d">{esc(desc)}</desc>']
 
@@ -478,18 +503,18 @@ def fmt(x):
     return f"{x:.1f}".rstrip("0").rstrip(".")
 
 
-def interval_chart(cid, title, desc, rows, ticks, tick_label, left=130, right=190):
+def interval_chart(cid, title, desc, rows, ticks, tick_label, left=130, right=190, width=W):
     """rows: (label, slot, value, low, high, text, tooltip); the x axis runs
     from ticks[0] to ticks[-1]."""
     lo, hi = ticks[0], ticks[-1]
-    plot = W - left - right
+    plot = width - left - right
     row_h, top = 40, 12
     height = top + row_h * len(rows) + 34
 
     def x(v):
         return left + plot * (v - lo) / (hi - lo)
 
-    out = svg_open(cid, title, desc, height)
+    out = svg_open(cid, title, desc, height, width)
     bottom = top + row_h * len(rows)
     for t in ticks:
         out.append(f'<line class="grid" x1="{fmt(x(t))}" y1="{top}" x2="{fmt(x(t))}" y2="{bottom}"/>')
@@ -504,18 +529,18 @@ def interval_chart(cid, title, desc, rows, ticks, tick_label, left=130, right=19
             out.append(f'<line class="s{slot} whisker" x1="{fmt(x(end))}" y1="{fmt(y - 6)}" x2="{fmt(x(end))}" '
                        f'y2="{fmt(y + 6)}"/>')
         out.append(f'<circle class="s{slot} dot" cx="{fmt(x(value))}" cy="{fmt(y)}" r="6"/>')
-        out.append(f'<text class="value" x="{W - right + 14}" y="{fmt(y + 4.5)}">{esc(text)}</text></g>')
+        out.append(f'<text class="value" x="{width - right + 14}" y="{fmt(y + 4.5)}">{esc(text)}</text></g>')
     out.append("</svg>")
     return "\n".join(out)
 
 
-def stacked_chart(cid, title, desc, rows, parts, left=130, right=150):
+def stacked_chart(cid, title, desc, rows, parts, left=130, right=150, width=W):
     """rows: (label, [count per part]); parts: (name, class)."""
-    plot = W - left - right
+    plot = width - left - right
     row_h, top = 40, 40
     height = top + row_h * len(rows) + 8
     total = max(sum(counts) for _, counts in rows)
-    out = svg_open(cid, title, desc, height)
+    out = svg_open(cid, title, desc, height, width)
     lx = left
     for name, cls in parts:
         out.append(f'<rect class="{cls}" x="{lx}" y="10" width="12" height="12" rx="2"/>')
@@ -569,15 +594,15 @@ def heatmap(cid, title, desc, row_labels, col_labels, cells, left=110, cell_w=88
     return "\n".join(out)
 
 
-def bar_chart(cid, title, desc, rows, value_text, left=130, right=120):
+def bar_chart(cid, title, desc, rows, value_text, left=130, right=120, width=W):
     """rows: (label, slot, value, tooltip)."""
-    plot = W - left - right
+    plot = width - left - right
     row_h, top = 34, 12
     ticks = nice_ticks(max(v for _, _, v, _ in rows))
     hi = ticks[-1]
     bottom = top + row_h * len(rows)
     height = bottom + 34
-    out = svg_open(cid, title, desc, height)
+    out = svg_open(cid, title, desc, height, width)
     for t in ticks:
         x = left + plot * t / hi
         out.append(f'<line class="grid" x1="{fmt(x)}" y1="{top}" x2="{fmt(x)}" y2="{bottom}"/>')
@@ -594,10 +619,10 @@ def bar_chart(cid, title, desc, rows, value_text, left=130, right=120):
     return "\n".join(out)
 
 
-def log_dots(cid, title, desc, rows, series, ticks, tick_label, left=130, right=30):
+def log_dots(cid, title, desc, rows, series, ticks, tick_label, left=130, right=30, width=W):
     """rows: (label, {key: value}); series: (key, name, slot); ticks on a log
     scale from ticks[0] to ticks[-1]."""
-    plot = W - left - right
+    plot = width - left - right
     row_h, top = 34, 40
     lo, hi = math.log10(ticks[0]), math.log10(ticks[-1])
     bottom = top + row_h * len(rows)
@@ -606,7 +631,7 @@ def log_dots(cid, title, desc, rows, series, ticks, tick_label, left=130, right=
     def x(v):
         return left + plot * (math.log10(v) - lo) / (hi - lo)
 
-    out = svg_open(cid, title, desc, height)
+    out = svg_open(cid, title, desc, height, width)
     lx = left
     for key, name, slot in series:
         out.append(f'<circle class="s{slot} dot" cx="{lx + 6}" cy="16" r="6"/>')
@@ -663,7 +688,7 @@ class Frame:
                '<meta name="color-scheme" content="light">', '<meta name="theme-color" content="#ffffff">',
                '<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">',
                f'<link rel="alternate" type="text/markdown" href="{md_url(path)}">', "", self.head_script, "",
-               '<link rel="stylesheet" href="/benchmarks/style.css">', "</head>", '<body class="long">', "",
+               '<link rel="stylesheet" href="/benchmarks/style.css">', "</head>", '<body class="long bench">', "",
                self.header.replace("{current}", ' aria-current="page"' if current else ""), self.header_script,
                "", "<main>", ""]
         for s in sections:
@@ -804,6 +829,96 @@ main .band > p.sentence {
   .nav-links a[href="https://ormaos.com/guide/"] { display: none; }
 }
 
+/* From 64rem the benchmark pages use a wider column, 1100 px: charts,
+   tables and cards take all of it, text stays near 70 characters a line.
+   Each wide chart is drawn twice; the style shows the one that fits. */
+.narrow-only { display: none; }
+
+@media (max-width: 63.99rem) {
+  .wide-only { display: none; }
+  .narrow-only { display: block; }
+}
+
+@media (min-width: 64rem) {
+  .bench main .band {
+    max-width: 68.75rem;
+    margin-inline: auto;
+  }
+
+  .bench main .band > * {
+    max-width: none;
+    margin-inline: 0;
+  }
+
+  .bench main .band > :is(p, h1, h2, h3, ul.rows, nav.toc, details, figure.code) {
+    max-width: 70ch;
+    margin-inline: 0;
+  }
+
+  .bench .chart svg {
+    min-width: 0;
+  }
+}
+
+.bench main .band > p.headline {
+  margin-top: 32px;
+  font-size: 20px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px 48px;
+}
+
+@media (min-width: 64rem) {
+  .pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.pair .table-wrap,
+.card .table-wrap {
+  margin-top: 12px;
+}
+
+main .band > .facts.three {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px 40px;
+  margin-top: 40px;
+}
+
+@media (min-width: 48rem) {
+  main .band > .facts.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.facts.three dt a {
+  text-decoration: underline;
+}
+
+.cards.grid {
+  border-top: 0;
+}
+
+.cards.grid .card {
+  border-top: 1px solid var(--line);
+  border-bottom: 0;
+  padding-bottom: 24px;
+}
+
+@media (min-width: 64rem) {
+  .cards.grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 48px;
+  }
+}
+
+.card .chart {
+  margin-top: 12px;
+}
+
 /* A grid of cells fits the column; the other charts keep a readable font
    and scroll sideways on a narrow screen. */
 .chart svg.fit {
@@ -931,7 +1046,7 @@ class KnowsRun:
         return last
 
 
-def score_chart(cid, run, name):
+def score_chart(cid, run, name, width=None, compact=False, left=130, right=190):
     rows = []
     for arm in run.arms:
         low, high = run.interval(arm)
@@ -942,11 +1057,36 @@ def score_chart(cid, run, name):
     title = f"Mean score per arm, {name}"
     desc = ("The mean score of the runs of each arm, with its 95% bootstrap interval. "
             + "; ".join(f"{r[0]} {r[5]}" for r in rows) + ".")
-    svg = interval_chart(cid, title, desc, rows, [0, 0.25, 0.5, 0.75, 1.0], lambda t: f"{t:.2f}")
-    table = Table(["Arm", "Runs", "Mean score", "95% interval", "Median wall time", "Median tool calls",
-                   "Median tokens", "Ran the program again", "Timed out"],
-                  [[code(r[0])] + r[1:] for r in run.summary_rows()])
-    return Chart(svg, title, desc, table)
+    def svg(suffix, w):
+        return interval_chart(cid + suffix, title, desc, rows, [0, 0.25, 0.5, 0.75, 1.0], lambda t: f"{t:.2f}",
+                              left=left, right=right, width=w)
+    summary = run.summary_rows()
+    if compact:
+        table = Table(["Arm", "Runs", "Mean score", "95% interval"], [[code(r[0])] + r[1:4] for r in summary])
+    else:
+        table = Table(["Arm", "Runs", "Mean score", "95% interval", "Median wall time", "Median tool calls",
+                       "Median tokens", "Ran the program again", "Timed out"], [[code(r[0])] + r[1:] for r in summary])
+    return Chart(svg, title, desc, table, width)
+
+
+def rnw_chart(cid, run, width=None, left=130, right=150):
+    """Right, null and wrong answers per arm, stacked."""
+    counts = {arm: run.outcome_counts(arm) for arm in run.arms}
+    same_as_report([[a, str(sum(c.values())), str(c["right"]), str(c["null"]), str(c["wrong"])]
+                    for a, c in counts.items()], run.report, "Arm | Answers", rel(run.folder) + " outcomes")
+    title = "Right, null and wrong answers per arm"
+    desc = ("Every answer of every run of each arm, stacked: right, null, wrong. "
+            + "; ".join(f"{a}: {c['right']} right, {c['null']} null, {c['wrong']} wrong"
+                        for a, c in counts.items()) + ".")
+
+    def svg(suffix, w):
+        return stacked_chart(cid + suffix, title, desc,
+                             [(a, [c["right"], c["null"], c["wrong"]]) for a, c in counts.items()],
+                             [("right", "s1"), ("null", "neutral"), ("wrong", "s2")], left=left, right=right, width=w)
+    return Chart(svg, title, desc,
+                 Table(["Arm", "Answers", "Right", "Null", "Wrong"],
+                       [[code(a), str(sum(c.values())), str(c["right"]), str(c["null"]), str(c["wrong"])]
+                        for a, c in counts.items()]), width)
 
 
 def task_chart(cid, run, name):
@@ -1092,20 +1232,7 @@ def knows2_page(run, h, frame):
     ] + [Pre(f"`{arm}`", h.prompt(example, arm)) for arm in run.arms]))
 
     # Results
-    counts = {arm: run.outcome_counts(arm) for arm in run.arms}
-    same_as_report([[a, str(sum(c.values())), str(c["right"]), str(c["null"]), str(c["wrong"])]
-                    for a, c in counts.items()], run.report, "Arm | Answers", rel(run.folder) + " outcomes")
-    rnw_title = "Right, null and wrong answers per arm"
-    rnw_desc = ("Every answer of every run of each arm, stacked: right, null, wrong. "
-                + "; ".join(f"{a}: {c['right']} right, {c['null']} null, {c['wrong']} wrong"
-                            for a, c in counts.items()) + ".")
-    rnw = Chart(stacked_chart("rnw", rnw_title, rnw_desc,
-                              [(a, [c["right"], c["null"], c["wrong"]]) for a, c in counts.items()],
-                              [("right", "s1"), ("null", "neutral"), ("wrong", "s2")]),
-                rnw_title, rnw_desc,
-                Table(["Arm", "Answers", "Right", "Null", "Wrong"],
-                      [[code(a), str(sum(c.values())), str(c["right"]), str(c["null"]), str(c["wrong"])]
-                       for a, c in counts.items()]))
+    rnw = rnw_chart("rnw", run)
     wrong = [(r, qid, given) for r in run.records for qid in r["right"]
              for kind, given in [run.outcome(r, qid)] if kind == "wrong"]
     wrong_block = (Table(["Task", "Arm", "Run", "Question", "Answer", "Oracle"],
@@ -1146,9 +1273,10 @@ def knows2_page(run, h, frame):
                  + "; ".join(f"{n}: raw {size_text(v['raw'])}, ormaos {size_text(v['ormaos'])}, ormaos-values "
                              f"{size_text(v['ormaos-values'])}" for n, v in sizes) + ".")
     size_chart = Chart(
-        log_dots("size", size_title, size_desc, sizes,
-                 [("raw", "raw", 2), ("ormaos", "ormaos", 3), ("ormaos-values", "ormaos-values", 4)],
-                 [10 ** e for e in range(lo_exp, hi_exp + 1)], lambda t: size_text(t).replace(".0", "")),
+        lambda sfx, w: log_dots("size" + sfx, size_title, size_desc, sizes,
+                                [("raw", "raw", 2), ("ormaos", "ormaos", 3), ("ormaos-values", "ormaos-values", 4)],
+                                [10 ** e for e in range(lo_exp, hi_exp + 1)],
+                                lambda t: size_text(t).replace(".0", ""), width=w),
         size_title, size_desc,
         Table(["Task", "`raw` (bytes)", "`ormaos` (bytes)", "`ormaos-values` (bytes)"],
               [[n, f"{v['raw']:,}", f"{v['ormaos']:,}", f"{v['ormaos-values']:,}"] for n, v in sizes]))
@@ -1164,9 +1292,11 @@ def knows2_page(run, h, frame):
         task_chart("tasks", run, "knows2"),
         P("In " + f"{len(run.full_marks())} of {n_tasks} tasks every arm scored 1.00: "
           + joined(f"`{n}`" for n in run.full_marks()) + "."),
-        Chart(bar_chart("tokens", tok_title, tok_desc, tok_rows, tokens_text), tok_title, tok_desc,
+        Chart(lambda sfx, w: bar_chart("tokens" + sfx, tok_title, tok_desc, tok_rows, tokens_text, width=w),
+              tok_title, tok_desc,
               Table(["Arm", "Median tokens"], [[code(a), f"{v:,.0f}"] for a, _, v, _ in tok_rows])),
-        Chart(bar_chart("wall", wall_title, wall_desc, wall_rows, lambda v, tick: f"{v:.0f} s"),
+        Chart(lambda sfx, w: bar_chart("wall" + sfx, wall_title, wall_desc, wall_rows,
+                                       lambda v, tick: f"{v:.0f} s", width=w),
               wall_title, wall_desc,
               Table(["Arm", "Median wall time (s)"], [[code(a), f"{v:.1f}"] for a, _, v, _ in wall_rows])),
         P(cost_line),
@@ -1349,8 +1479,32 @@ class FixRun:
         return rows
 
 
+def fixed_chart(cid, run, width=None, compact=False, left=130, right=190):
+    """The metric fixed per arm, with its Wilson interval."""
+    rows = []
+    for arm in run.arms:
+        low, high = run.h.benchlib.wilson(run.fixed(arm), len(run.of(arm)))
+        f, n = run.fixed(arm), len(run.of(arm))
+        rows.append((arm, SLOT[arm], f / n, low, high, f"{f}/{n} ({100 * low:.0f}% to {100 * high:.0f}%)",
+                     f"{arm}: fixed {f} of {n}, 95% Wilson interval {100 * low:.0f}% to {100 * high:.0f}%"))
+    title = "The metric fixed, per arm"
+    desc = ("The share of first attempts of each arm whose code passed the check, with its 95% Wilson score "
+            "interval. " + "; ".join(f"{r[0]} {r[5]}" for r in rows) + ".")
+
+    def svg(suffix, w):
+        return interval_chart(cid + suffix, title, desc, rows, [0, 0.25, 0.5, 0.75, 1.0], lambda t: f"{100 * t:.0f}%",
+                              left=left, right=right, width=w)
+    summary = run.summary_rows()
+    if compact:
+        table = Table(["Arm", "Fixed", "95% interval"], [[code(r[0])] + r[1:3] for r in summary])
+    else:
+        table = Table(["Arm", "Fixed", "95% interval", "Median wall time", "Median tool calls", "Median tokens",
+                       "Timed out"], [[code(r[0])] + r[1:] for r in summary])
+    return Chart(svg, title, desc, table, width)
+
+
 def fix_title(run):
-    return f"fix: {len(run.cases)} programs that do otherwise than their README says"
+    return f"fix: {len(run.cases)} programs whose behaviour differed from their README"
 
 
 def fix_page(run):
@@ -1408,19 +1562,7 @@ def fix_page(run):
           "the others, since the sandbox has nothing of these programs outside the folder."),
     ]))
 
-    rows = []
-    for arm in run.arms:
-        low, high = intervals[arm]
-        f, n = run.fixed(arm), len(run.of(arm))
-        rows.append((arm, SLOT[arm], f / n, low, high, f"{f}/{n} ({100 * low:.0f}% to {100 * high:.0f}%)",
-                     f"{arm}: fixed {f} of {n}, 95% Wilson interval {100 * low:.0f}% to {100 * high:.0f}%"))
-    title = "The metric fixed, per arm"
-    desc = ("The share of first attempts of each arm whose code passed the check, with its 95% Wilson score "
-            "interval. " + "; ".join(f"{r[0]} {r[5]}" for r in rows) + ".")
-    chart = Chart(interval_chart("fixed", title, desc, rows, [0, 0.25, 0.5, 0.75, 1.0],
-                                 lambda t: f"{100 * t:.0f}%"), title, desc,
-                  Table(["Arm", "Fixed", "95% interval", "Median wall time", "Median tool calls", "Median tokens",
-                         "Timed out"], [[code(r[0])] + r[1:] for r in run.summary_rows()]))
+    chart = fixed_chart("fixed", run)
     per_case = Table(["Program"] + [code(a) for a in run.arms],
                      [[code(c)] + [f"{run.fixed(a, c)}/{len(run.of(a, c))}" for a in run.arms]
                       for c, _, _ in run.cases])
@@ -1488,9 +1630,8 @@ class Overhead:
         return next(r for r in rows if "(the default)" in r["Capability set"])
 
 
-def overhead_page(over):
-    commit = over.source["commit"]
-    results_url = f"{ORMAOS}/blob/{commit}/{over.source['path']}"
+def ratio_chart(cid, over, width=None, left=270):
+    """The time of a recorded run, as a multiple of the run without Ormaos."""
     series = [(title, title.replace(" workload", ""), i + 1) for i, (title, *_rest) in enumerate(over.workloads)]
     sets = [r["Capability set"] for r in over.workloads[0][3] if r["ratio"]]
     rows = []
@@ -1508,11 +1649,17 @@ def overhead_page(over):
             "a log scale. " + "; ".join(f"{cap}: " + ", ".join(f"{s[1]} {vals[s[0] + ':text']}" for s in series)
                                         for cap, vals in rows) + ".")
     label_of = {cap: cap.replace(" (the default)", ", the default") for cap in sets}
-    chart = Chart(log_dots("ratios", title, desc, [(label_of[c], v) for c, v in rows], series, ticks,
-                           lambda t: f"x{t}", left=270),
+    return Chart(lambda sfx, w: log_dots(cid + sfx, title, desc, [(label_of[c], v) for c, v in rows], series,
+                                         ticks, lambda t: f"x{t}", left=left, width=w),
                   title, desc,
                   Table(["Capability set"] + [f"{s[1]}" for s in series],
-                        [[cap] + [f"x{vals[s[0]]:.2f}" for s in series] for cap, vals in rows]))
+                        [[cap] + [f"x{vals[s[0]]:.2f}" for s in series] for cap, vals in rows]), width)
+
+
+def overhead_page(over):
+    commit = over.source["commit"]
+    results_url = f"{ORMAOS}/blob/{commit}/{over.source['path']}"
+    chart = ratio_chart("ratios", over)
     blocks = [chart]
     for title_w, about, header, wrows, notes in over.workloads:
         blocks.append(H(3, title_w))
@@ -1556,39 +1703,63 @@ def overhead_page(over):
 
 
 def index_page(k2, k1, fix, over):
-    def arm_facts(run):
-        return Facts([(f"{run.mean(a):.2f}", f"`{a}`, 95% interval {run.interval(a)[0]:.2f} to "
-                       f"{run.interval(a)[1]:.2f}") for a in run.arms])
-
-    fix_int = {a: fix.h.benchlib.wilson(fix.fixed(a), len(fix.of(a))) for a in fix.arms}
+    model = joined(code(m) for m in sorted(set(k2.models) | set(k1.models) | set(fix.models)))
     cpu, io = over.workloads[0], over.workloads[1]
     cpu_d, io_d = over.default(cpu[3]), over.default(io[3])
-    model = joined(code(m) for m in sorted(set(k2.models) | set(k1.models) | set(fix.models)))
+
+    # The headline: knows2's answers, ormaos against none
+    o, n = k2.outcome_counts("ormaos"), k2.outcome_counts("none")
+    headline = (f"In knows2, with an Ormaos recording (`ormaos`) the agent answered {o['right']} of "
+                f"{sum(o.values())} questions right, over its {len(k2.of('ormaos'))} runs; with only the folder "
+                f"(`none`), {n['right']} of {sum(n.values())}. Null answers: {o['null']} and {n['null']}. "
+                f"Wrong answers: {o['wrong']} and {n['wrong']}.")
+
+    # Three facts, each with its page
+    tasks = [k2.built["tasks"][t] for t in k2.names]
+    size_o = statistics.median(t["bytes_ormaos"] for t in tasks)
+    size_raw = statistics.median(t["trace_bytes"] for t in tasks)
+    tokens = {a: k2.median(a, "tokens") for a in k2.arms}
+    others = [a for a in k2.arms if a not in ("ormaos", "none")]
+    facts = Facts([
+        (f"{size_text(size_o)} vs {size_text(size_raw)}",
+         f"median size, over the {len(tasks)} executions of knows2, of the Ormaos recording (`.ormaos/`) and of "
+         "the VizTracer trace (`result.json`). [Per execution](/benchmarks/knows2/#results)"),
+        (f"{tokens['ormaos']:,.0f} vs {tokens['none']:,.0f}",
+         "median tokens per run in knows2, `ormaos` and `none`; "
+         + ", ".join(f"`{a}` {tokens[a]:,.0f}" for a in others) + ". [Per arm](/benchmarks/knows2/#results)"),
+        (f"x{cpu_d['ratio']:.2f} / x{io_d['ratio']:.2f}",
+         f"time of a run recorded with the default capability set, against the same run without Ormaos: "
+         f"{cpu[0]} / {io[0]}. [Every capability set](/benchmarks/overhead/)"),
+    ], cls="three")
+
+    def short(title):
+        return title.split(": ", 1)[1][:1].upper() + title.split(": ", 1)[1][1:]
+
     cards = [
         (f"knows2 · {k2.date} · {joined(k2.models)} · N = {len(k2.records)} runs, "
          f"{len(k2.of(k2.arms[0]))} per arm",
          "What an agent knows about an execution",
          [P(f"{len(k2.names)} executions, questions by a model that was not told what Ormaos records, graded "
-            "against an oracle. Mean score per arm, from 0 to 1:"), arm_facts(k2)],
+            "against an oracle. Mean score per arm, from 0 to 1."),
+          score_chart("c-knows2", k2, "knows2", width=500, compact=True, left=110, right=160)],
          "The method, every question and every answer", "/benchmarks/knows2/"),
         (f"knows · {k1.date} · {joined(k1.models)} · N = {len(k1.records)} runs, {len(k1.of(k1.arms[0]))} per arm",
          "The earlier run, questions by the makers of Ormaos",
          [P("The same executions, with questions written by the people who make Ormaos; replaced by knows2. "
-            "Mean score per arm:"), arm_facts(k1)],
+            "Mean score per arm."),
+          score_chart("c-knows", k1, "knows", width=500, compact=True, left=110, right=160)],
          "The run, and why knows2 replaced it", "/benchmarks/knows/"),
         (f"fix · {fix.date} · {joined(fix.models)} · N = {len(fix.first)} runs, {len(fix.of(fix.arms[0]))} per arm",
-         fix_title(fix)[len("fix: "):][:1].upper() + fix_title(fix)[len("fix: ") + 1:],
+         short(fix_title(fix)),
          [P("A coding agent changes a program whose behaviour on one night differed from what its README says; "
-            "a check it does not see runs that night again. The metric `fixed`, per arm:"),
-          Facts([(f"{fix.fixed(a)}/{len(fix.of(a))}", f"`{a}`, 95% interval {100 * fix_int[a][0]:.0f}% to "
-                  f"{100 * fix_int[a][1]:.0f}%") for a in fix.arms])],
+            "a check it does not see runs that night again. The metric `fixed`, per arm."),
+          fixed_chart("c-fix", fix, width=500, compact=True, left=110, right=160)],
          "The programs, the check and every run", "/benchmarks/fix/"),
         (f"overhead · {over.facts['When'].split(' ')[0]} · N = {over.runs} runs per row",
          "What recording adds to the time of a run",
-         [P("The default capability set, as a multiple of the same run without Ormaos, with the p25 to p75 of "
-            "its median:"),
-          Facts([(f"x{cpu_d['ratio']:.2f}", f"{cpu[0]}, p25 to p75 {cpu_d['p25-p75 (ms)']} ms"),
-                 (f"x{io_d['ratio']:.2f}", f"{io[0]}, p25 to p75 {io_d['p25-p75 (ms)']} ms")])],
+         [P("The median time of a recorded run, as a multiple of the same run without Ormaos, per capability "
+            "set and workload, on a log scale."),
+          ratio_chart("c-overhead", over, width=500, left=250)],
          "Every capability set, and the machine", "/benchmarks/overhead/"),
     ]
     full = len(k2.full_marks())
@@ -1597,17 +1768,27 @@ def index_page(k2, k1, fix, over):
             P("What Ormaos does, measured. Every number on these pages is read from a results file by a script, "
               "never typed by hand.", "lead"),
             P(SENTENCE, "sentence"),
+            P(headline, "headline"),
+            Pair([score_chart("o-score", k2, "knows2", width=540, compact=True, left=110, right=170),
+                  rnw_chart("o-rnw", k2, width=540, left=110, right=120)]),
+            facts,
         ], first=True),
         Section("measured", "What is measured", [
-            P("Whether a coding agent knows what happened in an execution it did not see, and whether the code it "
-              "leaves passes a check, for a program whose behaviour on one night differed from what its README "
-              "says, when it has the folder the execution left and nothing more "
-              "(`none`), a VizTracer trace of the execution (`raw`), or its Ormaos recording (`ormaos`, and in "
-              f"knows2 also `ormaos-values`); the agent is {model}, in a sandbox, and its answers or its code are "
-              "graded by an oracle or a check that reads neither the trace nor the recording. And how much time "
-              "recording adds to a Python program."),
-            Cards(cards),
+            UL([
+                "**What an agent knows** about an execution it did not see: factual questions about what happened "
+                "in it, graded against an oracle ([knows2](/benchmarks/knows2/), and the earlier "
+                "[knows](/benchmarks/knows/)).",
+                "**Whether the code an agent changes passes a check**, for programs whose behaviour on one night "
+                "differed from what their README says ([fix](/benchmarks/fix/)).",
+                "**The ways in**: the folder the execution left and nothing more (`none`), a VizTracer trace of "
+                "the execution (`raw`), or its Ormaos recording (`ormaos`, and in knows2 also `ormaos-values`). "
+                f"The agent is {model}, in a sandbox; the oracle and the check read neither the trace nor the "
+                "recording.",
+                f"**What recording adds to the time of a run**, per capability set, on {len(over.workloads)} "
+                "workloads ([overhead](/benchmarks/overhead/)).",
+            ]),
         ]),
+        Section("benchmarks", "The benchmarks", [Cards(cards, grid=True)]),
         Section("not-shown", "What these benchmarks do not show", [UL([
             "The programs and their executions were written for these benchmarks by the people who make Ormaos; "
             "they are not a sample of real programs.",
