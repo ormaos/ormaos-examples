@@ -76,11 +76,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # the benchmark pages name the commit that added each results file
       - uses: actions/setup-python@v5
         with:
           python-version: "3.14"
       - name: Check the page and its recordings
         run: python3 .github/scripts/check_docs.py docs
+      - name: Check that the benchmark pages are a fresh build of the results files
+        run: python3 site/benchmarks/build.py --check
 
   use-cases:
     name: use cases
