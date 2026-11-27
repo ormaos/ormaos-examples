@@ -1,4 +1,5 @@
 .build/
-results/
+results/*
+!results/20261127-165801/
 writer/run.log
 __pycache__/

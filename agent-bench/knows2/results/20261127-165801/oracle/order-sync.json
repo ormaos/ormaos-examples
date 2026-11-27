@@ -1,0 +1,25 @@
+{
+  "q1": 26,
+  "q2": 19,
+  "q3": 2,
+  "q4": 5,
+  "q5": [
+    "SO-20521",
+    "SO-20526",
+    "SO-20530",
+    "SO-20533",
+    "SO-20537"
+  ],
+  "q6": {
+    "SO-20521": "SkuFormatError",
+    "SO-20526": "SkuFormatError",
+    "SO-20530": "SkuFormatError",
+    "SO-20533": "SkuFormatError",
+    "SO-20537": "SkuFormatError"
+  },
+  "q7": 104,
+  "q8": [
+    2,
+    5
+  ]
+}

@@ -1,0 +1,251 @@
+{
+  "tasks": {
+    "web-backend": {
+      "questions": 8,
+      "dropped": {},
+      "removed": [],
+      "trace_attempts": 1,
+      "files": [
+        ".venv",
+        "README.md",
+        "app.py",
+        "main.py",
+        "orders.db",
+        "questions.json",
+        "requirements.txt",
+        "store.py"
+      ],
+      "trace_bytes": 75736352,
+      "recordings_ormaos": "1 recording in .ormaos, newest first",
+      "bytes_ormaos": 49715,
+      "recordings_ormaos-values": "1 recording in .ormaos, newest first",
+      "bytes_ormaos-values": 51991,
+      "venvs": {
+        "none": ".build/venvs/web-backend/base",
+        "raw": ".build/venvs/web-backend/base",
+        "ormaos": ".build/venvs/web-backend/orm",
+        "ormaos-values": ".build/venvs/web-backend/orm"
+      }
+    },
+    "data-pipeline": {
+      "questions": 8,
+      "dropped": {},
+      "removed": [
+        "orders.csv",
+        "customers.csv"
+      ],
+      "trace_attempts": 2,
+      "files": [
+        ".venv",
+        "README.md",
+        "pipeline.py",
+        "questions.json",
+        "report.csv",
+        "requirements.txt"
+      ],
+      "trace_bytes": 51413977,
+      "recordings_ormaos": "1 recording in .ormaos, newest first",
+      "bytes_ormaos": 13531,
+      "recordings_ormaos-values": "1 recording in .ormaos, newest first",
+      "bytes_ormaos-values": 14403,
+      "venvs": {
+        "none": ".build/venvs/data-pipeline/base",
+        "raw": ".build/venvs/data-pipeline/base",
+        "ormaos": ".build/venvs/data-pipeline/orm",
+        "ormaos-values": ".build/venvs/data-pipeline/orm"
+      }
+    },
+    "notebook": {
+      "questions": 8,
+      "dropped": {},
+      "removed": [
+        "sales.csv"
+      ],
+      "trace_attempts": 2,
+      "files": [
+        ".venv",
+        "README.md",
+        "questions.json",
+        "report.ipynb",
+        "requirements.txt",
+        "run_notebook.py"
+      ],
+      "trace_bytes": 123183271,
+      "recordings_ormaos": "4 recordings in .ormaos, newest first",
+      "bytes_ormaos": 34109,
+      "recordings_ormaos-values": "4 recordings in .ormaos, newest first",
+      "bytes_ormaos-values": 41631,
+      "venvs": {
+        "none": ".build/venvs/notebook/base",
+        "raw": ".build/venvs/notebook/base",
+        "ormaos": ".build/venvs/notebook/orm",
+        "ormaos-values": ".build/venvs/notebook/orm"
+      }
+    },
+    "ml-training": {
+      "questions": 8,
+      "dropped": {},
+      "removed": [],
+      "trace_attempts": 1,
+      "files": [
+        ".venv",
+        "README.md",
+        "model.pt",
+        "questions.json",
+        "requirements.txt",
+        "train.py"
+      ],
+      "trace_bytes": 158799770,
+      "recordings_ormaos": "1 recording in .ormaos, newest first",
+      "bytes_ormaos": 113969,
+      "recordings_ormaos-values": "1 recording in .ormaos, newest first",
+      "bytes_ormaos-values": 116341,
+      "venvs": {
+        "none": ".build/venvs/ml-training/base",
+        "raw": ".build/venvs/ml-training/base",
+        "ormaos": ".build/venvs/ml-training/orm",
+        "ormaos-values": ".build/venvs/ml-training/orm"
+      }
+    },
+    "rl-env": {
+      "questions": 8,
+      "dropped": {},
+      "removed": [],
+      "trace_attempts": 1,
+      "files": [
+        "README.md",
+        "env.py",
+        "questions.json",
+        "run.py"
+      ],
+      "trace_bytes": 710203,
+      "recordings_ormaos": "1 recording in .ormaos, newest first",
+      "bytes_ormaos": 516107,
+      "recordings_ormaos-values": "1 recording in .ormaos, newest first",
+      "bytes_ormaos-values": 582464,
+      "venvs": {
+        "none": null,
+        "raw": null,
+        "ormaos": ".build/venvs/rl-env/orm",
+        "ormaos-values": ".build/venvs/rl-env/orm"
+      }
+    },
+    "ai-app": {
+      "questions": 7,
+      "dropped": {
+        "q1": "the server listens on a free port the system picks (`(\"127.0.0.1\", 0)`): the oracle's execution and the execution of each arm got different ports"
+      },
+      "removed": [
+        "tickets.json"
+      ],
+      "trace_attempts": 1,
+      "files": [
+        "README.md",
+        "app.py",
+        "model_server.py",
+        "questions.json",
+        "summaries.json"
+      ],
+      "trace_bytes": 7523641,
+      "recordings_ormaos": "1 recording in .ormaos, newest first",
+      "bytes_ormaos": 39998,
+      "recordings_ormaos-values": "1 recording in .ormaos, newest first",
+      "bytes_ormaos-values": 59446,
+      "venvs": {
+        "none": null,
+        "raw": null,
+        "ormaos": ".build/venvs/ai-app/orm",
+        "ormaos-values": ".build/venvs/ai-app/orm"
+      }
+    },
+    "agent-change": {
+      "questions": 8,
+      "dropped": {},
+      "removed": [],
+      "trace_attempts": 1,
+      "files": [
+        ".git",
+        ".gitignore",
+        "README.md",
+        "billing.py",
+        "invoices.csv",
+        "orders.json",
+        "questions.json",
+        "refunds.csv",
+        "returns.json",
+        "run.py",
+        "tiers.json"
+      ],
+      "trace_bytes": 2750985,
+      "recordings_ormaos": "2 recordings in .ormaos, newest first",
+      "bytes_ormaos": 80439,
+      "recordings_ormaos-values": "2 recordings in .ormaos, newest first",
+      "bytes_ormaos-values": 94464,
+      "venvs": {
+        "none": null,
+        "raw": null,
+        "ormaos": ".build/venvs/agent-change/orm",
+        "ormaos-values": ".build/venvs/agent-change/orm"
+      }
+    },
+    "order-sync": {
+      "questions": 8,
+      "dropped": {},
+      "removed": [],
+      "trace_attempts": 1,
+      "files": [
+        "README.md",
+        "data",
+        "fetch.py",
+        "inventory.py",
+        "job.py",
+        "parse.py",
+        "questions.json",
+        "validate.py"
+      ],
+      "trace_bytes": 8064939,
+      "recordings_ormaos": "1 recording in .ormaos, newest first",
+      "bytes_ormaos": 109541,
+      "recordings_ormaos-values": "1 recording in .ormaos, newest first",
+      "bytes_ormaos-values": 125277,
+      "venvs": {
+        "none": null,
+        "raw": null,
+        "ormaos": ".build/venvs/order-sync/orm",
+        "ormaos-values": ".build/venvs/order-sync/orm"
+      }
+    },
+    "freight-quote": {
+      "questions": 8,
+      "dropped": {},
+      "removed": [],
+      "trace_attempts": 1,
+      "files": [
+        "README.md",
+        "carrier.py",
+        "data",
+        "job.py",
+        "questions.json",
+        "quotes.py",
+        "ratecard.csv",
+        "ratecard.py",
+        "shipments.py"
+      ],
+      "trace_bytes": 12009753,
+      "recordings_ormaos": "1 recording in .ormaos, newest first",
+      "bytes_ormaos": 195302,
+      "recordings_ormaos-values": "1 recording in .ormaos, newest first",
+      "bytes_ormaos-values": 239816,
+      "venvs": {
+        "none": null,
+        "raw": null,
+        "ormaos": ".build/venvs/freight-quote/orm",
+        "ormaos-values": ".build/venvs/freight-quote/orm"
+      }
+    }
+  },
+  "ormaos_commit": "968f697",
+  "viztracer": "1.1.1",
+  "python": "Python 3.14.4",
+  "built": "2026-11-27T16:56:42"
+}
