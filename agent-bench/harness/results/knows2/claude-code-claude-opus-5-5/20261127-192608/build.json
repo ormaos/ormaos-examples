@@ -1,0 +1,35 @@
+{
+  "tasks": {
+    "order-sync": {
+      "questions": 8,
+      "dropped": {},
+      "removed": [],
+      "trace_attempts": 1,
+      "files": [
+        "README.md",
+        "data",
+        "fetch.py",
+        "inventory.py",
+        "job.py",
+        "parse.py",
+        "questions.json",
+        "validate.py"
+      ],
+      "trace_bytes": 8063218,
+      "recordings_ormaos": "1 recording in .ormaos, newest first",
+      "bytes_ormaos": 109514,
+      "recordings_ormaos-values": "1 recording in .ormaos, newest first",
+      "bytes_ormaos-values": 125200,
+      "venvs": {
+        "none": null,
+        "raw": null,
+        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples-harness/agent-bench/knows2/.build/venvs/order-sync/orm",
+        "ormaos-values": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples-harness/agent-bench/knows2/.build/venvs/order-sync/orm"
+      }
+    }
+  },
+  "ormaos_commit": "968f697",
+  "viztracer": "1.1.1",
+  "python": "Python 3.14.4",
+  "built": "2026-11-27T19:15:11"
+}

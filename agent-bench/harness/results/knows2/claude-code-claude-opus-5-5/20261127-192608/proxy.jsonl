@@ -1,0 +1,15 @@
+{"time": 1795818369.193, "listening": 8080, "allow": ["api.anthropic.com:443"]}
+{"time": 1795818369.417, "client": "172.19.0.3", "allowed": false, "method": "CONNECT", "target": "github.com:443"}
+{"time": 1795818369.432, "client": "172.19.0.3", "allowed": false, "method": "CONNECT", "target": "raw.githubusercontent.com:443"}
+{"time": 1795818369.446, "client": "172.19.0.3", "allowed": false, "method": "GET", "target": "http://example.com/"}
+{"time": 1795818369.665, "client": "172.19.0.3", "allowed": true, "method": "CONNECT", "target": "api.anthropic.com:443"}
+{"time": 1795818370.401, "client": "172.19.0.3", "allowed": true, "method": "CONNECT", "target": "api.anthropic.com:443"}
+{"time": 1795818370.541, "client": "172.19.0.3", "allowed": true, "method": "CONNECT", "target": "api.anthropic.com:443"}
+{"time": 1795818374.147, "client": "172.19.0.3", "allowed": true, "method": "CONNECT", "target": "api.anthropic.com:443"}
+{"time": 1795818374.254, "client": "172.19.0.3", "allowed": true, "method": "CONNECT", "target": "api.anthropic.com:443"}
+{"time": 1795818416.871, "client": "172.19.0.3", "allowed": true, "method": "CONNECT", "target": "api.anthropic.com:443"}
+{"time": 1795818417.107, "client": "172.19.0.3", "allowed": true, "method": "CONNECT", "target": "api.anthropic.com:443"}
+{"time": 1795818475.09, "client": "172.19.0.3", "allowed": true, "method": "CONNECT", "target": "api.anthropic.com:443"}
+{"time": 1795818475.275, "client": "172.19.0.3", "allowed": true, "method": "CONNECT", "target": "api.anthropic.com:443"}
+{"time": 1795818519.26, "client": "172.19.0.3", "allowed": true, "method": "CONNECT", "target": "api.anthropic.com:443"}
+{"time": 1795818519.381, "client": "172.19.0.3", "allowed": true, "method": "CONNECT", "target": "api.anthropic.com:443"}
