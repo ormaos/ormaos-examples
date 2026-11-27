@@ -123,12 +123,12 @@ def venvs(name):
     base = None
     if task["install"]:
         base = root / "base"
-        if not (base / "built").exists():
+        if not (root / "base.built").exists():
             shutil.rmtree(base, ignore_errors=True)
             base.mkdir(parents=True)
             inside(base, ["python3", "-m", "venv", "."])
             inside(base, ["bin/pip", "install", "--quiet", *task["install"]], network=True)
-            (base / "built").write_text(datetime.now().isoformat(timespec="seconds") + "\n")
+            (root / "base.built").write_text(datetime.now().isoformat(timespec="seconds") + "\n")
         (site(base) / "ormaos.py").unlink(missing_ok=True)
 
     orm = root / "orm"

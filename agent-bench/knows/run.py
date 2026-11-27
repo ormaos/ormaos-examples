@@ -50,8 +50,12 @@ def ran_again(name, stream):
     one of its scripts with Python, "import" when Python code of the agent
     (in a command or in a file it wrote) imported one of its modules."""
     task = TASKS[name]
+    # Python (or a tool that runs Python) as the command itself, not as a word
+    # given to grep or cat: at the start, after ; & | ( or --, after VAR=value,
+    # or after timeout, time or env.
     script = re.compile(
-        r"(?:python[\d.]*|viztracer|jupyter|nbconvert|papermill)\b[^|;&\n]*?(?:^|[\s/=\"'])(?:"
+        r"(?:^|[;&|(\n]|--)\s*(?:(?:\w+=\S*|timeout\s+\S+|time|env|exec)\s+)*(?:\S*/)?"
+        r"(?:python[\d.]*|viztracer|jupyter|papermill)\s[^|;&\n]*?(?:[\s/=\"'])?(?:"
         + "|".join(map(re.escape, task["scripts"])) + r")(?![\w.])")
     module = re.compile(r"^\s*(?:import|from)\s+(?:" + "|".join(map(re.escape, task["modules"])) + r")\b", re.M)
     found = None
