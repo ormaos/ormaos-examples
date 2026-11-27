@@ -1190,6 +1190,7 @@ footer ul {
         <p class="more"><a href="#bench">See the table</a></p>
       </li>
     </ul>
+    <p style="margin-top:16px">After the tests: <a href="#use-cases">seven kinds of program</a>, from a web backend to a change made by a coding agent, each with one question about one execution.</p>
   </section>
 
   <section class="band" id="by-hand" aria-labelledby="by-hand-title">
@@ -1680,6 +1681,106 @@ footer ul {
     <p>At this size the difference is within the margin. The four runs that were not fixed had found the cause, but changed the job's last line, which the check reads as cron does. Looked at after the results, not planned: counted as fixed, those four would make every arm 24/24, so this benchmark does not separate the arms. The bugs were written for this benchmark by the people who make Ormaos. The <a href="https://github.com/ormaos/ormaos-examples/blob/main/agent-bench/results/20261126-220703/report.md">report</a> has every run, per bug, with what the check said.</p>
   </section>
 
+  <section class="band" id="use-cases" aria-labelledby="use-cases-title">
+    <p class="kicker">By kind of program</p>
+    <h2 id="use-cases-title">Seven kinds of program, one question each</h2>
+    <p>Seven small programs in <a href="https://github.com/ormaos/ormaos-examples/tree/main/use-cases"><code>use-cases</code></a>, one per kind of developer. Each prints one ordinary line, and in each execution something happened that the line does not say. Below, for each: the question, one command on the recording, and what it printed. Ormaos shows what happened; whether it is what should have happened is for the reader to decide.</p>
+    <p class="caption" data-numbers="use-cases/README.md">Each folder also has a <code>questions.json</code>: 48 factual questions over the 7 executions, each with its answer computed from a second execution of the same program without Ormaos, under <code>sys.settrace</code>, and never from the recording. Every answer was the same in 3 runs.</p>
+    <h3>Web backend</h3>
+    <p>The program prints <code>GET /customers/3/orders -&gt; 200, 12 orders</code>. Which queries did that one request run, how many times each, and from which lines?</p>
+    <figure class="code term" data-copy="commands" data-source="use-cases/web-backend/demo.txt">
+<figcaption class="code-bar"><span class="code-label"><a href="https://github.com/ormaos/ormaos-examples/tree/main/use-cases/web-backend">web-backend</a></span></figcaption>
+<pre tabindex="0" role="region" aria-label="Terminal, web-backend"><code><span class="prompt">$ </span><span class="cmd">ormaos io r1:c9 --kind sqlite</span>
+<span class="out">r1:c9 list_orders and the calls below it: 38 io events (sqlite 38), showing sqlite</span>
+<span class="out">  1x sqlite "SELECT id, name, tier FROM customers WHERE id = ?"  at app.py:21 in find_customer  [r1:i50]</span>
+<span class="out">  1x sqlite "SELECT id, placed FROM orders WHERE customer_id = ? ORDER BY placed"  at app.py:57 in list_orders  [r1:i51]</span>
+<span class="out">  12x sqlite "SELECT product_id, quantity FROM order_items WHERE order_id = ?"  at app.py:35 in items_of  [r1:i52]</span>
+<span class="out">  24x sqlite "SELECT cents FROM products WHERE id = ?"  at app.py:41 in price_of  [r1:i53]</span>
+<span class="out">calls directly below: 1 find_customer (1 io), 1 discount_for (no io), 12 order_total (36 io)</span>
+<span class="out next">next: ormaos io r1:i50 | ormaos io r1:i51 | ormaos tree r1:c9</span></code></pre>
+</figure>
+    <h3>Data pipeline</h3>
+    <p>The program prints <code>report.csv written: 4 regions</code>. How many rows went into the merge, and how many came out?</p>
+    <figure class="code term" data-copy="commands" data-source="use-cases/data-pipeline/demo.txt">
+<figcaption class="code-bar"><span class="code-label"><a href="https://github.com/ormaos/ormaos-examples/tree/main/use-cases/data-pipeline">data-pipeline</a></span></figcaption>
+<pre tabindex="0" role="region" aria-label="Terminal, data-pipeline"><code><span class="prompt">$ </span><span class="cmd">ormaos tree r1 --function join_customers</span>
+<span class="out">r1: 1 of the 8 calls matches --function join_customers (1 join_customers; 0 raised)</span>
+<span class="out">r1:c6 join_customers(orders: DataFrame[195x4], customers: DataFrame[40x3]) -&gt; DataFrame[178x6]  pipeline.py:27  1.8ms</span>
+<span class="out">      orders: 195 rows x 4 columns: order_id int64 0 null, customer_id string 0 null, placed str 0 null, amount float64 0 null</span>
+<span class="out">      customers: 40 rows x 3 columns: customer_id string 0 null, name str 0 null, region str 0 null</span>
+<span class="out">      returned: 178 rows x 6 columns: order_id int64 0 null, customer_id string 0 null, placed str 0 null, amount float64 0 null, name str 0 null, region str 0 null</span>
+<span class="out next">next: ormaos tree r1:c6 | ormaos tree r1 | ormaos exceptions r1</span></code></pre>
+</figure>
+    <h3>Notebook</h3>
+    <p>The last cell prints a total. In the session that printed it, which step had the rows second, and how many rows? Each <code>record()</code> block is one recording, numbered in the order the blocks ran: <code>r2</code> is the second.</p>
+    <figure class="code term" data-copy="commands" data-source="use-cases/notebook/demo.txt">
+<figcaption class="code-bar"><span class="code-label"><a href="https://github.com/ormaos/ormaos-examples/tree/main/use-cases/notebook">notebook</a></span></figcaption>
+<pre tabindex="0" role="region" aria-label="Terminal, notebook"><code><span class="prompt">$ </span><span class="cmd">ormaos tree r2</span>
+<span class="out">r2:c1 add_tax(rows: list[40 dict]) -&gt; list[40 dict]  /tmp/ipykernel_297801/1887773198.py:21  70us  task 1</span>
+<span class="out next">next: ormaos exceptions r2</span></code></pre>
+</figure>
+    <h3>ML training</h3>
+    <p>The program prints <code>trained 40 steps</code> and a loss. Was there a NaN in a tensor during the run, and where was the first one?</p>
+    <figure class="code term" data-copy="commands" data-source="use-cases/ml-training/demo.txt">
+<figcaption class="code-bar"><span class="code-label"><a href="https://github.com/ormaos/ormaos-examples/tree/main/use-cases/ml-training">ml-training</a></span></figcaption>
+<pre tabindex="0" role="region" aria-label="Terminal, ml-training"><code><span class="prompt">$ </span><span class="cmd">ormaos show r1</span>
+<span class="out">r1 exit 0 in 5.10s: 1 Python process, 203 calls, 0 exceptions (0 swallowed, 0 uncaught)</span>
+<span class="out">command: python train.py</span>
+<span class="elide">...</span>
+<span class="out">io: 10 events (file 10)</span>
+<span class="out">tensors: an array or a tensor was an argument or a result 400 times, 10 with NaN or inf: return of standardize at train.py:32  [r1:c56]</span>
+<span class="elide">...</span>
+<span class="out">never recorded: values, and 20 more kinds of things (`ormaos show --full` lists them with the reason)</span>
+<span class="out next">next: ormaos tree r1:c1 | ormaos io r1 | ormaos tree r1:c56</span></code></pre>
+</figure>
+    <h3>RL environment</h3>
+    <p>The program prints the mean return of 20 episodes. Inside one <code>step</code>, was the reward computed before the move or after it?</p>
+    <figure class="code term" data-copy="commands" data-source="use-cases/rl-env/demo.txt">
+<figcaption class="code-bar"><span class="code-label"><a href="https://github.com/ormaos/ormaos-examples/tree/main/use-cases/rl-env">rl-env</a></span></figcaption>
+<pre tabindex="0" role="region" aria-label="Terminal, rl-env"><code><span class="prompt">$ </span><span class="cmd">ormaos path r1:c9</span>
+<span class="out">r1:c9 GridEnv.step env.py:25: 7 steps, showing 1-7</span>
+<span class="out">  1    26 |         reward = self._reward()</span>
+<span class="out">  2        call GridEnv._reward [r1:c10] returned</span>
+<span class="out">  3    27 |         self._move(action)</span>
+<span class="out">  4        call GridEnv._move [r1:c12] returned</span>
+<span class="out">  5    28 |         self.steps += 1</span>
+<span class="out">  6    29 |         done = self.position == self.goal or self.steps &gt;= self.limit</span>
+<span class="out">  7    30 |         return self.position, reward, done</span>
+<span class="out next">next: ormaos tree r1:c9</span></code></pre>
+</figure>
+    <h3>AI app</h3>
+    <p>The program prints <code>8 tickets summarized</code>. How many requests went to each model, and what was each answered?</p>
+    <figure class="code term" data-copy="commands" data-source="use-cases/ai-app/demo.txt">
+<figcaption class="code-bar"><span class="code-label"><a href="https://github.com/ormaos/ormaos-examples/tree/main/use-cases/ai-app">ai-app</a></span></figcaption>
+<pre tabindex="0" role="region" aria-label="Terminal, ai-app"><code><span class="prompt">$ </span><span class="cmd">ormaos io r1 --kind http</span>
+<span class="out">r1: 112 io events (file 101, http 11), showing http</span>
+<span class="out">  5x http POST http://127.0.0.1:41231/v1/models/small-1/generate -&gt; 200  at app.py:20 in ask  [r1:i3]</span>
+<span class="out">  3x http POST http://127.0.0.1:41231/v1/models/small-1/generate -&gt; 503  at app.py:20 in ask  [r1:i5]</span>
+<span class="out">  3x http POST http://127.0.0.1:41231/v1/models/large-1/generate -&gt; 200  at app.py:20 in ask  [r1:i6]</span>
+<span class="out next">next: ormaos io r1:i3 | ormaos io r1:i5 | ormaos io r1:c8 | ormaos exceptions r1</span></code></pre>
+</figure>
+    <h3>A change made by an agent</h3>
+    <p>A coding agent was asked for a discount on invoices. The program prints the same line before and after its change. What does the execution do after the change that it did not do before?</p>
+    <figure class="code term" data-copy="commands" data-source="use-cases/agent-change/demo.txt">
+<figcaption class="code-bar"><span class="code-label"><a href="https://github.com/ormaos/ormaos-examples/tree/main/use-cases/agent-change">agent-change</a></span></figcaption>
+<pre tabindex="0" role="region" aria-label="Terminal, agent-change"><code><span class="prompt">$ </span><span class="cmd">ormaos diff r1 r2</span>
+<span class="out">r1 -&gt; r2, matched by place in the code and order, not by address</span>
+<span class="out">  r1: exit 0, 75 calls, 0 exceptions, 6 io events</span>
+<span class="out">  r2: exit 0, 113 calls, 0 exceptions, 82 io events</span>
+<span class="out">code: the two code versions differ: git commit bf1b795c2e, no uncommitted changes in r1, git commit 40059d6f5d, no uncommitted changes in r2</span>
+<span class="out">calls: 1 of 11 places differ</span>
+<span class="out">  discount_percent at billing.py:10: none in r1, 38 in r2  [r2:c9]</span>
+<span class="out">exceptions: the same in both (0 groups)</span>
+<span class="out">io: 2 of 8 groups differ</span>
+<span class="out">  file open tiers.json (read)  at billing.py:11 in discount_percent: none in r1, 38 in r2  [r2:i5]</span>
+<span class="out">  file read tiers.json  at billing.py:12 in discount_percent: none in r1, 38 in r2  [r2:i6]</span>
+<span class="out">logs: the same in both (0 groups)</span>
+<span class="out">data: the same in both (0 places)</span>
+<span class="out">not compared: values, shapes of arguments and results, durations, cpu and memory, the lines of `path`, which process or thread an event was in</span>
+<span class="out next">next: ormaos tree r2:c9 | ormaos io r2:i5 | ormaos io r2:i6 | ormaos show r1 | ormaos show r2</span></code></pre>
+</figure>
+  </section>
+
   <section class="band" id="run-it" aria-labelledby="run-it-title">
     <h2 id="run-it-title">Run it yourself</h2>
     <p>Each block is the whole scenario. They need Python 3.12 or newer and git, on Linux; Ormaos is installed from GitHub into a virtual environment of the folder, nowhere else.</p>
@@ -1724,6 +1825,14 @@ footer ul {
 <span class="cmd">git clone https://github.com/ormaos/ormaos-examples &amp;&amp; cd ormaos-examples/agent-bench</span>
 <span class="cmd">python3 build.py            # task/ and arms/ of every bug</span>
 <span class="cmd">python3 run.py --runs 3     # 8 bugs x 3 arms x 3 runs</span></code></pre>
+</figure>
+    <h3>The seven kinds of program</h3>
+    <p>Each <code>scenario.py</code> copies its program to a new folder, records it, and prints every question with its answer and the command shown above with its output. The other six are the same with their folder name; four have a <code>requirements.txt</code>, three need only the standard library.</p>
+    <figure class="code sh" data-copy="all">
+<figcaption class="code-bar"><span class="code-label">Shell</span></figcaption>
+<pre tabindex="0" role="region" aria-label="Shell"><code><span class="cmd">git clone https://github.com/ormaos/ormaos-examples &amp;&amp; cd ormaos-examples/use-cases</span>
+<span class="cmd">python3 -m venv .venv &amp;&amp; .venv/bin/pip install git+https://github.com/ormaos/ormaos-python -r web-backend/requirements.txt</span>
+<span class="cmd">.venv/bin/python web-backend/scenario.py /tmp/web-backend</span></code></pre>
 </figure>
   </section>
 

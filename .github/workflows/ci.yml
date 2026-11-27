@@ -82,6 +82,28 @@ jobs:
       - name: Check the page and its recordings
         run: python3 .github/scripts/check_docs.py docs
 
+  use-cases:
+    name: use cases
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install Ormaos and the libraries of the use cases
+        run: |
+          pip install git+https://github.com/ormaos/ormaos-python
+          pip install --extra-index-url https://download.pytorch.org/whl/cpu \
+            -r use-cases/web-backend/requirements.txt \
+            -r use-cases/data-pipeline/requirements.txt \
+            -r use-cases/notebook/requirements.txt \
+            -r use-cases/ml-training/requirements.txt
+      - name: Record each use case and compare every answer with questions.json
+        run: |
+          for name in web-backend data-pipeline notebook ml-training rl-env ai-app agent-change; do
+            python "use-cases/$name/scenario.py" "$RUNNER_TEMP/$name" --check
+          done
+
   gitleaks:
     name: gitleaks
     runs-on: ubuntu-latest

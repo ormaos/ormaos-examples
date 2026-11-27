@@ -2,6 +2,8 @@
 
 `index.html` is the whole page: static, no build step. `casts/` holds the terminal recordings it plays (asciinema, format v2). Under each player, closed until asked for, is the whole text of its recording, and every block has a copy button. [`check_docs.py`](../.github/scripts/check_docs.py) fails when that text is not the recording, or when a number of the results table is not in the report. The page loads one third-party script, the asciinema player, from a pinned version on jsDelivr with an integrity hash, and nothing else.
 
+The section "Seven kinds of program" shows, for each folder of [`use-cases/`](../use-cases), the `demo.txt` its `scenario.py --update` wrote: the check compares each block with that file.
+
 It is published at <https://ormaos.com/demo>. `404.html` is what any other address below it answers.
 
 ## Looking at it locally
