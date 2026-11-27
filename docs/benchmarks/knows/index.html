@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>knows: the earlier run · Ormaos benchmarks</title>
+<meta name="description" content="knows: the earlier run: the earlier run of the same executions, and why knows2 replaced it.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/knows/index.html.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://ormaos.com/guide/">Guide</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<h1 id="top-title">knows: the earlier run</h1>
+<p class="lead">N = 81 runs: 9 tasks x 3 arms x 3 runs, model <code>claude-opus-5-5</code>, 2026-11-27. The same 9 executions as knows2, with questions written by the people who make Ormaos.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#why">Why knows2 replaced it</a></li>
+  <li><a href="#results">Results</a></li>
+  <li><a href="#limits">Limits</a></li>
+  <li><a href="#this-run">This run</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="why" aria-labelledby="why-title">
+<h2 id="why-title">Why knows2 replaced it</h2>
+<p>In knows, the programs, the executions and the questions were all written by the people who make Ormaos, and the questions ask about calls, exceptions, shapes and I/O: what Ormaos records. That choice of questions can favour the recording. <a href="/benchmarks/knows2/">knows2</a> keeps the same executions and an oracle under <code>sys.settrace</code>, and has the questions written by a model that saw only the source, the README and the printed output of each program and was not told about Ormaos; it adds a fourth arm, a recording with values, counts every answer as right, null or wrong, and drops a question only when the oracle cannot answer it. The tasks and the oracle are described on its page.</p>
+</section>
+
+<section class="band" id="results" aria-labelledby="results-title">
+<h2 id="results-title">Results</h2>
+<p>The score of a run is the share of its questions that are right, by the rules of <a href="https://github.com/ormaos/ormaos-examples/blob/e0ffe13724a3147b1ed40177890ef757b48c00eb/agent-bench/knows/rules.json"><code>rules.json</code></a>, written before the run. The interval is a 95% bootstrap interval of the mean over the runs of the arm.</p>
+<figure class="chart">
+<svg viewBox="0 0 600 166" role="img" aria-labelledby="score-t score-d" xmlns="http://www.w3.org/2000/svg">
+<title id="score-t">Mean score per arm, knows</title>
+<desc id="score-d">The mean score of the runs of each arm, with its 95% bootstrap interval. none 0.69 (0.55 to 0.83); raw 0.94 (0.88 to 1.00); ormaos 1.00 (1.00 to 1.00).</desc>
+<line class="grid" x1="130" y1="12" x2="130" y2="132"/>
+<text x="130" y="152" text-anchor="middle">0.00</text>
+<line class="grid" x1="200" y1="12" x2="200" y2="132"/>
+<text x="200" y="152" text-anchor="middle">0.25</text>
+<line class="grid" x1="270" y1="12" x2="270" y2="132"/>
+<text x="270" y="152" text-anchor="middle">0.50</text>
+<line class="grid" x1="340" y1="12" x2="340" y2="132"/>
+<text x="340" y="152" text-anchor="middle">0.75</text>
+<line class="grid" x1="410" y1="12" x2="410" y2="132"/>
+<text x="410" y="152" text-anchor="middle">1.00</text>
+<g><title>none: mean score 0.69, 95% interval 0.55 to 0.83, 27 runs</title>
+<text class="label" x="116" y="36.5" text-anchor="end">none</text>
+<line class="s1 whisker" x1="283.1" y1="32" x2="363.1" y2="32"/>
+<line class="s1 whisker" x1="283.1" y1="26" x2="283.1" y2="38"/>
+<line class="s1 whisker" x1="363.1" y1="26" x2="363.1" y2="38"/>
+<circle class="s1 dot" cx="324.1" cy="32" r="6"/>
+<text class="value" x="424" y="36.5">0.69 (0.55 to 0.83)</text></g>
+<g><title>raw: mean score 0.94, 95% interval 0.88 to 1.00, 27 runs</title>
+<text class="label" x="116" y="76.5" text-anchor="end">raw</text>
+<line class="s2 whisker" x1="376.1" y1="72" x2="408.7" y2="72"/>
+<line class="s2 whisker" x1="376.1" y1="66" x2="376.1" y2="78"/>
+<line class="s2 whisker" x1="408.7" y1="66" x2="408.7" y2="78"/>
+<circle class="s2 dot" cx="393.9" cy="72" r="6"/>
+<text class="value" x="424" y="76.5">0.94 (0.88 to 1.00)</text></g>
+<g><title>ormaos: mean score 1.00, 95% interval 1.00 to 1.00, 27 runs</title>
+<text class="label" x="116" y="116.5" text-anchor="end">ormaos</text>
+<line class="s3 whisker" x1="410" y1="112" x2="410" y2="112"/>
+<line class="s3 whisker" x1="410" y1="106" x2="410" y2="118"/>
+<line class="s3 whisker" x1="410" y1="106" x2="410" y2="118"/>
+<circle class="s3 dot" cx="410" cy="112" r="6"/>
+<text class="value" x="424" y="116.5">1.00 (1.00 to 1.00)</text></g>
+</svg>
+</figure>
+<div class="table-wrap">
+<table class="results">
+<thead><tr><th scope="col">Arm</th><th scope="col">Runs</th><th scope="col">Mean score</th><th scope="col">95% interval</th><th scope="col">Median wall time</th><th scope="col">Median tool calls</th><th scope="col">Median tokens</th><th scope="col">Ran the program again</th><th scope="col">Timed out</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>27</td><td>0.69</td><td>0.55 to 0.83</td><td>31 s</td><td>4</td><td>60,088</td><td>6/27</td><td>0</td></tr>
+<tr><td><code>raw</code></td><td>27</td><td>0.94</td><td>0.88 to 1.00</td><td>41 s</td><td>5</td><td>90,107</td><td>1/27</td><td>0</td></tr>
+<tr><td><code>ormaos</code></td><td>27</td><td>1.00</td><td>1.00 to 1.00</td><td>28 s</td><td>4</td><td>86,152</td><td>0/27</td><td>0</td></tr>
+</tbody>
+</table>
+</div>
+<figure class="chart">
+<svg viewBox="0 0 374 310" role="img" aria-labelledby="tasks-t tasks-d" xmlns="http://www.w3.org/2000/svg" class="fit" style="max-width:374px">
+<title id="tasks-t">Mean score per task and arm, knows</title>
+<desc id="tasks-d">The mean score of the runs of each task and arm, from 0 (no question right) to 1 (all right). web-backend: none 1.00, raw 1.00, ormaos 1.00. data-pipeline: none 0.29, raw 0.52, ormaos 1.00. notebook: none 0.67, raw 1.00, ormaos 1.00. ml-training: none 1.00, raw 1.00, ormaos 1.00. rl-env: none 1.00, raw 1.00, ormaos 1.00. ai-app: none 0.14, raw 1.00, ormaos 1.00. agent-change: none 1.00, raw 0.96, ormaos 1.00. order-sync: none 0.14, raw 1.00, ormaos 1.00. freight-quote: none 1.00, raw 1.00, ormaos 1.00.</desc>
+<text class="label" x="154.0" y="22" text-anchor="middle">none</text>
+<text class="label" x="242.0" y="22" text-anchor="middle">raw</text>
+<text class="label" x="330.0" y="22" text-anchor="middle">ormaos</text>
+<text class="label" x="98" y="53.5" text-anchor="end">web-backend</text>
+<g><title>web-backend, none: mean score 1.00 over 3 runs</title><rect x="111" y="35" width="86" height="28" rx="2" fill="#184f95"/><text x="154.0" y="53.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<g><title>web-backend, raw: mean score 1.00 over 3 runs</title><rect x="199" y="35" width="86" height="28" rx="2" fill="#184f95"/><text x="242.0" y="53.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<g><title>web-backend, ormaos: mean score 1.00 over 3 runs</title><rect x="287" y="35" width="86" height="28" rx="2" fill="#184f95"/><text x="330.0" y="53.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<text class="label" x="98" y="83.5" text-anchor="end">data-pipeline</text>
+<g><title>data-pipeline, none: mean score 0.29 over 3 runs</title><rect x="111" y="65" width="86" height="28" rx="2" fill="#9ec5f4"/><text x="154.0" y="83.5" text-anchor="middle" style="fill:#0b0b0b">0.29</text></g>
+<g><title>data-pipeline, raw: mean score 0.52 over 3 runs</title><rect x="199" y="65" width="86" height="28" rx="2" fill="#5598e7"/><text x="242.0" y="83.5" text-anchor="middle" style="fill:#0b0b0b">0.52</text></g>
+<g><title>data-pipeline, ormaos: mean score 1.00 over 3 runs</title><rect x="287" y="65" width="86" height="28" rx="2" fill="#184f95"/><text x="330.0" y="83.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<text class="label" x="98" y="113.5" text-anchor="end">notebook</text>
+<g><title>notebook, none: mean score 0.67 over 3 runs</title><rect x="111" y="95" width="86" height="28" rx="2" fill="#3987e5"/><text x="154.0" y="113.5" text-anchor="middle" style="fill:#ffffff">0.67</text></g>
+<g><title>notebook, raw: mean score 1.00 over 3 runs</title><rect x="199" y="95" width="86" height="28" rx="2" fill="#184f95"/><text x="242.0" y="113.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<g><title>notebook, ormaos: mean score 1.00 over 3 runs</title><rect x="287" y="95" width="86" height="28" rx="2" fill="#184f95"/><text x="330.0" y="113.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<text class="label" x="98" y="143.5" text-anchor="end">ml-training</text>
+<g><title>ml-training, none: mean score 1.00 over 3 runs</title><rect x="111" y="125" width="86" height="28" rx="2" fill="#184f95"/><text x="154.0" y="143.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<g><title>ml-training, raw: mean score 1.00 over 3 runs</title><rect x="199" y="125" width="86" height="28" rx="2" fill="#184f95"/><text x="242.0" y="143.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<g><title>ml-training, ormaos: mean score 1.00 over 3 runs</title><rect x="287" y="125" width="86" height="28" rx="2" fill="#184f95"/><text x="330.0" y="143.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<text class="label" x="98" y="173.5" text-anchor="end">rl-env</text>
+<g><title>rl-env, none: mean score 1.00 over 3 runs</title><rect x="111" y="155" width="86" height="28" rx="2" fill="#184f95"/><text x="154.0" y="173.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<g><title>rl-env, raw: mean score 1.00 over 3 runs</title><rect x="199" y="155" width="86" height="28" rx="2" fill="#184f95"/><text x="242.0" y="173.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<g><title>rl-env, ormaos: mean score 1.00 over 3 runs</title><rect x="287" y="155" width="86" height="28" rx="2" fill="#184f95"/><text x="330.0" y="173.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<text class="label" x="98" y="203.5" text-anchor="end">ai-app</text>
+<g><title>ai-app, none: mean score 0.14 over 3 runs</title><rect x="111" y="185" width="86" height="28" rx="2" fill="#b7d3f6"/><text x="154.0" y="203.5" text-anchor="middle" style="fill:#0b0b0b">0.14</text></g>
+<g><title>ai-app, raw: mean score 1.00 over 3 runs</title><rect x="199" y="185" width="86" height="28" rx="2" fill="#184f95"/><text x="242.0" y="203.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<g><title>ai-app, ormaos: mean score 1.00 over 3 runs</title><rect x="287" y="185" width="86" height="28" rx="2" fill="#184f95"/><text x="330.0" y="203.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<text class="label" x="98" y="233.5" text-anchor="end">agent-change</text>
+<g><title>agent-change, none: mean score 1.00 over 3 runs</title><rect x="111" y="215" width="86" height="28" rx="2" fill="#184f95"/><text x="154.0" y="233.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<g><title>agent-change, raw: mean score 0.96 over 3 runs</title><rect x="199" y="215" width="86" height="28" rx="2" fill="#184f95"/><text x="242.0" y="233.5" text-anchor="middle" style="fill:#ffffff">0.96</text></g>
+<g><title>agent-change, ormaos: mean score 1.00 over 3 runs</title><rect x="287" y="215" width="86" height="28" rx="2" fill="#184f95"/><text x="330.0" y="233.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<text class="label" x="98" y="263.5" text-anchor="end">order-sync</text>
+<g><title>order-sync, none: mean score 0.14 over 3 runs</title><rect x="111" y="245" width="86" height="28" rx="2" fill="#b7d3f6"/><text x="154.0" y="263.5" text-anchor="middle" style="fill:#0b0b0b">0.14</text></g>
+<g><title>order-sync, raw: mean score 1.00 over 3 runs</title><rect x="199" y="245" width="86" height="28" rx="2" fill="#184f95"/><text x="242.0" y="263.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<g><title>order-sync, ormaos: mean score 1.00 over 3 runs</title><rect x="287" y="245" width="86" height="28" rx="2" fill="#184f95"/><text x="330.0" y="263.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<text class="label" x="98" y="293.5" text-anchor="end">freight-quote</text>
+<g><title>freight-quote, none: mean score 1.00 over 3 runs</title><rect x="111" y="275" width="86" height="28" rx="2" fill="#184f95"/><text x="154.0" y="293.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<g><title>freight-quote, raw: mean score 1.00 over 3 runs</title><rect x="199" y="275" width="86" height="28" rx="2" fill="#184f95"/><text x="242.0" y="293.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+<g><title>freight-quote, ormaos: mean score 1.00 over 3 runs</title><rect x="287" y="275" width="86" height="28" rx="2" fill="#184f95"/><text x="330.0" y="293.5" text-anchor="middle" style="fill:#ffffff">1.00</text></g>
+</svg>
+</figure>
+<div class="table-wrap">
+<table class="results">
+<thead><tr><th scope="col">Task</th><th scope="col">Questions</th><th scope="col"><code>none</code></th><th scope="col"><code>raw</code></th><th scope="col"><code>ormaos</code></th></tr></thead>
+<tbody>
+<tr><td>web-backend</td><td>7</td><td>1.00</td><td>1.00</td><td>1.00</td></tr>
+<tr><td>data-pipeline</td><td>7</td><td>0.29</td><td>0.52</td><td>1.00</td></tr>
+<tr><td>notebook</td><td>6</td><td>0.67</td><td>1.00</td><td>1.00</td></tr>
+<tr><td>ml-training</td><td>7</td><td>1.00</td><td>1.00</td><td>1.00</td></tr>
+<tr><td>rl-env</td><td>6</td><td>1.00</td><td>1.00</td><td>1.00</td></tr>
+<tr><td>ai-app</td><td>7</td><td>0.14</td><td>1.00</td><td>1.00</td></tr>
+<tr><td>agent-change</td><td>8</td><td>1.00</td><td>0.96</td><td>1.00</td></tr>
+<tr><td>order-sync</td><td>7</td><td>0.14</td><td>1.00</td><td>1.00</td></tr>
+<tr><td>freight-quote</td><td>7</td><td>1.00</td><td>1.00</td><td>1.00</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="limits" aria-labelledby="limits-title">
+<h2 id="limits-title">Limits</h2>
+<p>As the run&#x27;s report lists them:</p>
+<ul class="rows">
+  <li>No expectation was written before this run: the rules of <code>rules.json</code> were, what each arm would score was not.</li>
+  <li>In 4 of 9 tasks every arm scored 1.00 (web-backend, ml-training, rl-env, freight-quote); those tasks do not separate the arms.</li>
+  <li>Of the gap of 0.06 between raw and ormaos in the mean score, 0.05 comes from data-pipeline: its questions ask the row counts of DataFrames, which Ormaos records and VizTracer with its default settings does not.</li>
+</ul>
+</section>
+
+<section class="band" id="this-run" aria-labelledby="this-run-title">
+<h2 id="this-run-title">This run</h2>
+<ul class="rows">
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/e0ffe13724a3147b1ed40177890ef757b48c00eb/agent-bench/knows/results/20261127-140018"><code>agent-bench/knows/results/20261127-140018</code></a></li>
+  <li>ormaos-examples commit that added these results: <a href="https://github.com/ormaos/ormaos-examples/commit/e0ffe13724a3147b1ed40177890ef757b48c00eb"><code>e0ffe13</code></a></li>
+  <li>Ormaos commit: <a href="https://github.com/ormaos/ormaos-python/commit/968f697"><code>968f697</code></a>; VizTracer 1.1.1; Python 3.14.4</li>
+  <li>Model: <code>claude-opus-5-5</code>, with the <code>claude</code> command line 2.1.322</li>
+  <li>Date: 2026-11-27</li>
+</ul>
+<p>The results files, on GitHub:</p>
+<ul class="rows">
+  <li><a href="https://github.com/ormaos/ormaos-examples/blob/e0ffe13724a3147b1ed40177890ef757b48c00eb/agent-bench/knows/results/20261127-140018/results.jsonl"><code>results.jsonl</code></a>: one line per run</li>
+  <li><a href="https://github.com/ormaos/ormaos-examples/tree/e0ffe13724a3147b1ed40177890ef757b48c00eb/agent-bench/knows/results/20261127-140018/streams"><code>streams/</code></a>: what every agent said and did</li>
+  <li><a href="https://github.com/ormaos/ormaos-examples/blob/e0ffe13724a3147b1ed40177890ef757b48c00eb/agent-bench/knows/results/20261127-140018/report.md"><code>report.md</code></a>: the report the runner wrote</li>
+</ul>
+<p>To run it again: Linux with <a href="https://github.com/containers/bubblewrap">bubblewrap</a>, Python 3.12 or newer, git, the <code>claude</code> command line signed in, and a checkout of ormaos-python next to this repository. The run sends the folders it makes to the model&#x27;s API.</p>
+<figure class="code sh">
+<figcaption class="code-bar"><span class="code-label">Shell</span></figcaption>
+<pre tabindex="0"><code><span class="cmd">git clone https://github.com/ormaos/ormaos-python</span>
+<span class="cmd">git -C ormaos-python checkout 968f697</span>
+<span class="cmd">git clone https://github.com/ormaos/ormaos-examples</span>
+<span class="cmd">cd ormaos-examples &amp;&amp; git checkout e0ffe13 &amp;&amp; cd agent-bench/knows</span>
+<span class="cmd">python3 build.py</span>
+<span class="cmd">python3 run.py --runs 3</span></code></pre>
+</figure>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>
