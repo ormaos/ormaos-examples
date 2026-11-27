@@ -1,0 +1,32 @@
+# Ormaos benchmarks
+
+> Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you. These pages measure what a coding agent knows about an execution and whether the code it changes passes a check, with nothing, a raw trace or an Ormaos recording, and what recording costs in time. Every number is read from a results file by site/benchmarks/build.py in ormaos-examples.
+
+Each page is plain Markdown at the address below; the HTML page is the same address with a slash in place of `.md`.
+
+## Pages
+
+- [Benchmarks](https://ormaos.com/benchmarks.md): what is measured, one card per benchmark, and what the benchmarks do not show
+- [knows2: what an agent knows about an execution](https://ormaos.com/benchmarks/knows2.md): the method, the charts, every question with the oracle's answer and every run's answer, and what the agents said when they could not answer
+- [knows: the earlier run](https://ormaos.com/benchmarks/knows.md): the earlier run of the same executions, and why knows2 replaced it
+- [fix: 8 programs that do otherwise than their README says](https://ormaos.com/benchmarks/fix.md): 8 programs, 3 arms, the metric fixed, scored by the first attempt of every slot
+- [overhead: what recording adds to the time of a run](https://ormaos.com/benchmarks/overhead.md): the time a recorded run takes, per capability set, on 2 workloads
+
+## Results files
+
+- [knows2 results.jsonl](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/results.jsonl)
+- [knows2 streams](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams)
+- [knows2 report.md](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/report.md)
+- [knows results.jsonl](https://github.com/ormaos/ormaos-examples/blob/e0ffe13724a3147b1ed40177890ef757b48c00eb/agent-bench/knows/results/20261127-140018/results.jsonl)
+- [knows streams](https://github.com/ormaos/ormaos-examples/tree/e0ffe13724a3147b1ed40177890ef757b48c00eb/agent-bench/knows/results/20261127-140018/streams)
+- [knows report.md](https://github.com/ormaos/ormaos-examples/blob/e0ffe13724a3147b1ed40177890ef757b48c00eb/agent-bench/knows/results/20261127-140018/report.md)
+- [fix results.jsonl](https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/results.jsonl)
+- [fix streams](https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams)
+- [fix report.md](https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/report.md)
+- [overhead RESULTS.md](https://github.com/ormaos/ormaos-python/blob/968f69776c7c4f9ef5c04867ed7a0c229786bc19/bench/RESULTS.md)
+
+## Optional
+
+- [Demo](https://ormaos.com/demo/): the demo page of Ormaos
+- [ormaos-examples](https://github.com/ormaos/ormaos-examples): the programs, the benchmarks and these pages
+- [ormaos-python](https://github.com/ormaos/ormaos-python): the recorder and the command line

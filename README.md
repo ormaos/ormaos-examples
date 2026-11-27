@@ -38,7 +38,7 @@ With `--record` the two recordings are `r1` and `r2` in the folder's `.ormaos/`;
 
 ## The demo page
 
-[`docs/`](docs/) is the demo page, published at <https://ormaos.com/demo>: the job, a recorded terminal session, and how to try it. [`docs/README.md`](docs/README.md) says how the recordings are made and how the page is deployed.
+[`docs/`](docs/) is the demo page, published at <https://ormaos.com/demo>: the job, a recorded terminal session, and how to try it. [`docs/README.md`](docs/README.md) says how the recordings are made and how the page is deployed. [`docs/benchmarks/`](docs/benchmarks/) holds the benchmark pages, written from the results files by [`site/benchmarks/build.py`](site/benchmarks/build.py).
 
 Each example is self-contained and uses only the Python standard library. Its README says how to run it and how to record a run with Ormaos.
 

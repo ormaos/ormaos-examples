@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ormaos benchmarks</title>
+<meta name="description" content="Benchmarks: what is measured, one card per benchmark, and what the benchmarks do not show.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://ormaos.com/guide/">Guide</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/" aria-current="page">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<h1 id="top-title">Benchmarks</h1>
+<p class="lead">What Ormaos does, measured. Every number on these pages is read from a results file by a script, never typed by hand.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+</section>
+
+<section class="band" id="measured" aria-labelledby="measured-title">
+<h2 id="measured-title">What is measured</h2>
+<p>Whether a coding agent knows what happened in an execution it did not see, and whether the code it leaves passes a check, for a program whose behaviour on one night differed from what its README says, when it has the folder the execution left and nothing more (<code>none</code>), a VizTracer trace of the execution (<code>raw</code>), or its Ormaos recording (<code>ormaos</code>, and in knows2 also <code>ormaos-values</code>); the agent is <code>claude-opus-5-5</code>, in a sandbox, and its answers or its code are graded by an oracle or a check that reads neither the trace nor the recording. And how much time recording adds to a Python program.</p>
+<ul class="cards">
+<li class="card">
+<p class="kicker">knows2 · 2026-11-27 · claude-opus-5-5 · N = 108 runs, 27 per arm</p>
+<h3>What an agent knows about an execution</h3>
+<p>9 executions, questions by a model that was not told what Ormaos records, graded against an oracle. Mean score per arm, from 0 to 1:</p>
+<dl class="facts bench">
+  <div><dt><code>none</code>, 95% interval 0.59 to 0.83</dt><dd>0.71</dd></div>
+  <div><dt><code>raw</code>, 95% interval 0.79 to 0.95</dt><dd>0.87</dd></div>
+  <div><dt><code>ormaos</code>, 95% interval 0.88 to 0.97</dt><dd>0.93</dd></div>
+  <div><dt><code>ormaos-values</code>, 95% interval 0.90 to 0.99</dt><dd>0.95</dd></div>
+</dl>
+<p class="more"><a href="/benchmarks/knows2/">The method, every question and every answer</a></p>
+</li>
+<li class="card">
+<p class="kicker">knows · 2026-11-27 · claude-opus-5-5 · N = 81 runs, 27 per arm</p>
+<h3>The earlier run, questions by the makers of Ormaos</h3>
+<p>The same executions, with questions written by the people who make Ormaos; replaced by knows2. Mean score per arm:</p>
+<dl class="facts bench">
+  <div><dt><code>none</code>, 95% interval 0.55 to 0.83</dt><dd>0.69</dd></div>
+  <div><dt><code>raw</code>, 95% interval 0.88 to 1.00</dt><dd>0.94</dd></div>
+  <div><dt><code>ormaos</code>, 95% interval 1.00 to 1.00</dt><dd>1.00</dd></div>
+</dl>
+<p class="more"><a href="/benchmarks/knows/">The run, and why knows2 replaced it</a></p>
+</li>
+<li class="card">
+<p class="kicker">fix · 2026-11-26 · claude-opus-5-5 · N = 72 runs, 24 per arm</p>
+<h3>8 programs that do otherwise than their README says</h3>
+<p>A coding agent changes a program whose behaviour on one night differed from what its README says; a check it does not see runs that night again. The metric <code>fixed</code>, per arm:</p>
+<dl class="facts bench">
+  <div><dt><code>none</code>, 95% interval 69% to 96%</dt><dd>21/24</dd></div>
+  <div><dt><code>raw</code>, 95% interval 80% to 99%</dt><dd>23/24</dd></div>
+  <div><dt><code>ormaos</code>, 95% interval 86% to 100%</dt><dd>24/24</dd></div>
+</dl>
+<p class="more"><a href="/benchmarks/fix/">The programs, the check and every run</a></p>
+</li>
+<li class="card">
+<p class="kicker">overhead · 2026-11-27 · N = 20 runs per row</p>
+<h3>What recording adds to the time of a run</h3>
+<p>The default capability set, as a multiple of the same run without Ormaos, with the p25 to p75 of its median:</p>
+<dl class="facts bench">
+  <div><dt>CPU-bound workload, p25 to p75 2785.0-2810.0 ms</dt><dd>x34.28</dd></div>
+  <div><dt>I/O workload, p25 to p75 264.0-267.4 ms</dt><dd>x7.69</dd></div>
+</dl>
+<p class="more"><a href="/benchmarks/overhead/">Every capability set, and the machine</a></p>
+</li>
+</ul>
+</section>
+
+<section class="band" id="not-shown" aria-labelledby="not-shown-title">
+<h2 id="not-shown-title">What these benchmarks do not show</h2>
+<ul class="rows">
+  <li>The programs and their executions were written for these benchmarks by the people who make Ormaos; they are not a sample of real programs.</li>
+  <li>One model, one prompt per arm, one tracer with its default settings, and few runs: 27 per arm in knows2, 24 in fix. Several 95% intervals overlap; each page says which.</li>
+  <li>In knows2 the question writer and the agents are the same model, and in 4 of 9 tasks every arm scored 1.00.</li>
+  <li>The overhead was timed on 2 workloads on one machine; another program has another cost.</li>
+  <li>Whether what happened is what should have happened: the benchmarks ask what happened, and the reader decides.</li>
+</ul>
+</section>
+
+<section class="band" id="files" aria-labelledby="files-title">
+<h2 id="files-title">The pages as files</h2>
+<ul class="rows">
+  <li>Each page is also Markdown, at its address with <code>.md</code> in place of the last slash: <a href="/benchmarks.md"><code>/benchmarks.md</code></a>, <a href="/benchmarks/knows2.md"><code>/benchmarks/knows2.md</code></a>, and so on.</li>
+  <li><a href="/benchmarks/llms.txt"><code>/benchmarks/llms.txt</code></a> lists them for agents.</li>
+  <li>The pages are written by <a href="https://github.com/ormaos/ormaos-examples/blob/main/site/benchmarks/build.py"><code>site/benchmarks/build.py</code></a> from the results files.</li>
+</ul>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>

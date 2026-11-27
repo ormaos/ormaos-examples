@@ -1168,7 +1168,7 @@ footer ul {
 
   <section class="band first" aria-labelledby="top-title">
     <h1 id="top-title">Demo</h1>
-    <p class="lead">Three tests on small scheduled jobs that print OK on a night that went wrong. Everything here is a real run.</p>
+    <p class="lead">Two tests on small scheduled jobs that print OK on a night that went wrong. Everything here is a real run.</p>
     <p style="margin-top:16px">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
     <ul class="cards">
       <li class="card">
@@ -1184,10 +1184,10 @@ footer ul {
         <p class="more"><a href="#two-nights">See the diff</a></p>
       </li>
       <li class="card">
-        <p class="kicker">Test 3 · agent-bench</p>
-        <h3>Eight bugs, three ways in</h3>
-        <p>Fixed: 21/24 with nothing more, 23/24 with a raw trace, 24/24 with Ormaos. Within the margin: this benchmark does not separate them.</p>
-        <p class="more"><a href="#bench">See the table</a></p>
+        <p class="kicker">Benchmarks</p>
+        <h3>What an agent knows, what its code passes, what recording costs</h3>
+        <p>The benchmarks have their own pages, with every number taken from the results files.</p>
+        <p class="more"><a href="/benchmarks/">See the benchmarks</a></p>
       </li>
     </ul>
     <p style="margin-top:16px">After the tests: <a href="#use-cases">seven kinds of program</a>, from a web backend to a change made by a coding agent, each with one question about one execution.</p>
@@ -1662,44 +1662,9 @@ footer ul {
   </section>
 
   <section class="band" id="bench" aria-labelledby="bench-title">
-    <p class="kicker">Test 3</p>
-    <h2 id="bench-title">Eight bugs, three ways in</h2>
-    <p>A larger measurement, <a href="https://github.com/ormaos/ormaos-examples/tree/main/agent-bench"><code>agent-bench</code></a>: eight small scheduled jobs, each with one bug of a different kind, each printing its OK line on the bad night. A coding agent gets the code, the data that night left and the symptom, and is asked to find the cause and fix it: with nothing more (<code>none</code>), with a VizTracer trace of the bad night (<code>raw</code>), or with its Ormaos recording (<code>ormaos</code>). A hidden check then decides whether the code it left is fixed.</p>
-    <div class="table-wrap">
-      <table class="results" data-source="agent-bench/results/20261126-220703/report.md">
-        <thead>
-          <tr><th scope="col">Arm</th><th scope="col">Fixed</th><th scope="col">95% interval</th><th scope="col">Median time</th><th scope="col">Median tool calls</th><th scope="col">Median tokens</th></tr>
-        </thead>
-        <tbody>
-          <tr><td><code>none</code></td><td>21/24</td><td>69% to 96%</td><td>50 s</td><td>7</td><td>94,458</td></tr>
-          <tr><td><code>raw</code></td><td>23/24</td><td>80% to 99%</td><td>56 s</td><td>8</td><td>140,558</td></tr>
-          <tr><td><code>ormaos</code></td><td>24/24</td><td>86% to 100%</td><td>44 s</td><td>7</td><td>112,676</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="caption">Measured: N = 24 runs per arm (8 bugs, 3 runs each), model <code>claude-opus-5-5</code>, the first attempt of every run counted. The interval is the 95% Wilson score interval; tokens include cache tokens, as the command line reports them.</p>
-    <p>This test measured one use of a recording: correcting the code. At this size the difference is within the margin. The four runs that were not fixed had found the cause, but changed the job's last line, which the check reads as cron does. Looked at after the results, not planned: counted as fixed, those four would make every arm 24/24, so this benchmark does not separate the arms. The bugs were written for this benchmark by the people who make Ormaos. The <a href="https://github.com/ormaos/ormaos-examples/blob/main/agent-bench/results/20261126-220703/report.md">report</a> has every run, per bug, with what the check said.</p>
-  </section>
-
-  <section class="band" id="knows" aria-labelledby="knows-title">
-    <p class="kicker">Questions about an execution</p>
-    <h2 id="knows-title">What an agent knows about an execution</h2>
-    <p>A second measurement, <a href="https://github.com/ormaos/ormaos-examples/tree/main/agent-bench/knows"><code>agent-bench/knows</code></a>: nine executions, the seven programs below and the two jobs above. A coding agent gets the folder as the execution left it and 6 to 8 factual questions about what happened in it: with nothing more (<code>none</code>), with a VizTracer trace of the execution (<code>raw</code>), or with its Ormaos recording (<code>ormaos</code>). Its answers are graded against an oracle, a second execution under <code>sys.settrace</code> that reads neither the trace nor the recording.</p>
-    <div class="table-wrap">
-      <table class="results" data-source="agent-bench/knows/results/20261127-140018/report.md">
-        <thead>
-          <tr><th scope="col">Arm</th><th scope="col">Mean score</th><th scope="col">95% interval</th><th scope="col">Median time</th><th scope="col">Median tokens</th></tr>
-        </thead>
-        <tbody>
-          <tr><td><code>none</code></td><td>0.69</td><td>0.55 to 0.83</td><td>31 s</td><td>60,088</td></tr>
-          <tr><td><code>raw</code></td><td>0.94</td><td>0.88 to 1.00</td><td>41 s</td><td>90,107</td></tr>
-          <tr><td><code>ormaos</code></td><td>1.00</td><td>1.00 to 1.00</td><td>28 s</td><td>86,152</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="caption" data-numbers="agent-bench/knows/results/20261127-140018/report.md">Measured: N = 81 runs, 27 per arm (9 tasks, 3 runs each), model <code>claude-opus-5-5</code>, every run counted. The score of a run is the share of its questions answered right; the interval is a 95% bootstrap interval of the mean; tokens include cache tokens, as the command line reports them.</p>
-    <p data-numbers="agent-bench/knows/results/20261127-140018/report.md">Limits: no expectation was written before this run, and in 4 of the 9 tasks every arm scored 1.00. The gap between <code>raw</code> and <code>ormaos</code> (0.06) comes mostly from <code>data-pipeline</code> (0.05), whose questions ask the row counts of DataFrames, which Ormaos records and VizTracer with its default settings does not.</p>
-    <p>The programs and the questions were written by the people who make Ormaos. The <a href="https://github.com/ormaos/ormaos-examples/blob/main/agent-bench/knows/results/20261127-140018/report.md">report</a> has every run, per task and per question.</p>
+    <p class="kicker">Measured</p>
+    <h2 id="bench-title">Benchmarks</h2>
+    <p>What a coding agent knows about an execution and whether the code it changes passes a check, with nothing, a raw trace or an Ormaos recording, and what recording adds to the time of a run, are on <a href="/benchmarks/">the benchmarks pages</a>, with every number taken from the results files.</p>
   </section>
 
   <section class="band" id="use-cases" aria-labelledby="use-cases-title">
@@ -1838,8 +1803,8 @@ footer ul {
 <span class="cmd">.venv/bin/ormaos list</span>
 <span class="cmd">.venv/bin/ormaos diff r1 r2</span></code></pre>
 </figure>
-    <h3>Test 3: the benchmark</h3>
-    <p>72 agent runs. Needs bubblewrap, the <code>claude</code> command line signed in, and a checkout of <code>ormaos-python</code> next to this repository.</p>
+    <h3>The benchmarks</h3>
+    <p>The fix benchmark, on the programs of <code>agent-bench</code>. Needs bubblewrap, the <code>claude</code> command line signed in, and a checkout of <code>ormaos-python</code> next to this repository. Each page of <a href="/benchmarks/">the benchmarks</a> ends with the commands that run it again.</p>
     <figure class="code sh" data-copy="all">
 <figcaption class="code-bar"><span class="code-label">Shell</span></figcaption>
 <pre tabindex="0" role="region" aria-label="Shell"><code><span class="cmd">git clone https://github.com/ormaos/ormaos-python</span>

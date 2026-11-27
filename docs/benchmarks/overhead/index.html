@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>overhead: what recording adds to the time of a run · Ormaos benchmarks</title>
+<meta name="description" content="overhead: what recording adds to the time of a run: the time a recorded run takes, per capability set, on 2 workloads.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/overhead.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://ormaos.com/guide/">Guide</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<h1 id="top-title">overhead: what recording adds to the time of a run</h1>
+<p class="lead">N = 20 runs of each row, after 1 discarded; the rows take turns. Written by <code>bench/run.py</code>. Each row is the whole command, from start to exit, in milliseconds of wall-clock time: for <code>ormaos run</code> that includes starting the CLI, running the program, and reading the recording to print the summary.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<dl class="facts bench">
+  <div><dt>CPU-bound workload, the default capability set, median 2798.2 ms</dt><dd>x34.28</dd></div>
+  <div><dt>I/O workload, the default capability set, median 265.7 ms</dt><dd>x7.69</dd></div>
+</dl>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#results">Results</a></li>
+  <li><a href="#machine">The machine</a></li>
+  <li><a href="#reading">How to read it</a></li>
+  <li><a href="#this-run">This run</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="results" aria-labelledby="results-title">
+<h2 id="results-title">Results</h2>
+<figure class="chart">
+<svg viewBox="0 0 600 210" role="img" aria-labelledby="ratios-t ratios-d" xmlns="http://www.w3.org/2000/svg">
+<title id="ratios-t">Time of a recorded run, as a multiple of the same run without Ormaos</title>
+<desc id="ratios-d">The median wall time of each capability set divided by the median without Ormaos, per workload, on a log scale. context only: CPU-bound x1.59 (130.2 ms), I/O x2.50 (86.3 ms); calls and exceptions: CPU-bound x31.17 (2544.4 ms), I/O x4.00 (138.0 ms); calls, exceptions and path: CPU-bound x33.58 (2741.4 ms), I/O x4.10 (141.7 ms); calls, exceptions and io (the default): CPU-bound x34.28 (2798.2 ms), I/O x7.69 (265.7 ms).</desc>
+<circle class="s1 dot" cx="276" cy="16" r="6"/>
+<text x="288" y="20.5">CPU-bound</text>
+<circle class="s2 dot" cx="394" cy="16" r="6"/>
+<text x="406" y="20.5">I/O</text>
+<line class="grid" x1="270" y1="40" x2="270" y2="176"/>
+<text x="270" y="196" text-anchor="middle">x1</text>
+<line class="grid" x1="315.2" y1="40" x2="315.2" y2="176"/>
+<text x="315.2" y="196" text-anchor="middle">x2</text>
+<line class="grid" x1="374.8" y1="40" x2="374.8" y2="176"/>
+<text x="374.8" y="196" text-anchor="middle">x5</text>
+<line class="grid" x1="420" y1="40" x2="420" y2="176"/>
+<text x="420" y="196" text-anchor="middle">x10</text>
+<line class="grid" x1="465.2" y1="40" x2="465.2" y2="176"/>
+<text x="465.2" y="196" text-anchor="middle">x20</text>
+<line class="grid" x1="524.8" y1="40" x2="524.8" y2="176"/>
+<text x="524.8" y="196" text-anchor="middle">x50</text>
+<line class="grid" x1="570" y1="40" x2="570" y2="176"/>
+<text x="570" y="196" text-anchor="middle">x100</text>
+<text class="label" x="256" y="61.5" text-anchor="end">context only</text>
+<circle class="s1 dot" cx="300.2" cy="52" r="5"><title>context only, CPU-bound: x1.59 (130.2 ms)</title></circle>
+<circle class="s2 dot" cx="329.7" cy="62" r="5"><title>context only, I/O: x2.50 (86.3 ms)</title></circle>
+<text class="label" x="256" y="95.5" text-anchor="end">calls and exceptions</text>
+<circle class="s1 dot" cx="494.1" cy="86" r="5"><title>calls and exceptions, CPU-bound: x31.17 (2544.4 ms)</title></circle>
+<circle class="s2 dot" cx="360.3" cy="96" r="5"><title>calls and exceptions, I/O: x4.00 (138.0 ms)</title></circle>
+<text class="label" x="256" y="129.5" text-anchor="end">calls, exceptions and path</text>
+<circle class="s1 dot" cx="498.9" cy="120" r="5"><title>calls, exceptions and path, CPU-bound: x33.58 (2741.4 ms)</title></circle>
+<circle class="s2 dot" cx="361.9" cy="130" r="5"><title>calls, exceptions and path, I/O: x4.10 (141.7 ms)</title></circle>
+<text class="label" x="256" y="163.5" text-anchor="end">calls, exceptions and io, the default</text>
+<circle class="s1 dot" cx="500.3" cy="154" r="5"><title>calls, exceptions and io, the default, CPU-bound: x34.28 (2798.2 ms)</title></circle>
+<circle class="s2 dot" cx="402.9" cy="164" r="5"><title>calls, exceptions and io, the default, I/O: x7.69 (265.7 ms)</title></circle>
+</svg>
+</figure>
+<div class="table-wrap">
+<table class="results">
+<thead><tr><th scope="col">Capability set</th><th scope="col">CPU-bound</th><th scope="col">I/O</th></tr></thead>
+<tbody>
+<tr><td>context only</td><td>x1.59</td><td>x2.50</td></tr>
+<tr><td>calls and exceptions</td><td>x31.17</td><td>x4.00</td></tr>
+<tr><td>calls, exceptions and path</td><td>x33.58</td><td>x4.10</td></tr>
+<tr><td>calls, exceptions and io (the default)</td><td>x34.28</td><td>x7.69</td></tr>
+</tbody>
+</table>
+</div>
+<h3>CPU-bound workload</h3>
+<p><code>bench/workloads/cpu_bound.py</code>: 150,000 calls of small pure-Python functions, no I/O.</p>
+<div class="table-wrap">
+<table class="plain">
+<thead><tr><th scope="col">Capability set</th><th scope="col">Command</th><th scope="col">Median (ms)</th><th scope="col">p25-p75 (ms)</th><th scope="col">Min-max (ms)</th><th scope="col">Added to the median</th><th scope="col">Recorded in one run</th></tr></thead>
+<tbody>
+<tr><td>without Ormaos</td><td><code>python</code></td><td>81.6</td><td>80.2-82.2</td><td>78.4-99.5</td><td></td><td>nothing</td></tr>
+<tr><td>context only</td><td><code>ormaos run -- env -u ORMAOS_DIR python</code></td><td>130.2</td><td>128.6-131.0</td><td>127.0-133.9</td><td>48.6 (x1.59)</td><td>the context of the command</td></tr>
+<tr><td>calls and exceptions</td><td><code>ormaos run --no-io -- python</code></td><td>2544.4</td><td>2536.5-2557.0</td><td>2514.1-2586.4</td><td>2462.8 (x31.17)</td><td>150,002 calls, 0 exceptions, 0 io events</td></tr>
+<tr><td>calls, exceptions and path</td><td><code>ormaos run --no-io --path cpu_bound.py:score -- python</code></td><td>2741.4</td><td>2726.9-2757.1</td><td>2705.1-2886.5</td><td>2659.7 (x33.58)</td><td>150,002 calls, 0 exceptions, 150,000 lines, 0 io events</td></tr>
+<tr><td>calls, exceptions and io (the default)</td><td><code>ormaos run -- python</code></td><td>2798.2</td><td>2785.0-2810.0</td><td>2770.3-2929.5</td><td>2716.6 (x34.28)</td><td>150,002 calls, 0 exceptions, 0 io events</td></tr>
+</tbody>
+</table>
+</div>
+<p>Listed as not collected in these recordings:</p>
+<ul class="rows">
+  <li>context only: everything inside Python: no Python process reported: the command started no Python, or a Python without ormaos installed in its environment</li>
+</ul>
+<h3>I/O workload</h3>
+<p><code>bench/workloads/io_bound.py</code>: a SQLite file (2,000 inserts in 20 transactions, 200 queries) and 200 small files written and read back.</p>
+<div class="table-wrap">
+<table class="plain">
+<thead><tr><th scope="col">Capability set</th><th scope="col">Command</th><th scope="col">Median (ms)</th><th scope="col">p25-p75 (ms)</th><th scope="col">Min-max (ms)</th><th scope="col">Added to the median</th><th scope="col">Recorded in one run</th></tr></thead>
+<tbody>
+<tr><td>without Ormaos</td><td><code>python</code></td><td>34.5</td><td>34.1-35.2</td><td>33.9-38.7</td><td></td><td>nothing</td></tr>
+<tr><td>context only</td><td><code>ormaos run -- env -u ORMAOS_DIR python</code></td><td>86.3</td><td>85.1-87.0</td><td>83.3-100.9</td><td>51.8 (x2.50)</td><td>the context of the command</td></tr>
+<tr><td>calls and exceptions</td><td><code>ormaos run --no-io -- python</code></td><td>138.0</td><td>136.9-138.8</td><td>136.0-149.4</td><td>103.5 (x4.00)</td><td>2,402 calls, 0 exceptions, 0 io events</td></tr>
+<tr><td>calls, exceptions and path</td><td><code>ormaos run --no-io --path io_bound.py:store -- python</code></td><td>141.7</td><td>140.9-142.7</td><td>140.0-149.7</td><td>107.2 (x4.10)</td><td>2,402 calls, 0 exceptions, 2,000 lines, 0 io events</td></tr>
+<tr><td>calls, exceptions and io (the default)</td><td><code>ormaos run -- python</code></td><td>265.7</td><td>264.0-267.4</td><td>262.5-282.3</td><td>231.2 (x7.69)</td><td>2,402 calls, 0 exceptions, 3,042 io events</td></tr>
+</tbody>
+</table>
+</div>
+<p>Listed as not collected in these recordings:</p>
+<ul class="rows">
+  <li>context only: everything inside Python: no Python process reported: the command started no Python, or a Python without ormaos installed in its environment</li>
+</ul>
+</section>
+
+<section class="band" id="machine" aria-labelledby="machine-title">
+<h2 id="machine-title">The machine</h2>
+<ul class="rows">
+  <li>N: 20 runs of each row, after 1 discarded; the rows take turns</li>
+  <li>Machine: AMD Ryzen 7 7735HS with Radeon Graphics, 16 logical CPUs, x86_64</li>
+  <li>OS: Linux-7.0.0-44-generic-x86_64-with-glibc2.43</li>
+  <li>Python: CPython 3.13.17</li>
+  <li>Ormaos: 0.0.1</li>
+  <li>Temporary directory: /tmp</li>
+  <li>When: 2026-11-27 13:09 -03</li>
+</ul>
+</section>
+
+<section class="band" id="reading" aria-labelledby="reading-title">
+<h2 id="reading-title">How to read it</h2>
+<p>As the results file says:</p>
+<ul class="rows">
+  <li>&quot;Added to the median&quot; is the median of the row minus the median of &quot;without Ormaos&quot;, and their ratio.</li>
+  <li>&quot;context only&quot; is <code>ormaos run</code> around a Python that starts without the recorder: the cost of the command itself, with nothing recorded inside Python.</li>
+  <li>The other rows record inside Python. Their cost grows with the number of calls, lines and I/O events, shown in the last column, and with the time to read the recording back for the summary.</li>
+  <li>These are two workloads on one machine. Another program has another number of calls per second, and another cost.</li>
+</ul>
+</section>
+
+<section class="band" id="this-run" aria-labelledby="this-run-title">
+<h2 id="this-run-title">This run</h2>
+<ul class="rows">
+  <li>Results file: <a href="https://github.com/ormaos/ormaos-python/blob/968f69776c7c4f9ef5c04867ed7a0c229786bc19/bench/RESULTS.md"><code>bench/RESULTS.md</code></a> of ormaos-python, written by <a href="https://github.com/ormaos/ormaos-python/blob/968f69776c7c4f9ef5c04867ed7a0c229786bc19/bench/run.py"><code>bench/run.py</code></a></li>
+  <li>Ormaos commit: <a href="https://github.com/ormaos/ormaos-python/commit/968f69776c7c4f9ef5c04867ed7a0c229786bc19"><code>968f697</code></a>, version 0.0.1</li>
+  <li>The copy these pages read: <a href="https://github.com/ormaos/ormaos-examples/blob/main/site/benchmarks/overhead/RESULTS.md"><code>site/benchmarks/overhead/RESULTS.md</code></a>, taken by <code>site/benchmarks/build.py --overhead</code></li>
+  <li>Date: 2026-11-27 13:09 -03</li>
+  <li>No agent and no model: this benchmark has no <code>results.jsonl</code> and no streams.</li>
+</ul>
+<p>To run it again: Linux or another POSIX system, Python 3.12 or newer, and <a href="https://docs.astral.sh/uv/">uv</a>.</p>
+<figure class="code sh">
+<figcaption class="code-bar"><span class="code-label">Shell</span></figcaption>
+<pre tabindex="0"><code><span class="cmd">git clone https://github.com/ormaos/ormaos-python &amp;&amp; cd ormaos-python</span>
+<span class="cmd">git checkout 968f697</span>
+<span class="cmd">uv run python bench/run.py --runs 20</span></code></pre>
+</figure>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>

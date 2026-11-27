@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fix: 8 programs that do otherwise than their README says · Ormaos benchmarks</title>
+<meta name="description" content="fix: 8 programs that do otherwise than their README says: 8 programs, 3 arms, the metric fixed, scored by the first attempt of every slot.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/fix.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://ormaos.com/guide/">Guide</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<h1 id="top-title">fix: 8 programs that do otherwise than their README says</h1>
+<p class="lead">N = 72 runs: 8 programs x 3 arms x 3 runs, the first attempt of every slot, model <code>claude-opus-5-5</code>, 2026-11-26. A coding agent gets a scheduled program whose behaviour on one night differs from what its README says, the data that night left and a one-sentence symptom. A check it does not see then plays that night again on the code the agent left; <code>fixed</code> is the name of the metric that counts the runs whose code passed it.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<dl class="facts bench">
+  <div><dt><code>none</code>, <code>fixed</code>, 95% interval 69% to 96%</dt><dd>21/24</dd></div>
+  <div><dt><code>raw</code>, <code>fixed</code>, 95% interval 80% to 99%</dt><dd>23/24</dd></div>
+  <div><dt><code>ormaos</code>, <code>fixed</code>, 95% interval 86% to 100%</dt><dd>24/24</dd></div>
+</dl>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#method">Method</a></li>
+  <li><a href="#results">Results</a></li>
+  <li><a href="#limits">Limits</a></li>
+  <li><a href="#this-run">This run</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="method" aria-labelledby="method-title">
+<h2 id="method-title">Method</h2>
+<h3>The programs</h3>
+<p>8 small scheduled Python programs, standard library only. Each runs from cron, prints its OK line and exits with code 0; on one night its behaviour differs from what its README says, in a different place in each program, and that shows only in the data it left. Running it again today does not show it: that night&#x27;s input is gone.</p>
+<div class="table-wrap">
+<table class="plain">
+<thead><tr><th scope="col">Program</th><th scope="col">What it does, by its README</th><th scope="col">Where its behaviour differs</th></tr></thead>
+<tbody>
+<tr><td><code>order-sync</code></td><td>applies orders to an inventory</td><td>an exception that is caught and not shown</td></tr>
+<tr><td><code>freight-quote</code></td><td>quotes freight from a carrier&#x27;s API</td><td>a fallback, with nothing printed, after HTTP calls that returned an error</td></tr>
+<tr><td><code>late-fees</code></td><td>charges late fees on overdue invoices</td><td>a branch taken because of a value in the environment</td></tr>
+<tr><td><code>statement-import</code></td><td>books a bank statement into a ledger</td><td>a loop that stops before the end of its input</td></tr>
+<tr><td><code>fx-rates</code></td><td>takes over exchange rates from a feed</td><td>a retry that makes its call once</td></tr>
+<tr><td><code>price-import</code></td><td>takes over a supplier&#x27;s price list</td><td>a subprocess whose exit code is not read</td></tr>
+<tr><td><code>points-grant</code></td><td>grants loyalty points for purchases</td><td>an SQL statement that also writes other rows</td></tr>
+<tr><td><code>commission-run</code></td><td>works out sales commissions</td><td>a value kept from one item to the next</td></tr>
+</tbody>
+</table>
+</div>
+<h3>The arms</h3>
+<div class="table-wrap">
+<table class="plain">
+<thead><tr><th scope="col">Arm</th><th scope="col">Added to the folder</th><th scope="col">Added to the prompt</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>nothing</td><td>nothing</td></tr>
+<tr><td><code>raw</code></td><td><code>result.json</code>: a <a href="https://github.com/gaogaotiantian/viztracer">VizTracer</a> trace of that night&#x27;s run, default settings</td><td>that the file is there and how to read it</td></tr>
+<tr><td><code>ormaos</code></td><td><code>.ormaos/</code>: the Ormaos recording of that night&#x27;s run, and <code>.venv/</code> with the <code>ormaos</code> command line</td><td>that the recording is there, and to run <code>.venv/bin/ormaos guide</code> first</td></tr>
+</tbody>
+</table>
+</div>
+<p>All arms have the same code, data and task text: the symptom, how cron runs the program, and &quot;Find the cause and fix it.&quot; The nights are played once per arm, in copies mounted at the same path, and the build stops if the copies do not leave the same data.</p>
+<h3>The check</h3>
+<p>For each program, <code>hidden/check.py</code>, not in the agent&#x27;s folder, plays that night again on the code the agent left, and nights on which the program did what its README says. It passes when that night&#x27;s data now comes out as the README describes and the other nights end as before, with exit code 0 and the program&#x27;s last line as cron reads it. The metric <code>fixed</code> counts the runs whose code passed it.</p>
+<h3>The sandbox</h3>
+<p>The folder is mounted at <code>/srv/&lt;program&gt;</code> inside bubblewrap, with nothing else of the machine but the system (<code>/usr</code> and <code>/etc</code>, read-only), the <code>claude</code> program and its login. <code>claude -p --model claude-opus-5-5 --safe-mode --strict-mcp-config</code> gets the task text, with the tools Bash, Read, Grep, Glob, Edit and Write, and the runner&#x27;s time limit. The network is not cut: the agent needs it to reach the model.</p>
+<h3>Scored by the first attempt of every slot</h3>
+<p>What counts is the first attempt of every program, arm and run: all 72 of them, as planned before the run. A run that used up its time counts with the code it left. An attempt in which the agent named a path outside its folder, or that ended with an error, was marked and run again; the later attempts (45) are listed in the report and do not count. First attempts that were marked: 23; they count like the others, since the sandbox has nothing of these programs outside the folder.</p>
+</section>
+
+<section class="band" id="results" aria-labelledby="results-title">
+<h2 id="results-title">Results</h2>
+<p>The interval is the 95% Wilson score interval, computed with the runner&#x27;s own function. Tokens are input, output and cache tokens added up, as the claude command line reports them.</p>
+<figure class="chart">
+<svg viewBox="0 0 600 166" role="img" aria-labelledby="fixed-t fixed-d" xmlns="http://www.w3.org/2000/svg">
+<title id="fixed-t">The metric fixed, per arm</title>
+<desc id="fixed-d">The share of first attempts of each arm whose code passed the check, with its 95% Wilson score interval. none 21/24 (69% to 96%); raw 23/24 (80% to 99%); ormaos 24/24 (86% to 100%).</desc>
+<line class="grid" x1="130" y1="12" x2="130" y2="132"/>
+<text x="130" y="152" text-anchor="middle">0%</text>
+<line class="grid" x1="200" y1="12" x2="200" y2="132"/>
+<text x="200" y="152" text-anchor="middle">25%</text>
+<line class="grid" x1="270" y1="12" x2="270" y2="132"/>
+<text x="270" y="152" text-anchor="middle">50%</text>
+<line class="grid" x1="340" y1="12" x2="340" y2="132"/>
+<text x="340" y="152" text-anchor="middle">75%</text>
+<line class="grid" x1="410" y1="12" x2="410" y2="132"/>
+<text x="410" y="152" text-anchor="middle">100%</text>
+<g><title>none: fixed 21 of 24, 95% Wilson interval 69% to 96%</title>
+<text class="label" x="116" y="36.5" text-anchor="end">none</text>
+<line class="s1 whisker" x1="323.2" y1="32" x2="397.8" y2="32"/>
+<line class="s1 whisker" x1="323.2" y1="26" x2="323.2" y2="38"/>
+<line class="s1 whisker" x1="397.8" y1="26" x2="397.8" y2="38"/>
+<circle class="s1 dot" cx="375" cy="32" r="6"/>
+<text class="value" x="424" y="36.5">21/24 (69% to 96%)</text></g>
+<g><title>raw: fixed 23 of 24, 95% Wilson interval 80% to 99%</title>
+<text class="label" x="116" y="76.5" text-anchor="end">raw</text>
+<line class="s2 whisker" x1="353.3" y1="72" x2="407.9" y2="72"/>
+<line class="s2 whisker" x1="353.3" y1="66" x2="353.3" y2="78"/>
+<line class="s2 whisker" x1="407.9" y1="66" x2="407.9" y2="78"/>
+<circle class="s2 dot" cx="398.3" cy="72" r="6"/>
+<text class="value" x="424" y="76.5">23/24 (80% to 99%)</text></g>
+<g><title>ormaos: fixed 24 of 24, 95% Wilson interval 86% to 100%</title>
+<text class="label" x="116" y="116.5" text-anchor="end">ormaos</text>
+<line class="s3 whisker" x1="371.4" y1="112" x2="410" y2="112"/>
+<line class="s3 whisker" x1="371.4" y1="106" x2="371.4" y2="118"/>
+<line class="s3 whisker" x1="410" y1="106" x2="410" y2="118"/>
+<circle class="s3 dot" cx="410" cy="112" r="6"/>
+<text class="value" x="424" y="116.5">24/24 (86% to 100%)</text></g>
+</svg>
+</figure>
+<div class="table-wrap">
+<table class="results">
+<thead><tr><th scope="col">Arm</th><th scope="col">Fixed</th><th scope="col">95% interval</th><th scope="col">Median wall time</th><th scope="col">Median tool calls</th><th scope="col">Median tokens</th><th scope="col">Timed out</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>21/24</td><td>69% to 96%</td><td>50 s</td><td>7</td><td>94,458</td><td>0</td></tr>
+<tr><td><code>raw</code></td><td>23/24</td><td>80% to 99%</td><td>56 s</td><td>8</td><td>140,558</td><td>0</td></tr>
+<tr><td><code>ormaos</code></td><td>24/24</td><td>86% to 100%</td><td>44 s</td><td>7</td><td>112,676</td><td>0</td></tr>
+</tbody>
+</table>
+</div>
+<p>The 95% intervals of all 3 arms overlap one another.</p>
+<h3>Per program</h3>
+<div class="table-wrap">
+<table class="results">
+<thead><tr><th scope="col">Program</th><th scope="col"><code>none</code></th><th scope="col"><code>raw</code></th><th scope="col"><code>ormaos</code></th></tr></thead>
+<tbody>
+<tr><td><code>order-sync</code></td><td>3/3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td><code>freight-quote</code></td><td>3/3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td><code>late-fees</code></td><td>2/3</td><td>2/3</td><td>3/3</td></tr>
+<tr><td><code>statement-import</code></td><td>3/3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td><code>fx-rates</code></td><td>1/3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td><code>price-import</code></td><td>3/3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td><code>points-grant</code></td><td>3/3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td><code>commission-run</code></td><td>3/3</td><td>3/3</td><td>3/3</td></tr>
+</tbody>
+</table>
+</div>
+<h3>First attempts whose code did not pass the check</h3>
+<p>With what the check said:</p>
+<ul class="rows">
+  <li><code>late-fees</code>, <code>none</code>, run 3: the night ran with LATE_FEES_PAUSE=0: the job did not end with <code>late fees finished: OK</code>; a night with LATE_FEES_PAUSE=1 is paused: the job did not end with <code>late fees finished: OK</code>; a night without the variable is charged: the job did not end with <code>late fees finished: OK</code></li>
+  <li><code>late-fees</code>, <code>raw</code>, run 1: a night with LATE_FEES_PAUSE=1 is paused: the job did not end with <code>late fees finished: OK</code></li>
+  <li><code>fx-rates</code>, <code>none</code>, run 2: the job did not end with <code>rates finished: OK</code>; it printed <code>rates finished: WARNING held for review: HUF</code></li>
+  <li><code>fx-rates</code>, <code>none</code>, run 3: the job did not end with <code>rates finished: OK</code>; it printed <code>rates finished: INCOMPLETE (held for review: HUF)</code></li>
+</ul>
+<p>The report adds an analysis made after seeing the results, not planned before the run, which changes nothing in the tables: the folders these runs left were read by hand. See its section &quot;After the run&quot; in <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/report.md"><code>report.md</code></a>.</p>
+</section>
+
+<section class="band" id="limits" aria-labelledby="limits-title">
+<h2 id="limits-title">Limits</h2>
+<ul class="rows">
+  <li>The 8 programs, and where each one&#x27;s behaviour differs from its README, were written for this benchmark by the people who make Ormaos; they are not a sample of real programs.</li>
+  <li>One model, one prompt per arm, one tracer with its default settings.</li>
+  <li>The dates in the data are relative to the day <code>build.py</code> ran: build on the day of the run.</li>
+</ul>
+</section>
+
+<section class="band" id="this-run" aria-labelledby="this-run-title">
+<h2 id="this-run-title">This run</h2>
+<ul class="rows">
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703"><code>agent-bench/results/20261126-220703</code></a></li>
+  <li>ormaos-examples commit that added these results: <a href="https://github.com/ormaos/ormaos-examples/commit/88bec53c78471c6086564b4de8a00084c4dc4ae6"><code>88bec53</code></a></li>
+  <li>Ormaos commit: <a href="https://github.com/ormaos/ormaos-python/commit/75c191a"><code>75c191a</code></a>; VizTracer 1.1.1; Python 3.14.4</li>
+  <li>Model: <code>claude-opus-5-5</code>, with the <code>claude</code> command line 2.1.322</li>
+  <li>Date: 2026-11-26</li>
+</ul>
+<p>The results files, on GitHub:</p>
+<ul class="rows">
+  <li><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/results.jsonl"><code>results.jsonl</code></a>: one line per run</li>
+  <li><a href="https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams"><code>streams/</code></a>: what every agent said and did</li>
+  <li><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/report.md"><code>report.md</code></a>: the report the runner wrote</li>
+</ul>
+<p>To run it again: Linux with <a href="https://github.com/containers/bubblewrap">bubblewrap</a>, Python 3.12 or newer, git, the <code>claude</code> command line signed in, and a checkout of ormaos-python next to this repository. The run sends the folders it makes to the model&#x27;s API.</p>
+<figure class="code sh">
+<figcaption class="code-bar"><span class="code-label">Shell</span></figcaption>
+<pre tabindex="0"><code><span class="cmd">git clone https://github.com/ormaos/ormaos-python</span>
+<span class="cmd">git -C ormaos-python checkout 75c191a</span>
+<span class="cmd">git clone https://github.com/ormaos/ormaos-examples</span>
+<span class="cmd">cd ormaos-examples &amp;&amp; git checkout 88bec53 &amp;&amp; cd agent-bench</span>
+<span class="cmd">python3 build.py</span>
+<span class="cmd">python3 run.py --runs 3</span></code></pre>
+</figure>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>
