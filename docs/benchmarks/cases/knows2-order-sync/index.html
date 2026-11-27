@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>order-sync, in knows2 · Ormaos benchmarks</title>
+<meta name="description" content="order-sync, in knows2: what happened, what the agent was given, run 1 of each arm side by side, and every run.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/cases/knows2-order-sync.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long bench">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://docs.ormaos.com/">Docs</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<p class="kicker">Situation · knows2</p>
+<h1 id="top-title">order-sync, in knows2</h1>
+<p class="lead">A scheduled job. A scheduled job that applies the new orders of a sales system to a warehouse inventory. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/order-sync"><code>order-sync</code></a>.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<p>Mean score over every run: <code>none</code> 0.38, <code>raw</code> 1.00, <code>ormaos</code> 0.92, <code>ormaos-values</code> 1.00 (3 runs per arm). Agent: <code>claude-code / claude-opus-5-5</code>.</p>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#happened">What happened</a></li>
+  <li><a href="#given">What the agent was given</a></li>
+  <li><a href="#side-by-side">Run 1 of each arm, side by side</a></li>
+  <li><a href="#answered">What Ormaos data answered</a></li>
+  <li><a href="#runs">Every run</a></li>
+  <li><a href="#files">The results files</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="happened" aria-labelledby="happened-title">
+<h2 id="happened-title">What happened</h2>
+<p>The job parsed 26 orders from the sales API: 19 were applied, 2 had been applied by an earlier run, and 5 were skipped after an exception (<code>SkuFormatError</code>): <code>SO-20521</code>, <code>SO-20526</code>, <code>SO-20530</code>, <code>SO-20533</code> and <code>SO-20537</code>. It took 104 items out of stock, inserted 2 back-order rows for 5 items, and printed <code>sync finished: OK</code>.</p>
+<p>The numbers are the oracle&#x27;s answers to the questions below: <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/oracle/order-sync.json"><code>oracle/order-sync.json</code></a>.</p>
+</section>
+
+<section class="band" id="given" aria-labelledby="given-title">
+<h2 id="given-title">What the agent was given</h2>
+<p>The folder the execution left, with what the arm adds, and 8 questions in <code>questions.json</code>, written by a model that was not told about Ormaos. The oracle&#x27;s answers were not in the folder.</p>
+<div class="table-wrap">
+<table class="plain questions">
+<thead><tr><th scope="col">Question</th><th scope="col">Asked</th><th scope="col">Format</th><th scope="col">The oracle&#x27;s answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>How many order rows did the sales API&#x27;s GET /orders return to the job in this run (the number of orders parsed, len(orders) in job.main)?</td><td>A non-negative integer, e.g. 42</td><td><code>26</code></td></tr>
+<tr><td>q2</td><td>How many orders were newly applied to the inventory in this run, i.e. for how many orders did inventory.apply_order return True and insert a row into applied_orders?</td><td>A non-negative integer, e.g. 37</td><td><code>19</code></td></tr>
+<tr><td>q3</td><td>How many orders were passed over without error because an earlier run had already applied their order_id (inventory.apply_order returned False)?</td><td>A non-negative integer, e.g. 3</td><td><code>2</code></td></tr>
+<tr><td>q4</td><td>How many orders were skipped because an exception was raised for them inside sync_orders (validation failure, unknown SKU, or any other error), each of which produced an &#x27;order ... skipped&#x27; warning that the default ERROR log level suppressed?</td><td>A non-negative integer, e.g. 2</td><td><code>5</code></td></tr>
+<tr><td>q5</td><td>What are the order_ids of the orders skipped because of an exception in sync_orders (the orders counted in q4)?</td><td>A JSON list of order_id strings sorted in ascending lexicographic order, e.g. [&quot;A-1007&quot;, &quot;A-1012&quot;]; [] if none</td><td><code>[&quot;SO-20521&quot;, &quot;SO-20526&quot;, &quot;SO-20530&quot;, &quot;SO-20533&quot;, &quot;SO-20537&quot;]</code></td></tr>
+<tr><td>q6</td><td>For each skipped order (the orders counted in q4), which exception class caused it to be skipped?</td><td>A JSON object mapping each skipped order_id to the exception class name, e.g. {&quot;A-1007&quot;: &quot;SkuFormatError&quot;, &quot;A-1012&quot;: &quot;UnknownSkuError&quot;}; {} if none</td><td><code>{&quot;SO-20521&quot;: &quot;SkuFormatError&quot;, &quot;SO-20526&quot;: &quot;SkuFormatError&quot;, &quot;SO-20530&quot;: &quot;SkuFormatError&quot;, &quot;SO-20533&quot;: &quot;SkuFormatError&quot;, &quot;SO-20537&quot;: &quot;SkuFormatError&quot;}</code></td></tr>
+<tr><td>q7</td><td>How many single items in total were taken out of stock in this run, i.e. the sum of the &#x27;taken&#x27; quantity over all orders newly applied in this run (after pack-to-item conversion and capping at the stock on hand)?</td><td>A non-negative integer, e.g. 318</td><td><code>104</code></td></tr>
+<tr><td>q8</td><td>How many back-order rows did this run insert into the backorders table, and how many items did they add up to in total?</td><td>Two non-negative integers separated by a comma: rows,items, e.g. 2,15</td><td><code>[2, 5]</code></td></tr>
+</tbody>
+</table>
+</div>
+<details class="text">
+<summary>The prompt of each arm, verbatim</summary>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>none</code></span></figcaption>
+<pre tabindex="0"><code>Last night cron ran `python3 job.py --source api` in this folder; since then the sales system has replaced its orders with today&#x27;s. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>raw</code></span></figcaption>
+<pre tabindex="0"><code>Last night cron ran `python3 job.py --source api` in this folder; since then the sales system has replaced its orders with today&#x27;s. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. A VizTracer trace of that execution is in result.json, in the Chrome Trace Event format (JSON; &quot;traceEvents&quot; has one entry per function call, with its name, its start &quot;ts&quot; and its duration &quot;dur&quot; in microseconds); read it with python3.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos</code></span></figcaption>
+<pre tabindex="0"><code>Last night cron ran `python3 job.py --source api` in this folder; since then the sales system has replaced its orders with today&#x27;s. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. That execution was recorded with Ormaos: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos-values</code></span></figcaption>
+<pre tabindex="0"><code>Last night cron ran `python3 job.py --source api` in this folder; since then the sales system has replaced its orders with today&#x27;s. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. That execution was recorded with Ormaos, values included: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+</details>
+</section>
+
+<section class="band" id="side-by-side" aria-labelledby="side-by-side-title">
+<h2 id="side-by-side-title">Run 1 of each arm, side by side</h2>
+<p>Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent&#x27;s tool calls in order; under each <code>ormaos</code> command, the lines of its output that hold a value the agent wrote in <code>answers.json</code>, or its first 15 lines, with a link to the full output in the stream.</p>
+<div class="sbs" style="--cols:4">
+<article class="arm-col a1">
+<h4><code>none</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-none-1.jsonl">stream</a></p><p class="meta">Score 0.38: 3 right, 5 null, 0 wrong</p><p class="meta">4 tool calls, 73,237 tokens, 42 s</p>
+<p class="part">Commands, in order (4)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/order-sync; ls -la; cat questions.json; cat job.py</pre></li>
+<li><pre class="cmd-text">cd /srv/order-sync; cat README.md fetch.py inventory.py parse.py validate.py; ls -la data</pre></li>
+<li><pre class="cmd-text">cd /srv/order-sync/data; cat cron.log; echo; cat orders.csv; echo; cat count.csv; echo; for t in stock applied_orders backorders; do echo &quot;== $t&quot;; sqlite3 inventory.db &quot;select * from $t&quot; 2&gt;&amp;1 || python3 -I -c &quot;import sqlite3;c=sqlite3.connect(&#x27;inventory.db&#x27;);[print(r) for r in c.execute(&#x27;select * from $t&#x27;)]&quot;; done; ls -la ~ /srv/order-sync/.ormaos 2&gt;&amp;1</pre></li>
+<li><pre class="cmd-text">cd /srv/order-sync; cat &gt; answers.json &lt;&lt;&#x27;EOF&#x27;
+{
+  &quot;q1&quot;: null,
+  &quot;q2&quot;: 19,
+  &quot;q3&quot;: null,
+  &quot;q4&quot;: null,
+  &quot;q5&quot;: null,
+  &quot;q6&quot;: null,
+  &quot;q7&quot;: 104,
+  &quot;q8&quot;: &quot;2,5&quot;
+}
+EOF</pre><p class="note">… 1 more line of this command</p></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>null</td><td></td></tr>
+<tr><td>q2</td><td>right</td><td><code>19</code></td></tr>
+<tr><td>q3</td><td>null</td><td></td></tr>
+<tr><td>q4</td><td>null</td><td></td></tr>
+<tr><td>q5</td><td>null</td><td></td></tr>
+<tr><td>q6</td><td>null</td><td></td></tr>
+<tr><td>q7</td><td>right</td><td><code>104</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>&quot;2,5&quot;</code></td></tr>
+</tbody>
+</table>
+</div>
+<p class="part">Its own words on q1, q3, q4, q5 and q6: the paragraphs of its last message that name them</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>**Answers:**
+- **q2 = 19:** the 19 orders stamped at :44.
+- **q7 = 104:** the total of the `quantity` (items taken) on those 19 rows.
+- **q8 = &quot;2,5&quot;:** both back-orders belong to orders stamped at :44: SO-20524 (2 items) and SO-20534 (3 items).
+- **q1, q3, q4, q5, q6 = null:** these need the list of orders the API returned, which was overwritten. SO-20521, 20526, 20530, 20533 and 20537 are missing from `applied_orders`, so they were probably skipped. But I can&#x27;t tell which run received them or what error each hit. I also can&#x27;t tell how many already-applied orders came in again. Some stock levels don&#x27;t match `data/count.csv` (KBD-0101 is 9 higher than the count, MON-0201 is 1 higher, HDS-0402 is 4 higher). That fits orders being dropped silently, but it isn&#x27;t enough to answer these questions.</code></pre>
+</figure>
+</article>
+<article class="arm-col a2">
+<h4><code>raw</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-raw-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">9 tool calls, 268,235 tokens, 70 s</p>
+<p class="part">Commands, in order (9)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/order-sync; ls -la; cat questions.json; cat job.py; ls -R | head -50</pre></li>
+<li><pre class="cmd-text">cd /srv/order-sync; cat README.md fetch.py inventory.py parse.py validate.py; cat data/cron.log | tail; head -3 data/count.csv; wc -l data/*.csv</pre></li>
+<li><pre class="cmd-text">cd /srv/order-sync; cat data/cron.log; python3 -I -c &quot;
+import json,collections
+d=json.load(open(&#x27;result.json&#x27;))
+ev=d[&#x27;traceEvents&#x27;]; print(len(ev)); print(d.keys()); print(ev[0]); 
+c=collections.Counter(e.get(&#x27;name&#x27;) for e in ev)
+for n,k in c.most_common():
+  if any(s in n for s in [&#x27;job.py&#x27;,&#x27;inventory.py&#x27;,&#x27;validate.py&#x27;,&#x27;parse.py&#x27;,&#x27;fetch.py&#x27;,&#x27;Error&#x27;,&#x27;execute&#x27;]): print(k,n)
+print([e for e in ev if &#x27;args&#x27; in e][:5])
+&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/order-sync; cat data/orders.csv; sqlite3 data/inventory.db &quot;select * from stock; select * from applied_orders order by applied_at; select * from backorders;&quot; 2&gt;&amp;1 || python3 -I -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;data/inventory.db&#x27;)
+for t in [&#x27;stock&#x27;,&#x27;applied_orders&#x27;,&#x27;backorders&#x27;]:
+  print(t)
+  for r in c.execute(f&#x27;select * from {t}&#x27;): print(r)&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/order-sync; python3 -I -c &quot;
+import json
+d=json.load(open(&#x27;result.json&#x27;))
+print(d[&#x27;viztracer_metadata&#x27;])
+ev=[e for e in d[&#x27;traceEvents&#x27;] if e.get(&#x27;ph&#x27;)==&#x27;X&#x27;]
+ev.sort(key=lambda e:e[&#x27;ts&#x27;])
+print(ev[0][&#x27;ts&#x27;], ev[-1][&#x27;ts&#x27;])
+sel=[e for e in ev if any(s in e[&#x27;name&#x27;] for s in [&#x27;apply_order&#x27;,&#x27;check_&#x27;,&#x27;to_units&#x27;,&#x27;execute&#x27;,&#x27;sync_orders&#x27;,&#x27;fetchone&#x27;,&#x27;Error&#x27;,&#x27;warning&#x27;,&#x27;isEnabledFor&#x27;,&#x27;datetime&#x27;,&#x27;now&#x27;])]
+for e in sel: print(e[&#x27;ts&#x27;],e[&#x27;dur&#x27;],e[&#x27;name&#x27;])
+&quot; | head -300</pre></li>
+<li><pre class="cmd-text">cd /srv/order-sync; python3 -I -c &quot;
+import json
+d=json.load(open(&#x27;result.json&#x27;))
+ev=[e for e in d[&#x27;traceEvents&#x27;] if e.get(&#x27;ph&#x27;)==&#x27;X&#x27; and e.get(&#x27;tid&#x27;)==2]
+ev.sort(key=lambda e:(e[&#x27;ts&#x27;],-e[&#x27;dur&#x27;]))
+s=[e for e in ev if e[&#x27;name&#x27;].startswith(&#x27;sync_orders&#x27;)][0]
+inner=[e for e in ev if s[&#x27;ts&#x27;]&lt;=e[&#x27;ts&#x27;]&lt;=s[&#x27;ts&#x27;]+s[&#x27;dur&#x27;]]
+seq=[]
+for co in [e for e in inner if e[&#x27;name&#x27;].startswith(&#x27;check_order&#x27;)]:
+  pass
+ao=[e for e in inner if e[&#x27;name&#x27;].startswith(&#x27;apply_order&#x27;)]
+cos=[e for e in inner if e[&#x27;name&#x27;].startswith(&#x27;check_order&#x27;)]</pre><p class="note">… 14 more lines of this command</p></li>
+<li><pre class="cmd-text">cd /srv/order-sync; python3 -I -c &quot;
+import json
+d=json.load(open(&#x27;result.json&#x27;))
+ev=[e for e in d[&#x27;traceEvents&#x27;] if e.get(&#x27;ph&#x27;)==&#x27;X&#x27; and e.get(&#x27;tid&#x27;)==2]
+ev.sort(key=lambda e:(e[&#x27;ts&#x27;],-e[&#x27;dur&#x27;]))
+s=[e for e in ev if e[&#x27;name&#x27;].startswith(&#x27;sync_orders&#x27;)][0]
+inner=[e for e in ev if s[&#x27;ts&#x27;]&lt;e[&#x27;ts&#x27;]&lt;=s[&#x27;ts&#x27;]+s[&#x27;dur&#x27;]]
+for e in inner:
+  if e[&#x27;name&#x27;].split(&#x27; &#x27;)[0] in (&#x27;check_order&#x27;,&#x27;apply_order&#x27;,&#x27;Logger.warning&#x27;,&#x27;to_units&#x27;,&#x27;check_sku&#x27;,&#x27;check_quantity&#x27;,&#x27;check_unit&#x27;) or &#x27;Error&#x27; in e[&#x27;name&#x27;] or &#x27;execute&#x27; in e[&#x27;name&#x27;]: print(round(e[&#x27;ts&#x27;]-s[&#x27;ts&#x27;],1), e[&#x27;name&#x27;].split(&#x27; &#x27;)[0])
+&quot; | awk &#x27;{print \$2}&#x27; | tr &#x27;\n&#x27; &#x27; &#x27; | sed &#x27;s/check_order/\n&amp;/g&#x27;</pre></li>
+<li><pre class="cmd-text">cd /srv/order-sync; python3 -I -c &quot;
+import json
+d=json.load(open(&#x27;result.json&#x27;))
+ev=[e for e in d[&#x27;traceEvents&#x27;] if e.get(&#x27;ph&#x27;)==&#x27;X&#x27; and e.get(&#x27;tid&#x27;)==2]
+ev.sort(key=lambda e:(e[&#x27;ts&#x27;],-e[&#x27;dur&#x27;]))
+s=[e for e in ev if e[&#x27;name&#x27;].startswith(&#x27;sync_orders&#x27;)][0]
+inner=[e for e in ev if s[&#x27;ts&#x27;]&lt;e[&#x27;ts&#x27;]&lt;=s[&#x27;ts&#x27;]+s[&#x27;dur&#x27;]]
+out=[]
+for e in inner:
+  n=e[&#x27;name&#x27;].split(&#x27; &#x27;)[0]
+  if n==&#x27;check_order&#x27;: out.append(&#x27;\n&#x27;)
+  out.append({&#x27;sqlite3.Connection.execute&#x27;:&#x27;X&#x27;}.get(n,n))</pre><p class="note">… 2 more lines of this command</p></li>
+<li><pre class="cmd-text">cd /srv/order-sync; cat &gt; answers.json &lt;&lt;&#x27;EOF&#x27;
+{
+  &quot;q1&quot;: 26,
+  &quot;q2&quot;: 19,
+  &quot;q3&quot;: 2,
+  &quot;q4&quot;: 5,
+  &quot;q5&quot;: [&quot;SO-20521&quot;, &quot;SO-20526&quot;, &quot;SO-20530&quot;, &quot;SO-20533&quot;, &quot;SO-20537&quot;],
+  &quot;q6&quot;: {&quot;SO-20521&quot;: &quot;SkuFormatError&quot;, &quot;SO-20526&quot;: &quot;SkuFormatError&quot;, &quot;SO-20530&quot;: &quot;SkuFormatError&quot;, &quot;SO-20533&quot;: &quot;SkuFormatError&quot;, &quot;SO-20537&quot;: &quot;SkuFormatError&quot;},
+  &quot;q7&quot;: 104,
+  &quot;q8&quot;: &quot;2,5&quot;
+}
+EOF</pre><p class="note">… 1 more line of this command</p></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>26</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>19</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>2</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>5</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>[&quot;SO-20521&quot;, &quot;SO-20526&quot;, &quot;SO-20530&quot;, &quot;SO-20533&quot;, &quot;SO-20537&quot;]</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>{&quot;SO-20521&quot;: &quot;SkuFormatError&quot;, &quot;SO-20526&quot;: &quot;SkuFormatError&quot;, &quot;SO-20530&quot;: &quot;SkuFormatError&quot;, &quot;SO-20533&quot;: &quot;SkuFormatError&quot;, &quot;SO-20537&quot;: &quot;SkuFormatError&quot;}</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>104</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>&quot;2,5&quot;</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a3">
+<h4><code>ormaos</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">6 tool calls, 145,676 tokens, 52 s</p>
+<p class="part">Commands, in order (6)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; cat questions.json &amp;&amp; .venv/bin/ormaos guide</pre><pre class="out">total 52
+drwxrwxr-x 5 levimbraga levimbraga 4096 Nov 27 16:57 .
+drwx------ 3 levimbraga levimbraga   60 Nov 27 17:03 ..
+drwxrwxr-x 3 levimbraga levimbraga 4096 Nov 27 16:57 .ormaos
+drwxrwxr-x 5 levimbraga levimbraga 4096 Nov 27 16:57 .venv
+-rw-rw-r-- 1 levimbraga levimbraga 4104 Nov 13 10:41 README.md
+drwxrwxr-x 2 levimbraga levimbraga 4096 Nov 27 16:57 data
+-rw-rw-r-- 1 levimbraga levimbraga 2227 Nov 13 10:41 fetch.py
+-rw-rw-r-- 1 levimbraga levimbraga 5822 Nov 13 10:39 inventory.py
+-rw-rw-r-- 1 levimbraga levimbraga 2607 Nov 11 13:16 job.py
+-rw-rw-r-- 1 levimbraga levimbraga 1425 Nov 13 10:39 parse.py
+-rw-rw-r-- 1 levimbraga levimbraga 2319 Nov 27 16:57 questions.json
+-rw-rw-r-- 1 levimbraga levimbraga 1236 Nov 13 10:39 validate.py
+{
+  &quot;questions&quot;: [</pre><p class="note">Output: the first 15 of 182 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-1.jsonl?plain=1#L4">Full output</a></p></li>
+<li><pre class="cmd-text">cat job.py inventory.py parse.py validate.py fetch.py; ls data; .venv/bin/ormaos list; .venv/bin/ormaos show last --full</pre><pre class="out">class SkuFormatError(ValidationError):
+        raise SkuFormatError(f&quot;SKU {sku!r} is not in the format AAA-0000&quot;)
+not collected: io: reads of the 1 file opened at fetch.py:26: opened for reading, and no `read` call by Python code was seen on a file of that name: if it was read, that was inside C code (a file that is iterated, `for line in f`, `csv.reader`)</pre><p class="note">Output: the 3 lines of 483 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-1.jsonl?plain=1#L6">Full output</a></p></li>
+<li><pre class="cmd-text">O=.venv/bin/ormaos; $O exceptions r1; $O io r1; $O logs r1 --dropped; $O tree r1 --depth 3; cat data/cron.log</pre><pre class="out">  1x file open data/orders.csv (read)  at fetch.py:26 in from_csv  [r1:i3]
+    r1:c13 SkuFormatError() -&gt; NoneType  validate.py:14  5us
+    r1:c19 load_orders(source: str[3], orders_csv: pathlib.PosixPath) -&gt; list[26 parse.Order]  job.py:37  515.4ms  io 1  logs 1  calls below: 3
+      r1:c23 from_api(base_url: str[22]) -&gt; list[26 dict]  fetch.py:30  9.1ms  io 1
+      r1:c27 parse_rows(rows: list[26 dict]) -&gt; list[26 parse.Order]  parse.py:45  3.2ms  calls below: 52
+    r1:c106 sync_orders(conn: sqlite3.Connection, orders: list[26 parse.Order]) -&gt; int  job.py:49  18.5ms  io 120  logs 5  [swallowed 5x validate.SkuFormatError: r1:e1]  calls below: 47</pre><p class="note">Output: the 6 lines of 60 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-1.jsonl?plain=1#L12">Full output</a></p></li>
+<li><pre class="cmd-text">python3 -I -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;file:data/inventory.db?mode=ro&#x27;,uri=True)
+for t in [&#x27;stock&#x27;,&#x27;applied_orders&#x27;,&#x27;backorders&#x27;]:
+  print(t);[print(r) for r in c.execute(f&#x27;select * from {t}&#x27;)]
+&quot;; head -5 data/orders.csv; wc -l data/orders.csv; ls -la --time-style=full-iso data .ormaos .ormaos/*</pre></li>
+<li><pre class="cmd-text">.venv/bin/ormaos tree r1:c106 --depth 1 --limit 100 | grep -E &quot;check_order|apply_order&quot; | awk &#x27;{print $2, $3, $NF, $(NF-1)}&#x27; | nl | head -60; cat data/count.csv</pre><pre class="out">    19	apply_order(conn: sqlite3.Connection, 1 below:
+    26	check_order(order: parse.Order) 1 below:</pre><p class="note">Output: the 2 lines of 56 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-1.jsonl?plain=1#L31">Full output</a></p></li>
+<li><pre class="cmd-text">cat &gt; answers.json &lt;&lt;&#x27;EOF&#x27;
+{
+  &quot;q1&quot;: 26,
+  &quot;q2&quot;: 19,
+  &quot;q3&quot;: 2,
+  &quot;q4&quot;: 5,
+  &quot;q5&quot;: [&quot;SO-20521&quot;, &quot;SO-20526&quot;, &quot;SO-20530&quot;, &quot;SO-20533&quot;, &quot;SO-20537&quot;],
+  &quot;q6&quot;: {&quot;SO-20521&quot;: &quot;SkuFormatError&quot;, &quot;SO-20526&quot;: &quot;SkuFormatError&quot;, &quot;SO-20530&quot;: &quot;SkuFormatError&quot;, &quot;SO-20533&quot;: &quot;SkuFormatError&quot;, &quot;SO-20537&quot;: &quot;SkuFormatError&quot;},
+  &quot;q7&quot;: 104,
+  &quot;q8&quot;: &quot;2,5&quot;
+}
+EOF</pre><p class="note">… 1 more line of this command</p></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>26</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>19</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>2</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>5</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>[&quot;SO-20521&quot;, &quot;SO-20526&quot;, &quot;SO-20530&quot;, &quot;SO-20533&quot;, &quot;SO-20537&quot;]</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>{&quot;SO-20521&quot;: &quot;SkuFormatError&quot;, &quot;SO-20526&quot;: &quot;SkuFormatError&quot;, &quot;SO-20530&quot;: &quot;SkuFormatError&quot;, &quot;SO-20533&quot;: &quot;SkuFormatError&quot;, &quot;SO-20537&quot;: &quot;SkuFormatError&quot;}</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>104</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>&quot;2,5&quot;</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a4">
+<h4><code>ormaos-values</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-values-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">7 tool calls, 183,154 tokens, 47 s</p>
+<p class="part">Commands, in order (7)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; cat questions.json &amp;&amp; .venv/bin/ormaos guide</pre><pre class="out">total 52
+drwxrwxr-x 5 levimbraga levimbraga 4096 Nov 27 16:57 .
+drwx------ 3 levimbraga levimbraga   60 Nov 27 17:03 ..
+drwxrwxr-x 3 levimbraga levimbraga 4096 Nov 27 16:57 .ormaos
+drwxrwxr-x 5 levimbraga levimbraga 4096 Nov 27 16:57 .venv
+-rw-rw-r-- 1 levimbraga levimbraga 4104 Nov 13 10:41 README.md
+drwxrwxr-x 2 levimbraga levimbraga 4096 Nov 27 16:57 data
+-rw-rw-r-- 1 levimbraga levimbraga 2227 Nov 13 10:41 fetch.py
+-rw-rw-r-- 1 levimbraga levimbraga 5822 Nov 13 10:39 inventory.py
+-rw-rw-r-- 1 levimbraga levimbraga 2607 Nov 11 13:16 job.py
+-rw-rw-r-- 1 levimbraga levimbraga 1425 Nov 13 10:39 parse.py
+-rw-rw-r-- 1 levimbraga levimbraga 2319 Nov 27 16:57 questions.json
+-rw-rw-r-- 1 levimbraga levimbraga 1236 Nov 13 10:39 validate.py
+{
+  &quot;questions&quot;: [</pre><p class="note">Output: the first 15 of 182 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-values-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">cat job.py inventory.py validate.py parse.py fetch.py; ls data; .venv/bin/ormaos list; .venv/bin/ormaos show last --full</pre><pre class="out">class SkuFormatError(ValidationError):
+        raise SkuFormatError(f&quot;SKU {sku!r} is not in the format AAA-0000&quot;)
+not collected: io: reads of the 1 file opened at fetch.py:26: opened for reading, and no `read` call by Python code was seen on a file of that name: if it was read, that was inside C code (a file that is iterated, `for line in f`, `csv.reader`)</pre><p class="note">Output: the 3 lines of 484 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-values-1.jsonl?plain=1#L8">Full output</a></p></li>
+<li><pre class="cmd-text">O=.venv/bin/ormaos; $O exceptions r1; $O tree r1 --function apply_order --limit 100; $O tree r1 --function sync_orders; $O tree r1 --function parse_rows; $O io r1 --limit 200</pre><pre class="out">r1:c106 sync_orders(conn: sqlite3.Connection, orders: list[26 parse.Order]) -&gt; int=19  job.py:49  22.1ms  io 120  logs 5  [swallowed 5x validate.SkuFormatError: r1:e1]  calls below: 47
+r1:c27 parse_rows(rows: list[26 dict]=&quot;[{\&quot;order_id\&quot;: \&quot;SO-20513\&quot;, \&quot;placed_at\&quot;: \&quot;2026-11-25T17:26\&quot;...&quot;) -&gt; list[26 parse.Order]  parse.py:45  7.2ms  calls below: 52
+  1x file open data/orders.csv (read)  at fetch.py:26 in from_csv  [r1:i3]</pre><p class="note">Output: the 3 lines of 49 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-values-1.jsonl?plain=1#L13">Full output</a></p></li>
+<li><pre class="cmd-text">O=.venv/bin/ormaos; $O tree r1:c106 --limit 100 | head -80; $O exceptions r1:e1; cat data/cron.log | tail -20</pre><pre class="out">r1:c106 sync_orders(conn: sqlite3.Connection, orders: list[26 parse.Order]) -&gt; int=19  job.py:49  22.1ms  io 120  logs 5  [swallowed 5x validate.SkuFormatError: r1:e1]  calls below: 47</pre><p class="note">Output: the 1 line of 90 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-values-1.jsonl?plain=1#L20">Full output</a></p></li>
+<li><pre class="cmd-text">cat data/cron.log; python3 -I -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;file:data/inventory.db?mode=ro&#x27;,uri=True)
+for t in [&#x27;stock&#x27;,&#x27;applied_orders&#x27;,&#x27;backorders&#x27;]:
+  print(t)
+  for r in c.execute(f&#x27;select * from {t}&#x27;): print(r)
+&quot;; head -3 data/orders.csv; wc -l data/orders.csv</pre></li>
+<li><pre class="cmd-text">O=.venv/bin/ormaos; $O tree r1 --function parse_row --limit 100 | grep -oE &#x27;SO-205(21|26|30|33|37)[^}]*&#x27; ; $O tree r1 --function check_sku | grep raised; $O exceptions r1 --json | python3 -I -c &quot;import json,sys;d=json.load(sys.stdin);print(json.dumps(d)[:3000])&quot;</pre><pre class="out">SO-20521\&quot;, \&quot;placed_at\&quot;: \&quot;2026-11-26T10:36\&quot;,...&quot;) -&gt; parse.Order  parse.py:25  194us  calls below: 1
+SO-20526\&quot;, \&quot;placed_at\&quot;: \&quot;2026-11-26T13:10\&quot;,...&quot;) -&gt; parse.Order  parse.py:25  201us  calls below: 1
+SO-20530\&quot;, \&quot;placed_at\&quot;: \&quot;2026-11-26T15:38\&quot;,...&quot;) -&gt; parse.Order  parse.py:25  201us  calls below: 1
+SO-20533\&quot;, \&quot;placed_at\&quot;: \&quot;2026-11-26T17:24\&quot;,...&quot;) -&gt; parse.Order  parse.py:25  186us  calls below: 1
+SO-20537\&quot;, \&quot;placed_at\&quot;: \&quot;2026-11-26T20:02\&quot;,...&quot;) -&gt; parse.Order  parse.py:25  177us  calls below: 1
+r1: 26 of the 240 calls match --function check_sku (26 check_sku; 5 raised)</pre><p class="note">Output: the 6 lines of 12 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-values-1.jsonl?plain=1#L34">Full output</a></p></li>
+<li><pre class="cmd-text">cat &gt; answers.json &lt;&lt;&#x27;EOF&#x27;
+{
+  &quot;q1&quot;: 26,
+  &quot;q2&quot;: 19,
+  &quot;q3&quot;: 2,
+  &quot;q4&quot;: 5,
+  &quot;q5&quot;: [&quot;SO-20521&quot;, &quot;SO-20526&quot;, &quot;SO-20530&quot;, &quot;SO-20533&quot;, &quot;SO-20537&quot;],
+  &quot;q6&quot;: {&quot;SO-20521&quot;: &quot;SkuFormatError&quot;, &quot;SO-20526&quot;: &quot;SkuFormatError&quot;, &quot;SO-20530&quot;: &quot;SkuFormatError&quot;, &quot;SO-20533&quot;: &quot;SkuFormatError&quot;, &quot;SO-20537&quot;: &quot;SkuFormatError&quot;},
+  &quot;q7&quot;: 104,
+  &quot;q8&quot;: &quot;2,5&quot;
+}
+EOF</pre><p class="note">… 1 more line of this command</p></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>26</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>19</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>2</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>5</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>[&quot;SO-20521&quot;, &quot;SO-20526&quot;, &quot;SO-20530&quot;, &quot;SO-20533&quot;, &quot;SO-20537&quot;]</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>{&quot;SO-20521&quot;: &quot;SkuFormatError&quot;, &quot;SO-20526&quot;: &quot;SkuFormatError&quot;, &quot;SO-20530&quot;: &quot;SkuFormatError&quot;, &quot;SO-20533&quot;: &quot;SkuFormatError&quot;, &quot;SO-20537&quot;: &quot;SkuFormatError&quot;}</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>104</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>&quot;2,5&quot;</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+</div>
+</section>
+
+<section class="band" id="answered" aria-labelledby="answered-title">
+<h2 id="answered-title">What Ormaos data answered</h2>
+<p>Read from the streams: in each run of an Ormaos arm, the <code>ormaos</code> verbs in its commands up to its last write of <code>answers.json</code>. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them.</p>
+<div class="table-wrap">
+<table class="plain">
+<thead><tr><th scope="col">Question</th><th scope="col"><code>ormaos</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th><th scope="col"><code>ormaos-values</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>show 3, tree 3, exceptions 3, io 3, logs 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, exceptions 3, io 3, list 3, guide 3, help 1</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q2</td><td>show 3, tree 3, exceptions 3, io 3, logs 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, exceptions 3, io 3, list 3, guide 3, help 1</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q3</td><td>show 3, tree 3, exceptions 3, io 3, logs 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, exceptions 3, io 3, list 3, guide 3, help 1</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q4</td><td>show 3, tree 3, exceptions 3, io 3, logs 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, exceptions 3, io 3, list 3, guide 3, help 1</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q5</td><td>show 2, tree 2, exceptions 2, io 2, logs 2, list 2, guide 2</td><td>2/3</td><td>2/3</td><td>show 3, tree 3, exceptions 3, io 3, list 3, guide 3, help 1</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q6</td><td>show 2, tree 2, exceptions 2, io 2, logs 2, list 2, guide 2</td><td>2/3</td><td>2/3</td><td>show 3, tree 3, exceptions 3, io 3, list 3, guide 3, help 1</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q7</td><td>show 3, tree 3, exceptions 3, io 3, logs 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, exceptions 3, io 3, list 3, guide 3, help 1</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q8</td><td>show 3, tree 3, exceptions 3, io 3, logs 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, exceptions 3, io 3, list 3, guide 3, help 1</td><td>3/3</td><td>3/3</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="runs" aria-labelledby="runs-title">
+<h2 id="runs-title">Every run</h2>
+<p>Every run of every arm.</p>
+<div class="table-wrap">
+<table class="plain runs">
+<thead><tr><th scope="col">Arm</th><th scope="col">Run</th><th scope="col">Score</th><th scope="col">Right</th><th scope="col">Null</th><th scope="col">Wrong</th><th scope="col"><code>ormaos</code> verbs before answers.json</th><th scope="col">Tool calls</th><th scope="col">Tokens</th><th scope="col">Wall time</th><th scope="col">Stream</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>1</td><td>0.38</td><td>3</td><td>5</td><td>0</td><td>–</td><td>4</td><td>73,237</td><td>42 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-none-1.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>2</td><td>0.38</td><td>3</td><td>5</td><td>0</td><td>–</td><td>4</td><td>73,893</td><td>41 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-none-2.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>3</td><td>0.38</td><td>3</td><td>5</td><td>0</td><td>–</td><td>4</td><td>75,542</td><td>48 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-none-3.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>9</td><td>268,235</td><td>70 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-raw-1.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>6</td><td>182,999</td><td>55 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-raw-2.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>5</td><td>157,322</td><td>51 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-raw-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, exceptions, io, logs, tree</td><td>6</td><td>145,676</td><td>52 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>2</td><td>0.75</td><td>6</td><td>2</td><td>0</td><td>guide, list, show, exceptions, io, logs, tree</td><td>7</td><td>185,219</td><td>61 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, exceptions, io, tree, logs</td><td>6</td><td>155,911</td><td>54 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, exceptions, tree, io</td><td>7</td><td>183,154</td><td>47 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-values-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, exceptions, tree, io</td><td>8</td><td>255,162</td><td>59 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-values-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, exceptions, io, tree, help</td><td>9</td><td>272,558</td><td>56 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-ormaos-values-3.jsonl">stream</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="files" aria-labelledby="files-title">
+<h2 id="files-title">The results files</h2>
+<ul class="rows">
+  <li>The benchmark: <a href="/benchmarks/knows2/#order-sync">knows2</a></li>
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801"><code>agent-bench/knows2/results/20261127-165801</code></a></li>
+</ul>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>

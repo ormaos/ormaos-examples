@@ -24,16 +24,47 @@ In knows2, with an Ormaos recording (`ormaos`) the agent answered 198 of 213 que
 | `ormaos` | 213 | 198 | 14 | 1 |
 | `ormaos-values` | 213 | 202 | 11 | 0 |
 
-- **80.4 kB vs 12.0 MB**: median size, over the 9 executions of knows2, of the Ormaos recording (`.ormaos/`) and of the VizTracer trace (`result.json`). [Per execution](https://ormaos.com/benchmarks/knows2/#results)
-- **101,359 vs 52,196**: median tokens per run in knows2, `ormaos` and `none`; `raw` 75,290, `ormaos-values` 126,028. [Per arm](https://ormaos.com/benchmarks/knows2/#results)
-- **x34.28 / x7.69**: time of a run recorded with the default capability set, against the same run without Ormaos: CPU-bound workload / I/O workload. [Every capability set](https://ormaos.com/benchmarks/overhead/)
+*From the knows2 results folder of 2026-11-27, agent `claude-code / claude-opus-5-5`.*
 
-## What is measured
+## Where Ormaos changed the result and where it did not
 
-- **What an agent knows** about an execution it did not see: factual questions about what happened in it, graded against an oracle ([knows2](https://ormaos.com/benchmarks/knows2/), and the earlier [knows](https://ormaos.com/benchmarks/knows/)).
-- **Whether the code an agent changes passes a check**, for programs whose behaviour on one night differed from what their README says ([fix](https://ormaos.com/benchmarks/fix/)).
-- **The ways in**: the folder the execution left and nothing more (`none`), a VizTracer trace of the execution (`raw`), or its Ormaos recording (`ormaos`, and in knows2 also `ormaos-values`). The agent is `claude-opus-5-5`, in a sandbox; the oracle and the check read neither the trace nor the recording.
-- **What recording adds to the time of a run**, per capability set, on 2 workloads ([overhead](https://ormaos.com/benchmarks/overhead/)).
+All 17 situations: the 9 executions of knows2, with the mean score of their runs (0 to 1), and the 8 programs of fix, with the first attempts that passed the check. Sorted by the mean of `ormaos` minus the mean of `none`, over every run of every agent; in 7 of them the two differ. Each name links to the situation's page: what happened, what the agent was given, and run 1 of each arm side by side.
+
+| Situation | `none` | `raw` | `ormaos` | `ormaos-values` | `ormaos` − `none` |
+|---|---:|---:|---:|---:|---:|
+| [ai-app](https://ormaos.com/benchmarks/cases/knows2-ai-app/) (knows2): support tickets summarized through a model API with a small and a large model | 0.29 | 0.86 | 1.00 | 1.00 | +0.71 |
+| [fx-rates](https://ormaos.com/benchmarks/cases/fix-fx-rates/) (fix): a scheduled job that takes over exchange rates from a feed; where it behaved otherwise than its README: a retry that makes its call once | 1/3 | 3/3 | 3/3 |  | +0.67 |
+| [data-pipeline](https://ormaos.com/benchmarks/cases/knows2-data-pipeline/) (knows2): a pandas report that joins two exports and sums them by region | 0.25 | 0.38 | 0.88 | 0.92 | +0.62 |
+| [order-sync](https://ormaos.com/benchmarks/cases/knows2-order-sync/) (knows2): a night run of a job that applies orders to an inventory | 0.38 | 1.00 | 0.92 | 1.00 | +0.54 |
+| [late-fees](https://ormaos.com/benchmarks/cases/fix-late-fees/) (fix): a scheduled job that charges late fees on overdue invoices; where it behaved otherwise than its README: a branch taken because of a value in the environment | 2/3 | 2/3 | 3/3 |  | +0.33 |
+| [notebook](https://ormaos.com/benchmarks/cases/knows2-notebook/) (knows2): a Jupyter notebook that sums a week of sales, with tax | 0.50 | 0.62 | 0.62 | 0.62 | +0.12 |
+| [commission-run](https://ormaos.com/benchmarks/cases/fix-commission-run/) (fix): a scheduled job that works out sales commissions; where it behaved otherwise than its README: a value kept from one item to the next | 3/3 | 3/3 | 3/3 |  | +0.00 |
+| [freight-quote](https://ormaos.com/benchmarks/cases/fix-freight-quote/) (fix): a scheduled job that quotes freight from a carrier's API; where it behaved otherwise than its README: a fallback, with nothing printed, after HTTP calls that returned an error | 3/3 | 3/3 | 3/3 |  | +0.00 |
+| [order-sync](https://ormaos.com/benchmarks/cases/fix-order-sync/) (fix): a scheduled job that applies orders to an inventory; where it behaved otherwise than its README: an exception that is caught and not shown | 3/3 | 3/3 | 3/3 |  | +0.00 |
+| [points-grant](https://ormaos.com/benchmarks/cases/fix-points-grant/) (fix): a scheduled job that grants loyalty points for purchases; where it behaved otherwise than its README: an SQL statement that also writes other rows | 3/3 | 3/3 | 3/3 |  | +0.00 |
+| [price-import](https://ormaos.com/benchmarks/cases/fix-price-import/) (fix): a scheduled job that takes over a supplier's price list; where it behaved otherwise than its README: a subprocess whose exit code is not read | 3/3 | 3/3 | 3/3 |  | +0.00 |
+| [statement-import](https://ormaos.com/benchmarks/cases/fix-statement-import/) (fix): a scheduled job that books a bank statement into a ledger; where it behaved otherwise than its README: a loop that stops before the end of its input | 3/3 | 3/3 | 3/3 |  | +0.00 |
+| [agent-change](https://ormaos.com/benchmarks/cases/knows2-agent-change/) (knows2): a billing tool run before and after a change an agent made | 1.00 | 1.00 | 1.00 | 1.00 | +0.00 |
+| [freight-quote](https://ormaos.com/benchmarks/cases/knows2-freight-quote/) (knows2): a night run of a job that quotes freight from a carrier's API | 1.00 | 1.00 | 1.00 | 1.00 | +0.00 |
+| [ml-training](https://ormaos.com/benchmarks/cases/knows2-ml-training/) (knows2): a PyTorch training run that leaves out batches whose loss is not finite | 1.00 | 1.00 | 1.00 | 1.00 | +0.00 |
+| [rl-env](https://ormaos.com/benchmarks/cases/knows2-rl-env/) (knows2): episodes of a grid world, a courier walking to a customer | 1.00 | 1.00 | 1.00 | 1.00 | +0.00 |
+| [web-backend](https://ormaos.com/benchmarks/cases/knows2-web-backend/) (knows2): a FastAPI route that lists a customer's orders with their totals | 1.00 | 1.00 | 0.96 | 1.00 | -0.04 |
+
+## What Ormaos data answered
+
+Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its commands up to its last write of `answers.json`. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them. Over the 27 runs of `ormaos` and 27 runs of `ormaos-values` in knows2; each situation's page has it per question.
+
+| Verb | `ormaos`: runs | answered after it | right | `ormaos-values`: runs | answered after it | right |
+|---|---:|---:|---:|---:|---:|---:|
+| `guide` | 27 | 199 | 198 | 27 | 202 | 202 |
+| `show` | 27 | 199 | 198 | 27 | 202 | 202 |
+| `tree` | 25 | 183 | 182 | 27 | 202 | 202 |
+| `list` | 24 | 176 | 176 | 24 | 180 | 180 |
+| `io` | 19 | 139 | 138 | 16 | 124 | 124 |
+| `exceptions` | 10 | 69 | 69 | 11 | 79 | 79 |
+| `logs` | 3 | 22 | 22 | 2 | 16 | 16 |
+| `diff` | 2 | 16 | 16 | 1 | 8 | 8 |
+| `help` | 0 | 0 | 0 | 1 | 8 | 8 |
 
 ## The benchmarks
 
@@ -70,11 +101,11 @@ The same executions, with questions written by the people who make Ormaos; repla
 
 [The run, and why knows2 replaced it](https://ormaos.com/benchmarks/knows/)
 
-### 8 programs whose behaviour differed from their README
+### 8 programs that behaved otherwise than their README
 
 *fix · 2026-11-26 · claude-opus-5-5 · N = 72 runs, 24 per arm*
 
-A coding agent changes a program whose behaviour on one night differed from what its README says; a check it does not see runs that night again. The metric `fixed`, per arm.
+A coding agent changes a program that behaved otherwise than its README on one night; a check it does not see runs that night again. The metric `fixed`, per arm.
 
 **The metric fixed, per arm.** The share of first attempts of each arm whose code passed the check, with its 95% Wilson score interval. none 21/24 (69% to 96%); raw 23/24 (80% to 99%); ormaos 24/24 (86% to 100%).
 
@@ -103,16 +134,24 @@ The median time of a recorded run, as a multiple of the same run without Ormaos,
 
 [Every capability set, and the machine](https://ormaos.com/benchmarks/overhead/)
 
+## Not measured yet
+
+- Other agents and models: Codex, Gemini, Grok and other Claude models. Every run on these pages is `claude-code / claude-opus-5-5`.
+- RL environments: knows2 has one small grid world (`rl-env`), as a program an agent asks about; no environment in which an agent is trained.
+- Large codebases: the programs of fix have 216 to 434 lines of code.
+- Harder repairs, where the agent alone fails: in fix, `none` passed the check in 21 of 24 first attempts.
+
 ## What these benchmarks do not show
 
 - The programs and their executions were written for these benchmarks by the people who make Ormaos; they are not a sample of real programs.
-- One model, one prompt per arm, one tracer with its default settings, and few runs: 27 per arm in knows2, 24 in fix. Several 95% intervals overlap; each page says which.
+- One prompt per arm, one tracer with its default settings, and few runs: 27 per arm in knows2, 24 in fix. Several 95% intervals overlap; each page says which.
 - In knows2 the question writer and the agents are the same model, and in 4 of 9 tasks every arm scored 1.00.
 - The overhead was timed on 2 workloads on one machine; another program has another cost.
 - Whether what happened is what should have happened: the benchmarks ask what happened, and the reader decides.
+- The knows2 questions and the oracle's answers are public since 2026-11-27, the day they were committed: a later run must not let the agent reach the network, other than the model's API.
 
 ## The pages as files
 
-- Each page is also Markdown, at its address with `.md` in place of the last slash: [`/benchmarks.md`](https://ormaos.com/benchmarks.md), [`/benchmarks/knows2.md`](https://ormaos.com/benchmarks/knows2.md), and so on.
+- Each page is also Markdown, at its address with `.md` in place of the last slash: [`/benchmarks.md`](https://ormaos.com/benchmarks.md), [`/benchmarks/knows2.md`](https://ormaos.com/benchmarks/knows2.md), [`/benchmarks/cases/knows2-ai-app.md`](https://ormaos.com/benchmarks/cases/knows2-ai-app.md), and so on.
 - [`/benchmarks/llms.txt`](https://ormaos.com/benchmarks/llms.txt) lists them for agents.
 - The pages are written by [`site/benchmarks/build.py`](https://github.com/ormaos/ormaos-examples/blob/main/site/benchmarks/build.py) from the results files.

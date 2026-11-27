@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>points-grant, in fix · Ormaos benchmarks</title>
+<meta name="description" content="points-grant, in fix: what happened, what the agent was given, run 1 of each arm side by side, and every run.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/cases/fix-points-grant.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long bench">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://docs.ormaos.com/">Docs</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<p class="kicker">Situation · fix</p>
+<h1 id="top-title">points-grant, in fix</h1>
+<p class="lead">A scheduled job. By its README, it grants loyalty points for purchases. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/bugs/points-grant/task"><code>agent-bench/bugs/points-grant/task</code></a>.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<p>Passed the check, first attempts: <code>none</code> 3/3, <code>raw</code> 3/3, <code>ormaos</code> 3/3 (3 runs per arm). Agent: <code>claude-code / claude-opus-5-5</code>.</p>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#happened">What happened</a></li>
+  <li><a href="#given">What the agent was given</a></li>
+  <li><a href="#side-by-side">Run 1 of each arm, side by side</a></li>
+  <li><a href="#runs">Every run</a></li>
+  <li><a href="#files">The results files</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="happened" aria-labelledby="happened-title">
+<h2 id="happened-title">What happened</h2>
+<p>That night cron ran <code>python3 job.py</code>; it printed <code>points finished: OK</code> and exited with code 0. This morning the points of 5 members are not the sum of their grants: <code>M-1042</code>, <code>M-1043</code>, <code>M-1050</code>, <code>M-1051</code> and <code>M-1052</code>. Where it behaved otherwise than its README: an SQL statement that also writes other rows.</p>
+<p>The items are those the scenario&#x27;s own check of the data found, in <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/build.json"><code>build.json</code></a>.</p>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label">The symptom, from <code>TASK.md</code> in the agent&#x27;s folder</span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s points run said OK, but this morning the points of some members are not the sum of their grants (python3 members.py --check).</code></pre>
+</figure>
+</section>
+
+<section class="band" id="given" aria-labelledby="given-title">
+<h2 id="given-title">What the agent was given</h2>
+<p>Its folder (the code, its README, <code>TASK.md</code> and the data that night left, with what the arm adds) and the task text, the same in every arm but for the arm&#x27;s last sentence:</p>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>none</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s points run said OK, but this morning the points of some members are not the sum of their grants (python3 members.py --check). The job runs from cron with `python3 job.py`. Find the cause and fix it.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>raw</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s points run said OK, but this morning the points of some members are not the sum of their grants (python3 members.py --check). The job runs from cron with `python3 job.py`. Find the cause and fix it. A VizTracer trace of that run is in result.json, in the Chrome Trace Event format (JSON; &quot;traceEvents&quot; has one entry per function call, with its name, its start &quot;ts&quot; and its duration &quot;dur&quot; in microseconds); read it with python3.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s points run said OK, but this morning the points of some members are not the sum of their grants (python3 members.py --check). The job runs from cron with `python3 job.py`. Find the cause and fix it. That run was recorded with Ormaos: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+</section>
+
+<section class="band" id="side-by-side" aria-labelledby="side-by-side-title">
+<h2 id="side-by-side-title">Run 1 of each arm, side by side</h2>
+<p>Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent&#x27;s tool calls in order; under each <code>ormaos</code> command, the first 15 lines of its output, with a link to the full output in the stream.</p>
+<div class="sbs" style="--cols:3">
+<article class="arm-col a1">
+<h4><code>none</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/points-grant-none-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">6 tool calls, 90,447 tokens, 45 s</p>
+<p class="part">Commands, in order (6)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; cat *.py | head -300</pre></li>
+<li><pre class="cmd-text">cat README.md TASK.md; ls -la data inbox; python3 members.py --check; sqlite3 data/members.db &quot;select email, count(*) from members group by email having count(*)&gt;1; select * from members where email in (select email from members group by email having count(*)&gt;1) or email=&#x27;&#x27;;&quot; 2&gt;&amp;1 | head -40</pre></li>
+<li><pre class="cmd-text">cat data/cron.log; python3 -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;data/members.db&#x27;)
+for r in c.execute(&#x27;select * from members order by email, member_id&#x27;):print(r)
+print()
+for r in c.execute(&#x27;select * from grants order by granted_on, purchase_id&#x27;):print(r)
+&quot;</pre></li>
+<li><pre class="cmd-text">Edit members.py</pre></li>
+<li><pre class="cmd-text">T=$(mktemp -d) &amp;&amp; cp data/members.db $T/db &amp;&amp; mkdir $T/inbox &amp;&amp; printf &#x27;purchase_id,member_id,email,amount_cents,store\nT-1,,casa.mota@example.org,1000,old\nT-2,M-1043,casa.mota@example.org,2000,new\n&#x27; &gt; $T/inbox/purchases-20261127.csv &amp;&amp; python3 -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;$T/db&#x27;);c.execute(&#x27;UPDATE members SET points=(SELECT COALESCE(SUM(points),0) FROM grants g WHERE g.member_id=members.member_id)&#x27;);c.commit()&quot; &amp;&amp; python3 job.py --inbox $T/inbox --db $T/db &amp;&amp; python3 members.py --db $T/db --check &amp;&amp; echo &quot;check clean&quot; &amp;&amp; python3 members.py --db $T/db | grep Mota; rm -rf $T</pre></li>
+<li><pre class="cmd-text">cp -p data/members.db data/members.db.bak-20261126 &amp;&amp; python3 -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;data/members.db&#x27;)
+with c: n=c.execute(&#x27;UPDATE members SET points=(SELECT COALESCE(SUM(points),0) FROM grants g WHERE g.member_id=members.member_id) WHERE points != (SELECT COALESCE(SUM(points),0) FROM grants g WHERE g.member_id=members.member_id)&#x27;).rowcount
+print(&#x27;repaired&#x27;,n)&quot; &amp;&amp; python3 members.py --check &amp;&amp; echo &quot;check clean&quot; &amp;&amp; python3 members.py | grep -E &#x27;Mota|Brito&#x27;</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/members.py
++++ members.py
+@@ -85,8 +85,8 @@
+             (purchase.purchase_id, member_id, points, day.isoformat()),
+         )
+         conn.execute(
+-            &quot;UPDATE members SET points = points + ? WHERE member_id = ? OR email = ?&quot;,
+-            (points, purchase.member_id, purchase.email),
++            &quot;UPDATE members SET points = points + ? WHERE member_id = ?&quot;,
++            (points, member_id),
+         )
+     return points
+ </code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  members who share an address buy: exit 0, members with other points: none, grants as expected
+pass  nobody who shares an address buys: exit 0, members with other points: none, grants as expected
+fixed</code></pre>
+</figure>
+</article>
+<article class="arm-col a2">
+<h4><code>raw</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/points-grant-raw-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">6 tool calls, 89,029 tokens, 42 s</p>
+<p class="part">Commands, in order (6)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; wc -c *.py &amp;&amp; cat *.py</pre></li>
+<li><pre class="cmd-text">cat README.md TASK.md; ls -la data inbox; python3 members.py --check; sqlite3 data/members.db &quot;select email,count(*) from members group by email having count(*)&gt;1&quot; 2&gt;&amp;1 | head; python3 -I -c &quot;
+import json,collections
+d=json.load(open(&#x27;result.json&#x27;))[&#x27;traceEvents&#x27;]
+c=collections.Counter(e.get(&#x27;name&#x27;) for e in d)
+for k,v in c.most_common(40): print(v,k)
+&quot;</pre></li>
+<li><pre class="cmd-text">cat data/cron.log; python3 -I -c &quot;
+import json
+d=json.load(open(&#x27;result.json&#x27;))[&#x27;traceEvents&#x27;]
+for e in sorted(d,key=lambda e:e.get(&#x27;ts&#x27;,0)):
+  n=e.get(&#x27;name&#x27;,&#x27;&#x27;)
+  if any(k in n for k in (&#x27;job.py&#x27;,&#x27;members.py&#x27;,&#x27;purchases.py&#x27;,&#x27;sqlite3&#x27;,&#x27;unlink&#x27;,&#x27;glob&#x27;)): print(e.get(&#x27;ts&#x27;),e.get(&#x27;dur&#x27;),n,e.get(&#x27;args&#x27;,&#x27;&#x27;))
+&quot; | head -80; python3 -I -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;file:data/members.db?mode=ro&#x27;,uri=True)
+for r in c.execute(&#x27;select * from members order by member_id&#x27;):print(r)
+for r in c.execute(&#x27;select * from grants order by member_id, granted_on&#x27;):print(r)
+&quot;</pre></li>
+<li><pre class="cmd-text">Edit members.py</pre></li>
+<li><pre class="cmd-text">cp -p data/members.db data/members.db.bak-2026-11-26 &amp;&amp; python3 -I -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;data/members.db&#x27;)
+with c:
+  n=c.execute(&#x27;UPDATE members SET points=(SELECT COALESCE(SUM(points),0) FROM grants g WHERE g.member_id=members.member_id) WHERE points != (SELECT COALESCE(SUM(points),0) FROM grants g WHERE g.member_id=members.member_id)&#x27;).rowcount
+print(&#x27;repaired&#x27;,n)
+&quot; &amp;&amp; python3 members.py --check &amp;&amp; echo &quot;check clean&quot; &amp;&amp; python3 members.py | grep -E &#x27;M-104[23]|M-105[012]&#x27;</pre></li>
+<li><pre class="cmd-text">cd /tmp &amp;&amp; rm -rf pgtest &amp;&amp; mkdir -p pgtest/inbox &amp;&amp; cd pgtest &amp;&amp; python3 -c &quot;
+import sys; sys.path.insert(0,&#x27;/srv/points-grant&#x27;)
+import members
+c=members.connect(&#x27;t.db&#x27;)
+c.executemany(&#x27;INSERT INTO members VALUES (?,?,?,?,0)&#x27;,[(&#x27;A&#x27;,&#x27;a&#x27;,&#x27;h@x&#x27;,&#x27;silver&#x27;),(&#x27;B&#x27;,&#x27;b&#x27;,&#x27;h@x&#x27;,&#x27;gold&#x27;)])
+c.commit()
+open(&#x27;inbox/purchases-20261126.csv&#x27;,&#x27;w&#x27;).write(&#x27;purchase_id,member_id,email,amount_cents,store\n1,A,h@x,1000,s\n2,B,h@x,2000,s\n3,,h@x,700,s\n&#x27;)
+import job; print(job.main([&#x27;--inbox&#x27;,&#x27;inbox&#x27;,&#x27;--db&#x27;,&#x27;t.db&#x27;]))
+print(c.execute(&#x27;select member_id,points from members&#x27;).fetchall(), members.unbalanced(c))
+&quot;</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/members.py
++++ members.py
+@@ -85,8 +85,9 @@
+             (purchase.purchase_id, member_id, points, day.isoformat()),
+         )
+         conn.execute(
+-            &quot;UPDATE members SET points = points + ? WHERE member_id = ? OR email = ?&quot;,
+-            (points, purchase.member_id, purchase.email),
++            # Only the member found above: household members share an e-mail.
++            &quot;UPDATE members SET points = points + ? WHERE member_id = ?&quot;,
++            (points, member_id),
+         )
+     return points
+ </code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  members who share an address buy: exit 0, members with other points: none, grants as expected
+pass  nobody who shares an address buys: exit 0, members with other points: none, grants as expected
+fixed</code></pre>
+</figure>
+</article>
+<article class="arm-col a3">
+<h4><code>ormaos</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/points-grant-ormaos-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">7 tool calls, 97,164 tokens, 47 s</p>
+<p class="part">Commands, in order (7)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; .venv/bin/ormaos guide</pre><pre class="out">total 44
+drwxrwxr-x 6 levimbraga levimbraga 4096 Nov 26 22:17 .
+drwx------ 3 levimbraga levimbraga   60 Nov 26 22:17 ..
+drwxrwxr-x 3 levimbraga levimbraga 4096 Nov 26 22:06 .ormaos
+drwxrwxr-x 5 levimbraga levimbraga 4096 Nov 26 22:06 .venv
+-rw-rw-r-- 1 levimbraga levimbraga 2309 Nov 26 18:46 README.md
+-rw-rw-r-- 1 levimbraga levimbraga  139 Nov 26 22:06 TASK.md
+drwxrwxr-x 2 levimbraga levimbraga 4096 Nov 26 22:06 data
+drwxrwxr-x 2 levimbraga levimbraga 4096 Nov 26 22:06 inbox
+-rw-rw-r-- 1 levimbraga levimbraga 2225 Nov 26 18:47 job.py
+-rw-rw-r-- 1 levimbraga levimbraga 4122 Nov 26 18:46 members.py
+-rw-rw-r-- 1 levimbraga levimbraga  924 Nov 26 18:46 purchases.py
+ormaos: what happened inside a Python run, to read instead of guessing.
+
+WHEN TO USE IT</pre><p class="note">Output: the first 15 of 62 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/points-grant-ormaos-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">cat TASK.md README.md job.py members.py purchases.py; ls data inbox; .venv/bin/ormaos show</pre><pre class="out">Last night&#x27;s points run said OK, but this morning the points of some members are not the sum of their grants (python3 members.py --check).
+# points-grant
+
+A scheduled job that grants loyalty points: the tills&#x27; export drops the day&#x27;s purchases in `inbox/` every evening, and at night the job grants each member the points of their purchases, so that the app shows them in the morning.
+
+It uses only the Python standard library (Python 3.12 or newer). The folder is self-contained: copy it anywhere and it runs.
+
+## Run it
+
+```bash
+python3 job.py              # grant the purchases in inbox/
+python3 members.py          # show the members and their points
+python3 members.py --check  # members whose points are not the sum of their grants
+```
+</pre><p class="note">Output: the first 15 of 300 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/points-grant-ormaos-1.jsonl?plain=1#L7">Full output</a></p></li>
+<li><pre class="cmd-text">python3 members.py --check; cat data/cron.log; .venv/bin/ormaos io r1 | head -40; sqlite3 data/members.db &quot;select email, group_concat(member_id) from members group by email having count(*)&gt;1&quot; 2&gt;&amp;1</pre><pre class="out">Exit code 127
+M-1042  Carla Mota: 1546 points, grants add up to 1528
+M-1043  Diogo Mota: 326 points, grants add up to 78
+M-1050  Lara Brito: 561 points, grants add up to 505
+M-1051  Marco Brito: 16 points, grants add up to 151
+M-1052  Nuno Brito: -67 points, grants add up to 12
+2026-11-26T22:06:56 points-grant exit=0 points finished: OK
+2026-11-26T22:06:56 points-grant exit=0 points finished: OK
+r1: 73 io events (sqlite 72, file 1)
+  1x sqlite connect data/members.db  at members.py:36 in connect  [r1:i1]
+  1x sqlite CREATE TABLE IF NOT EXISTS members ( member_id TEXT PRIMARY KEY, name...  at members.py:37 in connect  [r1:i2]
+  1x sqlite CREATE TABLE IF NOT EXISTS grants ( purchase_id TEXT PRIMARY KEY, mem...  at members.py:37 in connect  [r1:i3]
+  1x file open inbox/purchases-20261125.csv (read)  at purchases.py:23 in read  [r1:i4]
+  13x sqlite SELECT ? FROM grants WHERE purchase_id = ?  at members.py:71 in grant  [r1:i5]
+  10x sqlite SELECT member_id, tier, points FROM members WHERE member_id = ?  at members.py:47 in find  [r1:i7]</pre><p class="note">Output: the first 15 of 24 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/points-grant-ormaos-1.jsonl?plain=1#L12">Full output</a></p></li>
+<li><pre class="cmd-text">python3 -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;data/members.db&#x27;)
+for r in c.execute(&#x27;select * from members order by member_id&#x27;):print(r)
+print()
+for r in c.execute(&#x27;select * from grants order by granted_on, purchase_id&#x27;):print(r)
+&quot;</pre></li>
+<li><pre class="cmd-text">Edit members.py</pre></li>
+<li><pre class="cmd-text">cp data/members.db data/members.db.bak-20261126 &amp;&amp; python3 -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;data/members.db&#x27;)
+with c:
+  c.execute(&#x27;&#x27;&#x27;UPDATE members SET points=(SELECT COALESCE(SUM(points),0) FROM grants g WHERE g.member_id=members.member_id)
+   WHERE member_id IN (&#x27;M-1042&#x27;,&#x27;M-1043&#x27;,&#x27;M-1050&#x27;,&#x27;M-1051&#x27;,&#x27;M-1052&#x27;)&#x27;&#x27;&#x27;)
+for r in c.execute(\&quot;select member_id,name,points from members where member_id in (&#x27;M-1042&#x27;,&#x27;M-1043&#x27;,&#x27;M-1050&#x27;,&#x27;M-1051&#x27;,&#x27;M-1052&#x27;)\&quot;):print(r)
+&quot; &amp;&amp; python3 members.py --check &amp;&amp; echo CHECK-CLEAN</pre></li>
+<li><pre class="cmd-text">T=$(mktemp -d) &amp;&amp; cp data/members.db $T/db &amp;&amp; mkdir $T/inbox &amp;&amp; printf &#x27;purchase_id,member_id,email,amount_cents,store\nT-1,M-1043,casa.mota@example.org,2500,Porto\nT-2,,familia.brito@example.org,1000,Braga\nT-3,M-1052,familia.brito@example.org,-9000,Braga\n&#x27; &gt; $T/inbox/purchases-20261126.csv &amp;&amp; python3 job.py --inbox $T/inbox --db $T/db &amp;&amp; python3 members.py --db $T/db | grep -E &#x27;Mota|Brito&#x27; &amp;&amp; python3 members.py --db $T/db --check &amp;&amp; echo CHECK-CLEAN; rm -r $T</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/members.py
++++ members.py
+@@ -85,8 +85,10 @@
+             (purchase.purchase_id, member_id, points, day.isoformat()),
+         )
+         conn.execute(
+-            &quot;UPDATE members SET points = points + ? WHERE member_id = ? OR email = ?&quot;,
+-            (points, purchase.member_id, purchase.email),
++            # Only the member found above: household members share an e-mail
++            # address, and a purchase from an older till has no member_id.
++            &quot;UPDATE members SET points = points + ? WHERE member_id = ?&quot;,
++            (points, member_id),
+         )
+     return points
+ </code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  members who share an address buy: exit 0, members with other points: none, grants as expected
+pass  nobody who shares an address buys: exit 0, members with other points: none, grants as expected
+fixed</code></pre>
+</figure>
+</article>
+</div>
+</section>
+
+<section class="band" id="runs" aria-labelledby="runs-title">
+<h2 id="runs-title">Every run</h2>
+<p>The first attempt of every run of every arm.</p>
+<div class="table-wrap">
+<table class="plain runs">
+<thead><tr><th scope="col">Arm</th><th scope="col">Run</th><th scope="col">Check</th><th scope="col">Last line</th><th scope="col">Tool calls</th><th scope="col">Tokens</th><th scope="col">Wall time</th><th scope="col">Stream</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>6</td><td>90,447</td><td>45 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/points-grant-none-1.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>6</td><td>78,831</td><td>48 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/points-grant-none-2.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>6</td><td>73,135</td><td>42 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/points-grant-none-3.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>6</td><td>89,029</td><td>42 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/points-grant-raw-1.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>8</td><td>141,928</td><td>55 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/points-grant-raw-2.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>7</td><td>107,074</td><td>51 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/points-grant-raw-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>7</td><td>97,164</td><td>47 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/points-grant-ormaos-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>7</td><td>94,764</td><td>44 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/points-grant-ormaos-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>5</td><td>63,866</td><td>35 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/points-grant-ormaos-3.jsonl">stream</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="files" aria-labelledby="files-title">
+<h2 id="files-title">The results files</h2>
+<ul class="rows">
+  <li>The benchmark: <a href="/benchmarks/fix/">fix</a></li>
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703"><code>agent-bench/results/20261126-220703</code></a></li>
+</ul>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>

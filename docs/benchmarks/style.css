@@ -1305,3 +1305,229 @@ main .band > .facts.three {
 .question + p {
   color: var(--text-soft);
 }
+
+/* A situation's page: one column per arm, side by side from 64rem, wider
+   than the text column; one under the other below it. */
+.sbs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  margin: 24px 0 8px;
+}
+
+@media (min-width: 64rem) {
+  .bench main .band > .sbs {
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    gap: 20px;
+    width: min(calc(100vw - 48px), 100rem);
+    max-width: none;
+    margin-inline: calc(50% - min(50vw - 24px, 50rem));
+  }
+}
+
+.arm-col {
+  min-width: 0;
+  border-top: 3px solid var(--line);
+  padding-top: 10px;
+}
+
+.arm-col.a1 { border-top-color: var(--series-1); }
+.arm-col.a2 { border-top-color: var(--series-2); }
+.arm-col.a3 { border-top-color: var(--series-3); }
+.arm-col.a4 { border-top-color: var(--series-4); }
+
+.arm-col h4 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.arm-col p {
+  margin: 2px 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.arm-col p.meta {
+  color: var(--text-soft);
+}
+
+.arm-col p.part {
+  margin: 18px 0 6px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.arm-col ol.steps {
+  margin: 0;
+  padding-left: 1.6em;
+}
+
+.arm-col ol.steps li {
+  margin: 0 0 10px;
+  font-size: 12px;
+}
+
+.arm-col pre {
+  margin: 0;
+  padding: 6px 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.45;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel);
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.arm-col pre.out {
+  margin-top: 4px;
+  border-style: dashed;
+  color: var(--text-soft);
+}
+
+.arm-col p.note {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.arm-col figure.code {
+  margin: 0;
+  max-width: none;
+}
+
+.arm-col figure.code pre {
+  max-height: 26rem;
+}
+
+.arm-col .table-wrap {
+  margin: 0;
+}
+
+.arm-col table.mini {
+  font-size: 13px;
+}
+
+.arm-col table.mini th,
+.arm-col table.mini td {
+  padding: 3px 10px 3px 0;
+}
+
+.arm-col table.mini td code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+table.questions td:nth-child(2) {
+  min-width: 18rem;
+}
+
+table.runs td {
+  white-space: nowrap;
+}
+
+/* The overview's situations: a name and a line, small bars per arm. */
+p.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: 13px;
+}
+
+p.legend .key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+i.sw {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+i.sw.s1 { background: var(--series-1); }
+i.sw.s2 { background: var(--series-2); }
+i.sw.s3 { background: var(--series-3); }
+i.sw.s4 { background: var(--series-4); }
+
+table.situations td {
+  vertical-align: top;
+}
+
+table.situations td:first-child {
+  min-width: 14rem;
+}
+
+table.situations .bench {
+  margin-left: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+table.situations .line {
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+table.situations td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 40rem) {
+  table.situations thead { display: none; }
+
+  table.situations,
+  table.situations tbody {
+    display: block;
+    width: 100%;
+  }
+
+  table.situations tr {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: end;
+    column-gap: 16px;
+    border-bottom: 1px solid var(--line);
+    padding: 12px 0;
+  }
+
+  table.situations td {
+    border: 0;
+    padding: 0;
+  }
+
+  table.situations td:first-child {
+    grid-column: 1 / -1;
+    min-width: 0;
+    padding-bottom: 8px;
+  }
+
+  table.situations td.num::before {
+    display: block;
+    content: "ormaos − none";
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+}
+
+svg.mini {
+  display: block;
+  overflow: visible;
+}
+
+svg.mini text {
+  font-size: 12px;
+  fill: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+svg.mini rect.track { fill: var(--line); }
+svg.mini rect.s1 { fill: var(--series-1); }
+svg.mini rect.s2 { fill: var(--series-2); }
+svg.mini rect.s3 { fill: var(--series-3); }
+svg.mini rect.s4 { fill: var(--series-4); }

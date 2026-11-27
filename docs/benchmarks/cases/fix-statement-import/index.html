@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>statement-import, in fix · Ormaos benchmarks</title>
+<meta name="description" content="statement-import, in fix: what happened, what the agent was given, run 1 of each arm side by side, and every run.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/cases/fix-statement-import.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long bench">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://docs.ormaos.com/">Docs</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<p class="kicker">Situation · fix</p>
+<h1 id="top-title">statement-import, in fix</h1>
+<p class="lead">A scheduled job. By its README, it books a bank statement into a ledger. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/bugs/statement-import/task"><code>agent-bench/bugs/statement-import/task</code></a>.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<p>Passed the check, first attempts: <code>none</code> 3/3, <code>raw</code> 3/3, <code>ormaos</code> 3/3 (3 runs per arm). Agent: <code>claude-code / claude-opus-5-5</code>.</p>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#happened">What happened</a></li>
+  <li><a href="#given">What the agent was given</a></li>
+  <li><a href="#side-by-side">Run 1 of each arm, side by side</a></li>
+  <li><a href="#runs">Every run</a></li>
+  <li><a href="#files">The results files</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="happened" aria-labelledby="happened-title">
+<h2 id="happened-title">What happened</h2>
+<p>That night cron ran <code>python3 job.py</code>; it printed <code>statement import finished: OK</code> and exited with code 0. This morning the ledger adds up to 2049385 and the bank&#x27;s closing balance of yesterday is 2072155. Where it behaved otherwise than its README: a loop that stops before the end of its input.</p>
+<p>The items are those the scenario&#x27;s own check of the data found, in <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/build.json"><code>build.json</code></a>.</p>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label">The symptom, from <code>TASK.md</code> in the agent&#x27;s folder</span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s statement import said OK, but this morning the balance of the ledger is not the bank&#x27;s closing balance of yesterday (data/bank_balance.csv).</code></pre>
+</figure>
+</section>
+
+<section class="band" id="given" aria-labelledby="given-title">
+<h2 id="given-title">What the agent was given</h2>
+<p>Its folder (the code, its README, <code>TASK.md</code> and the data that night left, with what the arm adds) and the task text, the same in every arm but for the arm&#x27;s last sentence:</p>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>none</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s statement import said OK, but this morning the balance of the ledger is not the bank&#x27;s closing balance of yesterday (data/bank_balance.csv). The job runs from cron with `python3 job.py`. Find the cause and fix it.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>raw</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s statement import said OK, but this morning the balance of the ledger is not the bank&#x27;s closing balance of yesterday (data/bank_balance.csv). The job runs from cron with `python3 job.py`. Find the cause and fix it. A VizTracer trace of that run is in result.json, in the Chrome Trace Event format (JSON; &quot;traceEvents&quot; has one entry per function call, with its name, its start &quot;ts&quot; and its duration &quot;dur&quot; in microseconds); read it with python3.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s statement import said OK, but this morning the balance of the ledger is not the bank&#x27;s closing balance of yesterday (data/bank_balance.csv). The job runs from cron with `python3 job.py`. Find the cause and fix it. That run was recorded with Ormaos: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+</section>
+
+<section class="band" id="side-by-side" aria-labelledby="side-by-side-title">
+<h2 id="side-by-side-title">Run 1 of each arm, side by side</h2>
+<p>Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent&#x27;s tool calls in order; under each <code>ormaos</code> command, the first 15 lines of its output, with a link to the full output in the stream.</p>
+<div class="sbs" style="--cols:3">
+<article class="arm-col a1">
+<h4><code>none</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/statement-import-none-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">5 tool calls, 71,486 tokens, 33 s</p>
+<p class="part">Commands, in order (5)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; find . -type f | grep -v __pycache__ | head -50 &amp;&amp; cat job.py</pre></li>
+<li><pre class="cmd-text">cat ledger.py statement.py README.md TASK.md; cat data/bank_balance.csv; cat data/cron.log; ls -la inbox data</pre></li>
+<li><pre class="cmd-text">python3 ledger.py --compare data/bank_balance.csv; sqlite3 data/ledger.db &quot;select * from entries order by booked_on, bank_id&quot; 2&gt;/dev/null || python3 -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;data/ledger.db&#x27;)
+for r in c.execute(&#x27;select * from entries order by booked_on,bank_id&#x27;):print(r)&quot;</pre></li>
+<li><pre class="cmd-text">Edit statement.py</pre></li>
+<li><pre class="cmd-text">T=$(mktemp -d) &amp;&amp; mkdir $T/inbox &amp;&amp; cp /srv/statement-import/data/ledger.db $T/ &amp;&amp; cat &gt; $T/inbox/statement-20261126.txt &lt;&lt;&#x27;EOF&#x27;
+H|ACC-7701|2026-11-26
+T|B-88122|2026-11-25|389.90-|B|Insurance
+# a comment
+
+T|B-90001|2026-11-26|10.00|B|after blank line
+   
+T|B-90002|2026-11-26|2.50-|B|after whitespace line
+EOF
+cd /srv/statement-import &amp;&amp; STATEMENT_IMPORT_LOG_LEVEL=INFO python3 job.py --inbox $T/inbox --db $T/ledger.db; python3 ledger.py --db $T/ledger.db; rm -r $T</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/statement.py
++++ statement.py
+@@ -66,11 +66,10 @@
+     records = []
+     with open(path, encoding=&quot;utf-8&quot;) as handle:
+         account, day = parse_header(handle.readline())
+-        while True:
+-            line = handle.readline().strip()
+-            if not line:
+-                break
+-            if line.startswith(&quot;#&quot;):
++        # Read to the end of the file: an empty line is skipped, not the end.
++        for line in handle:
++            line = line.strip()
++            if not line or line.startswith(&quot;#&quot;):
+                 continue
+             records.append(parse_record(line))
+     return account, day, records</code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  a statement in two parts: exit 0, 0 of 32 entries missing
+pass  a statement in one part: exit 0, 0 of 32 entries missing
+pass  empty lines and a comment at the end: exit 0, 0 of 32 entries missing
+pass  a statement of another account is refused: exit 2, 1 file left in the inbox
+fixed</code></pre>
+</figure>
+</article>
+<article class="arm-col a2">
+<h4><code>raw</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/statement-import-raw-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">6 tool calls, 82,665 tokens, 38 s</p>
+<p class="part">Commands, in order (6)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; ls -la data &amp;&amp; cat job.py &amp;&amp; head -50 data/*.csv</pre></li>
+<li><pre class="cmd-text">cat README.md TASK.md ledger.py statement.py data/cron.log; ls -la inbox</pre></li>
+<li><pre class="cmd-text">python3 ledger.py --compare data/bank_balance.csv; python3 -I - &lt;&lt;&#x27;EOF&#x27;
+import json,collections
+d=json.load(open(&#x27;result.json&#x27;))
+ev=d[&#x27;traceEvents&#x27;]
+c=collections.Counter(e.get(&#x27;name&#x27;) for e in ev)
+for k,v in c.most_common(40): print(v,k)
+for e in ev:
+    n=e.get(&#x27;name&#x27;,&#x27;&#x27;)
+    if any(s in n for s in (&#x27;read (&#x27;,&#x27;book_file&#x27;,&#x27;unlink&#x27;,&#x27;parse_header&#x27;,&#x27;main (&#x27;)): print(e[&#x27;ts&#x27;],e.get(&#x27;dur&#x27;),n, e.get(&#x27;args&#x27;))
+EOF</pre></li>
+<li><pre class="cmd-text">python3 -I - &lt;&lt;&#x27;EOF&#x27;
+import json
+ev=json.load(open(&#x27;result.json&#x27;))[&#x27;traceEvents&#x27;]
+r=[e for e in ev if e.get(&#x27;name&#x27;,&#x27;&#x27;).startswith(&#x27;read (/srv&#x27;)][0]
+inner=[e for e in ev if &#x27;ts&#x27; in e and r[&#x27;ts&#x27;]&lt;=e[&#x27;ts&#x27;]&lt;=r[&#x27;ts&#x27;]+r[&#x27;dur&#x27;] and e is not r]
+inner.sort(key=lambda e:e[&#x27;ts&#x27;])
+for e in inner: print(e[&#x27;ts&#x27;],e.get(&#x27;dur&#x27;),e[&#x27;name&#x27;])
+EOF
+sqlite3 data/ledger.db &quot;select * from entries order by booked_on desc, bank_id desc limit 20&quot; 2&gt;/dev/null || python3 -c &quot;import sqlite3;[print(r) for r in sqlite3.connect(&#x27;data/ledger.db&#x27;).execute(&#x27;select * from entries order by booked_on desc, bank_id desc limit 20&#x27;)]&quot;</pre></li>
+<li><pre class="cmd-text">Edit statement.py</pre></li>
+<li><pre class="cmd-text">cd /tmp &amp;&amp; rm -rf sitest &amp;&amp; mkdir sitest &amp;&amp; cp -r /srv/statement-import/*.py sitest/ &amp;&amp; mkdir sitest/inbox sitest/data &amp;&amp; cd sitest &amp;&amp; python3 ledger.py --db data/t.db --create 0 &amp;&amp; printf &#x27;H|ACC-7701|2026-11-25\nT|X-1|2026-11-25|10.00|B|a\n# c\n\nT|X-2|2026-11-25|2.50-|B|b\n\nR|X-3|2026-11-25|X-2\nT|X-4|2026-11-25|5.00|P|p\n&#x27; &gt; inbox/statement-20261125.txt &amp;&amp; python3 job.py --db data/t.db; echo exit=$?; python3 ledger.py --db data/t.db</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/statement.py
++++ statement.py
+@@ -66,11 +66,9 @@
+     records = []
+     with open(path, encoding=&quot;utf-8&quot;) as handle:
+         account, day = parse_header(handle.readline())
+-        while True:
+-            line = handle.readline().strip()
+-            if not line:
+-                break
+-            if line.startswith(&quot;#&quot;):
++        for line in handle:
++            line = line.strip()
++            if not line or line.startswith(&quot;#&quot;):
+                 continue
+             records.append(parse_record(line))
+     return account, day, records</code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  a statement in two parts: exit 0, 0 of 32 entries missing
+pass  a statement in one part: exit 0, 0 of 32 entries missing
+pass  empty lines and a comment at the end: exit 0, 0 of 32 entries missing
+pass  a statement of another account is refused: exit 2, 1 file left in the inbox
+fixed</code></pre>
+</figure>
+</article>
+<article class="arm-col a3">
+<h4><code>ormaos</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/statement-import-ormaos-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">7 tool calls, 126,262 tokens, 44 s</p>
+<p class="part">Commands, in order (7)</p><ol class="steps">
+<li><pre class="cmd-text">.venv/bin/ormaos guide; ls -la; ls -la .ormaos data</pre><pre class="out">ormaos: what happened inside a Python run, to read instead of guessing.
+
+WHEN TO USE IT
+- A Python program runs, and its output does not explain what it did: a job
+  that prints OK, an error that never shows, a result you cannot trace.
+- You want to see what ran: the project&#x27;s calls with the shape of their
+  arguments, every exception (also the caught ones), the SQL statements,
+  files, subprocesses and HTTP requests.
+
+WHERE TO START
+1. Record:  ormaos run -- &lt;command&gt;
+   The command runs unchanged (same output, same exit code); its Python must
+   have ormaos installed. In a script or notebook: `with ormaos.record():`.
+2. Read the summary printed on stderr: at most 5 lines, each starting with
+   &quot;ormaos:&quot;. To see it again, with more: ormaos show</pre><p class="note">Output: the first 15 of 76 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/statement-import-ormaos-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">cat TASK.md README.md job.py ledger.py statement.py data/bank_balance.csv data/cron.log; ls -la inbox; .venv/bin/ormaos show</pre><pre class="out">Last night&#x27;s statement import said OK, but this morning the balance of the ledger is not the bank&#x27;s closing balance of yesterday (data/bank_balance.csv).
+# statement-import
+
+A scheduled job that books the bank&#x27;s statements into the ledger of the account: the bank&#x27;s transfer drops a statement file in `inbox/` every evening, and the job books it at night, so that the ledger shows the bank&#x27;s closing balance in the morning.
+
+It uses only the Python standard library (Python 3.12 or newer). The folder is self-contained: copy it anywhere and it runs.
+
+## Run it
+
+```bash
+python3 job.py      # book the statements in inbox/
+python3 ledger.py   # show the balance
+```
+
+The job prints `statement import finished: OK` and exits with code 0 when every file in `inbox/` is booked. A file that is not a statement of the account, or that has a line the job cannot read, stops it: it prints `statement import failed: ...` on stderr, exits with code 2, books nothing of that file and leaves it in `inbox/`.</pre><p class="note">Output: the first 15 of 330 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/statement-import-ormaos-1.jsonl?plain=1#L7">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos exceptions r1; .venv/bin/ormaos tree r1 --depth 4; .venv/bin/ormaos io r1; .venv/bin/python ledger.py --compare data/bank_balance.csv</pre><pre class="out">r1: 1 exception (0 swallowed, 0 uncaught)
+r1:e1 exit SystemExit  raised at job.py:72
+next: ormaos exceptions r1:e1
+r1:c1 &lt;module&gt;() -&gt; raised  job.py:1  29.5ms  io 36  calls below: 3
+  r1:c2 &lt;module&gt;() -&gt; NoneType  ledger.py:1  1.5ms
+  r1:c3 &lt;module&gt;() -&gt; NoneType  statement.py:1  720us  calls below: 5
+    r1:c4 StatementError() -&gt; NoneType  statement.py:18  7us
+    r1:c5 Record() -&gt; NoneType  statement.py:22  9us
+    r1:c6 Record.__annotate__(format: int) -&gt; dict[7]  statement.py:22  9us
+    r1:c7 &lt;module&gt;() -&gt; NoneType  &lt;string&gt;:1  8us
+    r1:c8 __create_fn__(__dataclass_HAS_DEFAULT_FACTORY__: dataclasses._HAS_DEFAULT_FACTORY_CLASS, __dataclass_...) -&gt; tuple[6 function]  &lt;string&gt;:1  23us
+  r1:c9 main(argv: NoneType) -&gt; int  job.py:50  7.6ms  io 36  calls below: 3
+    r1:c10 configure_logging() -&gt; NoneType  job.py:27  66us
+    r1:c11 connect(path: pathlib.PosixPath) -&gt; sqlite3.Connection  ledger.py:27  474us  io 2
+    r1:c12 book_file(conn: sqlite3.Connection, path: pathlib.PosixPath) -&gt; tuple[2 int]  job.py:36  1.9ms  io 34  calls below: 12</pre><p class="note">Output: the first 15 of 50 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/statement-import-ormaos-1.jsonl?plain=1#L13">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos io r1:i3; .venv/bin/ormaos io r1:i5 --json | head -80; .venv/bin/ormaos tree r1:c12 --offset 4</pre><pre class="out">r1:i3 file open inbox/statement-20261125.txt (read)
+  caused at   statement.py:67 in read  [r1:c13]
+  inside      r1:c1 &lt;module&gt; &gt; r1:c9 main &gt; r1:c12 book_file
+next: ormaos io r1:c13 | ormaos tree r1:c13 | ormaos io r1
+{
+  &quot;kind&quot;: &quot;io_event&quot;,
+  &quot;version&quot;: 1,
+  &quot;recording&quot;: &quot;r1&quot;,
+  &quot;address&quot;: &quot;r1:i5&quot;,
+  &quot;io_kind&quot;: &quot;file&quot;,
+  &quot;op&quot;: &quot;read&quot;,
+  &quot;target&quot;: &quot;inbox/statement-20261125.txt&quot;,
+  &quot;at&quot;: {
+    &quot;file&quot;: &quot;statement.py&quot;,
+    &quot;line&quot;: 70,</pre><p class="note">Output: the first 15 of 76 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/statement-import-ormaos-1.jsonl?plain=1#L34">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/python -I -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;file:data/ledger.db?mode=ro&#x27;,uri=True)
+for r in c.execute(&#x27;select * from entries order by booked_on, bank_id&#x27;):print(r)&quot;</pre></li>
+<li><pre class="cmd-text">Edit statement.py</pre></li>
+<li><pre class="cmd-text">mkdir -p /tmp/sitest/inbox &amp;&amp; cd /tmp/sitest &amp;&amp; cp /srv/statement-import/data/ledger.db t.db &amp;&amp; printf &#x27;H|ACC-7701|2026-11-25\nT|X-1|2026-11-25|1.00|B|a\n\n# c\nT|X-2|2026-11-25|2.50-|B|b\n\n&#x27; &gt; inbox/statement-20261125.txt &amp;&amp; cd /srv/statement-import &amp;&amp; .venv/bin/python job.py --inbox /tmp/sitest/inbox --db /tmp/sitest/t.db; .venv/bin/python -I -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;/tmp/sitest/t.db&#x27;);print(c.execute(\&quot;select * from entries where bank_id like &#x27;X-%&#x27;\&quot;).fetchall())&quot;; rm -rf /tmp/sitest</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/statement.py
++++ statement.py
+@@ -66,11 +66,11 @@
+     records = []
+     with open(path, encoding=&quot;utf-8&quot;) as handle:
+         account, day = parse_header(handle.readline())
+-        while True:
+-            line = handle.readline().strip()
+-            if not line:
+-                break
+-            if line.startswith(&quot;#&quot;):
++        # Read to the end of the file: an empty line is skipped, not the end
++        # of the statement (stopping there dropped the records after it).
++        for line in handle:
++            line = line.strip()
++            if not line or line.startswith(&quot;#&quot;):
+                 continue
+             records.append(parse_record(line))
+     return account, day, records</code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  a statement in two parts: exit 0, 0 of 32 entries missing
+pass  a statement in one part: exit 0, 0 of 32 entries missing
+pass  empty lines and a comment at the end: exit 0, 0 of 32 entries missing
+pass  a statement of another account is refused: exit 2, 1 file left in the inbox
+fixed</code></pre>
+</figure>
+</article>
+</div>
+</section>
+
+<section class="band" id="runs" aria-labelledby="runs-title">
+<h2 id="runs-title">Every run</h2>
+<p>The first attempt of every run of every arm.</p>
+<div class="table-wrap">
+<table class="plain runs">
+<thead><tr><th scope="col">Arm</th><th scope="col">Run</th><th scope="col">Check</th><th scope="col">Last line</th><th scope="col">Tool calls</th><th scope="col">Tokens</th><th scope="col">Wall time</th><th scope="col">Stream</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>5</td><td>71,486</td><td>33 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/statement-import-none-1.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>5</td><td>57,605</td><td>30 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/statement-import-none-2.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>5</td><td>71,802</td><td>34 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/statement-import-none-3.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>6</td><td>82,665</td><td>38 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/statement-import-raw-1.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>8</td><td>139,037</td><td>52 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/statement-import-raw-2.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>9</td><td>168,806</td><td>54 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/statement-import-raw-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>7</td><td>126,262</td><td>44 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/statement-import-ormaos-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>7</td><td>107,515</td><td>41 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/statement-import-ormaos-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>7</td><td>128,645</td><td>46 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/statement-import-ormaos-3.jsonl">stream</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="files" aria-labelledby="files-title">
+<h2 id="files-title">The results files</h2>
+<ul class="rows">
+  <li>The benchmark: <a href="/benchmarks/fix/">fix</a></li>
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703"><code>agent-bench/results/20261126-220703</code></a></li>
+</ul>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>

@@ -14,6 +14,8 @@ It is published at <https://ormaos.com/demo>. `404.html` is what any other addre
 python3 site/benchmarks/build.py
 ```
 
+Besides the index and one page per benchmark, there is one page per situation, `benchmarks/cases/<benchmark>-<name>/` (the executions of knows2 and the programs of fix): what happened, what the agent was given, run 1 of each arm side by side from its stream, and every run. The build reads every results folder of a benchmark whose `results.jsonl` is committed, oldest first; the benchmark's own page describes the first, and every folder counts on the situation pages and the overview, grouped by agent (command line, model and effort, from each record). A new results folder needs no change to the build, but it must be committed: `agent-bench/knows2/.gitignore` ignores `results/*` except the folders it names.
+
 CI runs it with `--check`, which fails when `benchmarks/` or `benchmarks.md` is not what a fresh build writes. `--overhead ../ormaos-python` first takes `bench/RESULTS.md` again from a checkout of ormaos-python, with the commit that last changed it. The build names the commit that added each results file, so it needs the full git history.
 
 The pages link to each other with absolute paths under `/benchmarks/`. On ormaos.com, `ormaos-demo-proxy` passes `ormaos.com/benchmarks*` to this Pages project with the path kept, as it does for `/demo`.

@@ -722,7 +722,7 @@
 <h2 id="web-backend-title">For web backends</h2>
 <p>A FastAPI service over a SQLite database of customers, products and orders, with one route that lists a customer&#x27;s orders, each with its total. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/web-backend"><code>use-cases/web-backend</code></a>.</p>
 <p>The execution: <code>.venv/bin/python main.py</code> ran once in this folder.</p>
-<p>Mean score: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 0.96, <code>ormaos-values</code> 1.00.</p>
+<p>Mean score: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 0.96, <code>ormaos-values</code> 1.00. Run 1 of each arm side by side, and every run: <a href="/benchmarks/cases/knows2-web-backend/">the situation&#x27;s page</a>.</p>
 <figure class="chart">
 <svg viewBox="0 0 462 280" role="img" aria-labelledby="q-web-backend-t q-web-backend-d" xmlns="http://www.w3.org/2000/svg" class="fit" style="max-width:462px">
 <title id="q-web-backend-t">Runs right per question and arm, web-backend</title>
@@ -917,7 +917,7 @@
 <h2 id="data-pipeline-title">For data pipelines</h2>
 <p>A monthly report made with pandas from two exports: it drops the orders without an amount and repeated order numbers, joins each order to its customer and sums the amounts by region. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/data-pipeline"><code>use-cases/data-pipeline</code></a>.</p>
 <p>The execution: <code>.venv/bin/python pipeline.py</code> ran once in this folder. Taken out of the folder afterwards: <code>orders.csv</code> and <code>customers.csv</code>.</p>
-<p>Mean score: <code>none</code> 0.25, <code>raw</code> 0.38, <code>ormaos</code> 0.88, <code>ormaos-values</code> 0.92.</p>
+<p>Mean score: <code>none</code> 0.25, <code>raw</code> 0.38, <code>ormaos</code> 0.88, <code>ormaos-values</code> 0.92. Run 1 of each arm side by side, and every run: <a href="/benchmarks/cases/knows2-data-pipeline/">the situation&#x27;s page</a>.</p>
 <figure class="chart">
 <svg viewBox="0 0 462 280" role="img" aria-labelledby="q-data-pipeline-t q-data-pipeline-d" xmlns="http://www.w3.org/2000/svg" class="fit" style="max-width:462px">
 <title id="q-data-pipeline-t">Runs right per question and arm, data-pipeline</title>
@@ -1112,7 +1112,7 @@
 <h2 id="notebook-title">For notebooks</h2>
 <p>A Jupyter notebook that reads the sales of the week, leaves out single sales above a limit, adds tax and sums the week; its cells ran in the order of their saved execution counts. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/notebook"><code>use-cases/notebook</code></a>.</p>
 <p>The execution: The code cells of report.ipynb ran once in a Jupyter kernel of <code>.venv/bin/python</code>, in this folder, in the order of the execution counts saved in the notebook. Taken out of the folder afterwards: <code>sales.csv</code>.</p>
-<p>Mean score: <code>none</code> 0.50, <code>raw</code> 0.62, <code>ormaos</code> 0.62, <code>ormaos-values</code> 0.62.</p>
+<p>Mean score: <code>none</code> 0.50, <code>raw</code> 0.62, <code>ormaos</code> 0.62, <code>ormaos-values</code> 0.62. Run 1 of each arm side by side, and every run: <a href="/benchmarks/cases/knows2-notebook/">the situation&#x27;s page</a>.</p>
 <figure class="chart">
 <svg viewBox="0 0 462 280" role="img" aria-labelledby="q-notebook-t q-notebook-d" xmlns="http://www.w3.org/2000/svg" class="fit" style="max-width:462px">
 <title id="q-notebook-t">Runs right per question and arm, notebook</title>
@@ -1307,7 +1307,7 @@
 <h2 id="ml-training-title">For ML training</h2>
 <p>A PyTorch model trained on CPU that predicts how long a delivery takes, on data made from a seed; each batch is standardized, and a batch whose loss is not finite is left out. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/ml-training"><code>use-cases/ml-training</code></a>.</p>
 <p>The execution: <code>.venv/bin/python train.py</code> ran once in this folder.</p>
-<p>Mean score: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00.</p>
+<p>Mean score: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00. Run 1 of each arm side by side, and every run: <a href="/benchmarks/cases/knows2-ml-training/">the situation&#x27;s page</a>.</p>
 <figure class="chart">
 <svg viewBox="0 0 462 280" role="img" aria-labelledby="q-ml-training-t q-ml-training-d" xmlns="http://www.w3.org/2000/svg" class="fit" style="max-width:462px">
 <title id="q-ml-training-t">Runs right per question and arm, ml-training</title>
@@ -1502,7 +1502,7 @@
 <h2 id="rl-env-title">For RL environments</h2>
 <p>A grid world in pure Python, where a courier walks from a depot to a customer, and a loop that runs episodes of it with a seeded policy. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/rl-env"><code>use-cases/rl-env</code></a>.</p>
 <p>The execution: <code>python3 run.py</code> ran once in this folder.</p>
-<p>Mean score: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00.</p>
+<p>Mean score: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00. Run 1 of each arm side by side, and every run: <a href="/benchmarks/cases/knows2-rl-env/">the situation&#x27;s page</a>.</p>
 <figure class="chart">
 <svg viewBox="0 0 462 280" role="img" aria-labelledby="q-rl-env-t q-rl-env-d" xmlns="http://www.w3.org/2000/svg" class="fit" style="max-width:462px">
 <title id="q-rl-env-t">Runs right per question and arm, rl-env</title>
@@ -1697,7 +1697,7 @@
 <h2 id="ai-app-title">For AI apps</h2>
 <p>An app that sends each support ticket to a model API, a local stand-in with a small and a large model, and keeps a one-sentence summary of each ticket. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/ai-app"><code>use-cases/ai-app</code></a>.</p>
 <p>The execution: <code>python3 app.py</code> ran once in this folder. Taken out of the folder afterwards: <code>tickets.json</code>.</p>
-<p>Mean score: <code>none</code> 0.29, <code>raw</code> 0.86, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00.</p>
+<p>Mean score: <code>none</code> 0.29, <code>raw</code> 0.86, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00. Run 1 of each arm side by side, and every run: <a href="/benchmarks/cases/knows2-ai-app/">the situation&#x27;s page</a>.</p>
 <figure class="chart">
 <svg viewBox="0 0 462 250" role="img" aria-labelledby="q-ai-app-t q-ai-app-d" xmlns="http://www.w3.org/2000/svg" class="fit" style="max-width:462px">
 <title id="q-ai-app-t">Runs right per question and arm, ai-app</title>
@@ -1873,7 +1873,7 @@
 <h2 id="agent-change-title">For changes made by an agent</h2>
 <p>A small billing tool in a git repository that writes invoices and refunds, run at each of two commits: before and after a change that a coding agent made. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/agent-change"><code>use-cases/agent-change</code></a>.</p>
 <p>The execution: This folder is a git repository with two commits. <code>python3 run.py</code> ran once at the first commit (that execution is r1) and once at the second (r2).</p>
-<p>Mean score: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00.</p>
+<p>Mean score: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00. Run 1 of each arm side by side, and every run: <a href="/benchmarks/cases/knows2-agent-change/">the situation&#x27;s page</a>.</p>
 <figure class="chart">
 <svg viewBox="0 0 462 280" role="img" aria-labelledby="q-agent-change-t q-agent-change-d" xmlns="http://www.w3.org/2000/svg" class="fit" style="max-width:462px">
 <title id="q-agent-change-t">Runs right per question and arm, agent-change</title>
@@ -2066,9 +2066,9 @@
 
 <section class="band" id="order-sync" aria-labelledby="order-sync-title">
 <h2 id="order-sync-title">For scheduled jobs: order-sync</h2>
-<p>A scheduled job that applies the new orders of a sales system to a warehouse inventory; the execution is a night on which it printed its OK line and some orders did not reach the inventory. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/order-sync"><code>order-sync</code></a>.</p>
+<p>A scheduled job that applies the new orders of a sales system to a warehouse inventory. The execution is a night on which it printed its OK line and some orders did not reach the inventory. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/order-sync"><code>order-sync</code></a>.</p>
 <p>The execution: Last night cron ran <code>python3 job.py --source api</code> in this folder; since then the sales system has replaced its orders with today&#x27;s.</p>
-<p>Mean score: <code>none</code> 0.38, <code>raw</code> 1.00, <code>ormaos</code> 0.92, <code>ormaos-values</code> 1.00.</p>
+<p>Mean score: <code>none</code> 0.38, <code>raw</code> 1.00, <code>ormaos</code> 0.92, <code>ormaos-values</code> 1.00. Run 1 of each arm side by side, and every run: <a href="/benchmarks/cases/knows2-order-sync/">the situation&#x27;s page</a>.</p>
 <figure class="chart">
 <svg viewBox="0 0 462 280" role="img" aria-labelledby="q-order-sync-t q-order-sync-d" xmlns="http://www.w3.org/2000/svg" class="fit" style="max-width:462px">
 <title id="q-order-sync-t">Runs right per question and arm, order-sync</title>
@@ -2261,9 +2261,9 @@
 
 <section class="band" id="freight-quote" aria-labelledby="freight-quote-title">
 <h2 id="freight-quote-title">For scheduled jobs: freight-quote</h2>
-<p>A scheduled job that asks a carrier&#x27;s rate API for the freight of tomorrow&#x27;s shipments and writes one quote per shipment; the execution is a night on which some calls were refused. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/freight-quote"><code>freight-quote</code></a>.</p>
+<p>A scheduled job that asks a carrier&#x27;s rate API for the freight of tomorrow&#x27;s shipments and writes one quote per shipment. The execution is a night on which some calls were refused. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/freight-quote"><code>freight-quote</code></a>.</p>
 <p>The execution: Last night cron ran <code>python3 job.py</code> in this folder; since then the dispatch list has been replaced with today&#x27;s and the carrier&#x27;s count of calls has started again.</p>
-<p>Mean score: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00.</p>
+<p>Mean score: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00. Run 1 of each arm side by side, and every run: <a href="/benchmarks/cases/knows2-freight-quote/">the situation&#x27;s page</a>.</p>
 <figure class="chart">
 <svg viewBox="0 0 462 280" role="img" aria-labelledby="q-freight-quote-t q-freight-quote-d" xmlns="http://www.w3.org/2000/svg" class="fit" style="max-width:462px">
 <title id="q-freight-quote-t">Runs right per question and arm, freight-quote</title>

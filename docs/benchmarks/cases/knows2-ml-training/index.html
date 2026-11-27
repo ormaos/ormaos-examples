@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ml-training, in knows2 · Ormaos benchmarks</title>
+<meta name="description" content="ml-training, in knows2: what happened, what the agent was given, run 1 of each arm side by side, and every run.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/cases/knows2-ml-training.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long bench">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://docs.ormaos.com/">Docs</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<p class="kicker">Situation · knows2</p>
+<h1 id="top-title">ml-training, in knows2</h1>
+<p class="lead">A ML training. A PyTorch model trained on CPU that predicts how long a delivery takes, on data made from a seed; each batch is standardized, and a batch whose loss is not finite is left out. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/ml-training"><code>use-cases/ml-training</code></a>.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<p>Mean score over every run: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00 (3 runs per arm). Agent: <code>claude-code / claude-opus-5-5</code>.</p>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#happened">What happened</a></li>
+  <li><a href="#given">What the agent was given</a></li>
+  <li><a href="#side-by-side">Run 1 of each arm, side by side</a></li>
+  <li><a href="#answered">What Ormaos data answered</a></li>
+  <li><a href="#runs">Every run</a></li>
+  <li><a href="#files">The results files</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="happened" aria-labelledby="happened-title">
+<h2 id="happened-title">What happened</h2>
+<p>38 batches produced an optimizer update and 2 were left out because their loss was not finite: positions 10, 11. In each batch left out, the <code>weekend</code> column had the one value 0.0; 38 batches had both values of it.</p>
+<p>The numbers are the oracle&#x27;s answers to the questions below: <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/oracle/ml-training.json"><code>oracle/ml-training.json</code></a>.</p>
+</section>
+
+<section class="band" id="given" aria-labelledby="given-title">
+<h2 id="given-title">What the agent was given</h2>
+<p>The folder the execution left, with what the arm adds, and 8 questions in <code>questions.json</code>, written by a model that was not told about Ormaos. The oracle&#x27;s answers were not in the folder.</p>
+<div class="table-wrap">
+<table class="plain questions">
+<thead><tr><th scope="col">Question</th><th scope="col">Asked</th><th scope="col">Format</th><th scope="col">The oracle&#x27;s answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>Of the 40 batches counted in the printed &quot;trained 40 steps&quot;, how many actually produced an Adam optimizer update (optimizer.step() called)?</td><td>integer</td><td><code>38</code></td></tr>
+<tr><td>q2</td><td>How many batches were skipped because their loss was not a finite number?</td><td>integer</td><td><code>2</code></td></tr>
+<tr><td>q3</td><td>Which batches were skipped because of a non-finite loss? Give their 0-based positions in the order the batches were processed.</td><td>JSON list of integers in ascending order, e.g. [3, 17]</td><td><code>[10, 11]</code></td></tr>
+<tr><td>q4</td><td>Which input feature column caused the skipped batches&#x27; losses to be non-finite, because its standard deviation within the batch was zero?</td><td>one of: distance, parcels, hour, weekend</td><td><code>&quot;weekend&quot;</code></td></tr>
+<tr><td>q5</td><td>Across all 320 generated rows, how many rows have the weekend flag set to 1.0?</td><td>integer</td><td><code>92</code></td></tr>
+<tr><td>q6</td><td>The printed &quot;last loss 379.2&quot; is the loss of which batch? Give its 0-based position in the order the batches were processed.</td><td>integer</td><td><code>39</code></td></tr>
+<tr><td>q7</td><td>In the batches that were skipped, what single value did the weekend flag take for all 8 rows?</td><td>number with one decimal, e.g. 0.0</td><td><code>0.0</code></td></tr>
+<tr><td>q8</td><td>How many of the 40 batches had a weekend flag that varied across their 8 rows (i.e. contained both 0.0 and 1.0)?</td><td>integer</td><td><code>38</code></td></tr>
+</tbody>
+</table>
+</div>
+<details class="text">
+<summary>The prompt of each arm, verbatim</summary>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>none</code></span></figcaption>
+<pre tabindex="0"><code>`.venv/bin/python train.py` ran once in this folder. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>raw</code></span></figcaption>
+<pre tabindex="0"><code>`.venv/bin/python train.py` ran once in this folder. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. A VizTracer trace of that execution is in result.json, in the Chrome Trace Event format (JSON; &quot;traceEvents&quot; has one entry per function call, with its name, its start &quot;ts&quot; and its duration &quot;dur&quot; in microseconds); read it with python3.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos</code></span></figcaption>
+<pre tabindex="0"><code>`.venv/bin/python train.py` ran once in this folder. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. That execution was recorded with Ormaos: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos-values</code></span></figcaption>
+<pre tabindex="0"><code>`.venv/bin/python train.py` ran once in this folder. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. That execution was recorded with Ormaos, values included: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+</details>
+</section>
+
+<section class="band" id="side-by-side" aria-labelledby="side-by-side-title">
+<h2 id="side-by-side-title">Run 1 of each arm, side by side</h2>
+<p>Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent&#x27;s tool calls in order; under each <code>ormaos</code> command, the lines of its output that hold a value the agent wrote in <code>answers.json</code>, or its first 15 lines, with a link to the full output in the stream.</p>
+<div class="sbs" style="--cols:4">
+<article class="arm-col a1">
+<h4><code>none</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-none-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">5 tool calls, 58,669 tokens, 29 s</p>
+<p class="part">Commands, in order (5)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/ml-training; ls -la; cat questions.json</pre></li>
+<li><pre class="cmd-text">cd /srv/ml-training; cat train.py README.md requirements.txt; ls .venv/lib/*/site-packages | head -50</pre></li>
+<li><pre class="cmd-text">mkdir -p /tmp/an &amp;&amp; cat &gt; /tmp/an/a.py &lt;&lt;&#x27;EOF&#x27;
+import sys; sys.path.insert(0,&#x27;/srv/ml-training&#x27;)
+import torch
+from torch import nn
+import train
+torch.manual_seed(0)
+f,m=train.make_data()
+print(&quot;weekend ones&quot;, int((f[:,3]==1.0).sum()))
+model = nn.Sequential(nn.Linear(4, 16), nn.ReLU(), nn.Linear(16, 1))
+opt = torch.optim.Adam(model.parameters(), lr=0.05)
+skipped=[];varied=0;last=None;upd=0
+for i,(b,t) in enumerate(train.batches(f,m)):</pre><p class="note">… 11 more lines of this command</p></li>
+<li><pre class="cmd-text">cd /srv/ml-training; cat &gt; answers.json &lt;&lt;&#x27;EOF&#x27;
+{&quot;q1&quot;: 38, &quot;q2&quot;: 2, &quot;q3&quot;: [10, 11], &quot;q4&quot;: &quot;weekend&quot;, &quot;q5&quot;: 92, &quot;q6&quot;: 39, &quot;q7&quot;: 0.0, &quot;q8&quot;: 38}
+EOF
+cat answers.json</pre></li>
+<li><pre class="cmd-text">cd /srv/ml-training; ls -la; rm -rf __pycache__ /tmp/an; ls</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>2</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>[10, 11]</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>&quot;weekend&quot;</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>92</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>39</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>0.0</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>38</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a2">
+<h4><code>raw</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-raw-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">5 tool calls, 60,364 tokens, 41 s</p>
+<p class="part">Commands, in order (5)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/ml-training; ls -la; cat questions.json; python3 -c &quot;
+import json;d=json.load(open(&#x27;result.json&#x27;));e=d[&#x27;traceEvents&#x27;];print(len(e));print(e[:3])&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/ml-training; cat train.py README.md; python3 -c &quot;
+import json,collections;d=json.load(open(&#x27;result.json&#x27;));e=d[&#x27;traceEvents&#x27;];print(d.keys(), {k:v for k,v in d.items() if k!=&#x27;traceEvents&#x27;})
+c=collections.Counter(x[&#x27;name&#x27;] for x in e if &#x27;train.py&#x27; in x.get(&#x27;name&#x27;,&#x27;&#x27;));print(c)
+c=collections.Counter(x[&#x27;name&#x27;] for x in e);print([k for k in c if &#x27;step&#x27; in k or &#x27;isfinite&#x27; in k or &#x27;Adam&#x27; in k][:50])
+&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/ml-training; sed -n 60,200p train.py; python3 -c &quot;
+import json,collections;d=json.load(open(&#x27;result.json&#x27;));e=[x for x in d[&#x27;traceEvents&#x27;] if x.get(&#x27;ph&#x27;)==&#x27;X&#x27;];e.sort(key=lambda x:x[&#x27;ts&#x27;])
+print(e[0][&#x27;ts&#x27;],e[-1][&#x27;ts&#x27;])
+for n in [&#x27;train_step&#x27;,&#x27;apply_update&#x27;,&#x27;standardize&#x27;,&#x27;make_data&#x27;,&#x27;save_checkpoint&#x27;,&#x27;main&#x27;,&#x27;batches&#x27;]:
+  m=[x for x in e if x[&#x27;name&#x27;].startswith(n+&#x27; &#x27;)]; print(n,len(m),[x[&#x27;name&#x27;] for x in m[:1]])
+&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/ml-training; python3 -c &quot;
+import json;d=json.load(open(&#x27;result.json&#x27;));e=[x for x in d[&#x27;traceEvents&#x27;] if x.get(&#x27;ph&#x27;)==&#x27;X&#x27;]
+ts=sorted([x for x in e if x[&#x27;name&#x27;].startswith(&#x27;train_step &#x27;)],key=lambda x:x[&#x27;ts&#x27;])
+au=[x for x in e if x[&#x27;name&#x27;].startswith(&#x27;apply_update &#x27;)]
+sk=[i for i,t in enumerate(ts) if not any(t[&#x27;ts&#x27;]&lt;=a[&#x27;ts&#x27;]&lt;=t[&#x27;ts&#x27;]+t[&#x27;dur&#x27;] for a in au)];print(&#x27;skipped&#x27;,sk)
+&quot;
+python3 -I -c &quot;
+import random
+rng=random.Random(5);F=[]
+for _ in range(320):
+  d=rng.uniform(1,30);p=rng.randint(1,12);h=rng.randint(8,20);w=1.0 if rng.random()&lt;0.3 else 0.0;F.append([d,p,h,w]);rng.gauss(0,3)
+print(sum(f[3] for f in F))</pre><p class="note">… 6 more lines of this command</p></li>
+<li><pre class="cmd-text">cd /srv/ml-training; cat &gt; answers.json &lt;&lt;&#x27;E&#x27;
+{&quot;q1&quot;: 38, &quot;q2&quot;: 2, &quot;q3&quot;: [10, 11], &quot;q4&quot;: &quot;weekend&quot;, &quot;q5&quot;: 92, &quot;q6&quot;: 39, &quot;q7&quot;: 0.0, &quot;q8&quot;: 38}
+E
+cat answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>2</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>[10, 11]</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>&quot;weekend&quot;</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>92</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>39</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>0.0</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>38</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a3">
+<h4><code>ormaos</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-ormaos-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">6 tool calls, 119,744 tokens, 41 s</p>
+<p class="part">Commands, in order (6)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/ml-training; .venv/bin/ormaos guide; ls -la; cat questions.json</pre><pre class="out">-rw-rw-r-- 1 levimbraga levimbraga   11 Nov 27 13:22 requirements.txt</pre><p class="note">Output: the 1 line of 179 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-ormaos-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/ml-training; cat train.py README.md; .venv/bin/ormaos list; .venv/bin/ormaos show last</pre><pre class="out">    &quot;&quot;&quot;Distance, parcels, hour of the day and a weekend flag; minutes to deliver.&quot;&quot;&quot;
+        weekend = 1.0 if rng.random() &lt; 0.3 else 0.0
+        features.append([distance, parcels, hour, weekend])
+        minutes.append(4 * distance + 2 * parcels + 6 * weekend + rng.gauss(0, 3))
+A PyTorch model, trained on CPU, that predicts the minutes a delivery takes from four features: distance, number of parcels, hour of the day and a weekend flag. The data is made by the script, the same every time. Each batch of 8 rows is standardized, the model takes one Adam step per batch, and a batch whose loss is not a finite number is left out. The weights are saved to `model.pt`.
+r1  2026-11-27 16:57:19  complete  exit 0  2.18s  1 process, 203 calls, 0 exceptions (0 swallowed), 10 io  .venv/bin/python train.py
+io: 10 events (file 10)
+tensors: an array or a tensor was an argument or a result 400 times, 10 with NaN or inf: return of standardize at train.py:32  [r1:c56]</pre><p class="note">Output: the 8 lines of 107 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-ormaos-1.jsonl?plain=1#L7">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/ml-training; .venv/bin/ormaos tree r1 --function train_step --limit 100 | head -150; .venv/bin/ormaos tree r1 --function apply_update | tail -5</pre><pre class="out">      minutes: shape 8, float32, cpu, nan 0, inf 0, min 11.9655, max 129.572
+      minutes: shape 8, float32, cpu, nan 0, inf 0, min 10.0131, max 127.583</pre><p class="note">Output: the 2 lines of 127 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-ormaos-1.jsonl?plain=1#L12">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/ml-training; .venv/bin/ormaos tree r1:c55; .venv/bin/ormaos tree r1:c59; .venv/bin/ormaos tree r1 --function apply_update --offset 30</pre><pre class="out">r1: 38 of the 203 calls match --function apply_update (38 apply_update; 0 raised)</pre><p class="note">Output: the 1 line of 48 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-ormaos-1.jsonl?plain=1#L21">Full output</a></p></li>
+<li><pre class="cmd-text">mkdir -p /tmp/chk &amp;&amp; cat &gt; /tmp/chk/gen.py &lt;&lt;&#x27;EOF&#x27;
+import random
+rng = random.Random(5); rows=[]
+for _ in range(320):
+    d=rng.uniform(1,30); p=rng.randint(1,12); h=rng.randint(8,20)
+    w=1.0 if rng.random()&lt;0.3 else 0.0
+    m=4*d+2*p+6*w+rng.gauss(0,3); rows.append((d,p,h,w,m))
+print(&quot;weekend ones&quot;, sum(r[3] for r in rows))
+var=0
+for b in range(40):
+    br=rows[b*8:b*8+8]; ws={r[3] for r in br}
+    var+= len(ws)&gt;1</pre><p class="note">… 5 more lines of this command</p></li>
+<li><pre class="cmd-text">cd /srv/ml-training; cat &gt; answers.json &lt;&lt;&#x27;EOF&#x27;
+{&quot;q1&quot;: 38, &quot;q2&quot;: 2, &quot;q3&quot;: [10, 11], &quot;q4&quot;: &quot;weekend&quot;, &quot;q5&quot;: 92, &quot;q6&quot;: 39, &quot;q7&quot;: 0.0, &quot;q8&quot;: 38}
+EOF
+.venv/bin/python -I -c &quot;import json;print(json.load(open(&#x27;answers.json&#x27;)))&quot;</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>2</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>[10, 11]</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>&quot;weekend&quot;</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>92</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>39</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>0.0</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>38</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a4">
+<h4><code>ormaos-values</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-ormaos-values-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">6 tool calls, 130,419 tokens, 38 s</p>
+<p class="part">Commands, in order (6)</p><ol class="steps">
+<li><pre class="cmd-text">cat questions.json &amp;&amp; ls -la &amp;&amp; .venv/bin/ormaos guide</pre><pre class="out">-rw-rw-r-- 1 levimbraga levimbraga   11 Nov 27 13:22 requirements.txt</pre><p class="note">Output: the 1 line of 179 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-ormaos-values-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">cat train.py README.md &amp;&amp; .venv/bin/ormaos show last --full</pre><pre class="out">    &quot;&quot;&quot;Distance, parcels, hour of the day and a weekend flag; minutes to deliver.&quot;&quot;&quot;
+        weekend = 1.0 if rng.random() &lt; 0.3 else 0.0
+        features.append([distance, parcels, hour, weekend])
+        minutes.append(4 * distance + 2 * parcels + 6 * weekend + rng.gauss(0, 3))
+A PyTorch model, trained on CPU, that predicts the minutes a delivery takes from four features: distance, number of parcels, hour of the day and a weekend flag. The data is made by the script, the same every time. Each batch of 8 rows is standardized, the model takes one Adam step per batch, and a batch whose loss is not a finite number is left out. The weights are saved to `model.pt`.
+header: format provisional-0, ormaos 0.0.1, mode run, started 2026-11-27 16:57:21, platform linux, in .ormaos/r1
+io: 10 events (file 10)
+tensors: an array or a tensor was an argument or a result 400 times, 10 with NaN or inf: return of standardize at train.py:32  [r1:c56]</pre><p class="note">Output: the 8 lines of 131 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-ormaos-values-1.jsonl?plain=1#L7">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos tree r1 --function train_step --limit 100 | head -150; .venv/bin/ormaos tree r1 --function apply_update --limit 100 | head -20</pre><pre class="out">      minutes: shape 8, float32, cpu, nan 0, inf 0, min 11.9655, max 129.572
+      minutes: shape 8, float32, cpu, nan 0, inf 0, min 10.0131, max 127.583
+r1: 38 of the 203 calls match --function apply_update (38 apply_update; 0 raised)</pre><p class="note">Output: the 3 lines of 142 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-ormaos-values-1.jsonl?plain=1#L12">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos tree r1:c55; .venv/bin/ormaos tree r1:c59; .venv/bin/ormaos tree r1 --function make_data</pre><pre class="out">inside: r1:c1 &lt;module&gt; &gt; r1:c2 main
+r1:c55 train_step(model: torch.nn.modules.container.Sequential, optimizer: torch.optim.adam.Adam, ...) -&gt; NoneType  train.py:50  642us  calls below: 3
+      batch: shape 8x4, float32, cpu, nan 0, inf 0, min 0, max 26.9506
+      minutes: shape 8, float32, cpu, nan 0, inf 0, min 14.056, max 116.502
+  r1:c56 standardize(batch: Tensor[8x4 float32 cpu]) -&gt; Tensor[8x4 float32 cpu]  train.py:32  59us
+        batch: shape 8x4, float32, cpu, nan 0, inf 0, min 0, max 26.9506
+        returned: shape 8x4, float32, cpu, nan 8, inf 0, min -1.41653, max 2.45451
+  r1:c57 predict(model: torch.nn.modules.container.Sequential, batch: Tensor[8x4 float32 cpu]) -&gt; Tensor[8 float32 cpu]  train.py:36  121us
+        batch: shape 8x4, float32, cpu, nan 8, inf 0, min -1.41653, max 2.45451
+        returned: shape 8, float32, cpu, nan 8, inf 0
+  r1:c58 loss_of(predicted: Tensor[8 float32 cpu], minutes: Tensor[8 float32 cpu]) -&gt; Tensor[scalar float32 cpu]  train.py:40  106us
+        predicted: shape 8, float32, cpu, nan 8, inf 0
+        minutes: shape 8, float32, cpu, nan 0, inf 0, min 14.056, max 116.502
+        returned: shape scalar, float32, cpu, nan 1, inf 0
+next: ormaos tree r1:c2 | ormaos exceptions r1:c55</pre><p class="note">Output: the first 15 of 33 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-ormaos-values-1.jsonl?plain=1#L19">Full output</a></p></li>
+<li><pre class="cmd-text">cd /tmp &amp;&amp; /srv/ml-training/.venv/bin/python -I -c &quot;
+import random
+rng=random.Random(5);rows=[]
+for _ in range(320):
+    d=rng.uniform(1,30);p=rng.randint(1,12);h=rng.randint(8,20);w=1.0 if rng.random()&lt;0.3 else 0.0;rng.gauss(0,3);rows.append((d,p,h,w))
+print(sum(r[3] for r in rows))
+for b in range(40):
+    B=rows[b*8:b*8+8]
+    for i,n in enumerate(&#x27;dphw&#x27;):
+        if len({r[i] for r in B})==1: print(b,n,B[0][i])
+print(sum(1 for b in range(40) if len({r[3] for r in rows[b*8:b*8+8]})==2))
+&quot;</pre></li>
+<li><pre class="cmd-text">Write answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>2</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>[10, 11]</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>&quot;weekend&quot;</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>92</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>39</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>0.0</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>38</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+</div>
+</section>
+
+<section class="band" id="answered" aria-labelledby="answered-title">
+<h2 id="answered-title">What Ormaos data answered</h2>
+<p>Read from the streams: in each run of an Ormaos arm, the <code>ormaos</code> verbs in its commands up to its last write of <code>answers.json</code>. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them.</p>
+<div class="table-wrap">
+<table class="plain">
+<thead><tr><th scope="col">Question</th><th scope="col"><code>ormaos</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th><th scope="col"><code>ormaos-values</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, guide 3, list 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q2</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, guide 3, list 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q3</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, guide 3, list 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q4</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, guide 3, list 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q5</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, guide 3, list 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q6</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, guide 3, list 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q7</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, guide 3, list 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q8</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, guide 3, list 2</td><td>3/3</td><td>3/3</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="runs" aria-labelledby="runs-title">
+<h2 id="runs-title">Every run</h2>
+<p>Every run of every arm.</p>
+<div class="table-wrap">
+<table class="plain runs">
+<thead><tr><th scope="col">Arm</th><th scope="col">Run</th><th scope="col">Score</th><th scope="col">Right</th><th scope="col">Null</th><th scope="col">Wrong</th><th scope="col"><code>ormaos</code> verbs before answers.json</th><th scope="col">Tool calls</th><th scope="col">Tokens</th><th scope="col">Wall time</th><th scope="col">Stream</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>5</td><td>58,669</td><td>29 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-none-1.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>3</td><td>37,407</td><td>24 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-none-2.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>46,997</td><td>27 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-none-3.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>5</td><td>60,364</td><td>41 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-raw-1.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>5</td><td>62,110</td><td>41 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-raw-2.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>6</td><td>73,516</td><td>51 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-raw-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree</td><td>6</td><td>119,744</td><td>41 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-ormaos-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree</td><td>5</td><td>99,328</td><td>34 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-ormaos-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree</td><td>6</td><td>121,858</td><td>40 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-ormaos-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, show, tree</td><td>6</td><td>130,419</td><td>38 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-ormaos-values-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree</td><td>6</td><td>130,928</td><td>38 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-ormaos-values-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree</td><td>5</td><td>104,785</td><td>30 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ml-training-ormaos-values-3.jsonl">stream</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="files" aria-labelledby="files-title">
+<h2 id="files-title">The results files</h2>
+<ul class="rows">
+  <li>The benchmark: <a href="/benchmarks/knows2/#ml-training">knows2</a></li>
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801"><code>agent-bench/knows2/results/20261127-165801</code></a></li>
+</ul>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>

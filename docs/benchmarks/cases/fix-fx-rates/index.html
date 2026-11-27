@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fx-rates, in fix · Ormaos benchmarks</title>
+<meta name="description" content="fx-rates, in fix: what happened, what the agent was given, run 1 of each arm side by side, and every run.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/cases/fix-fx-rates.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long bench">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://docs.ormaos.com/">Docs</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<p class="kicker">Situation · fix</p>
+<h1 id="top-title">fx-rates, in fix</h1>
+<p class="lead">A scheduled job. By its README, it takes over exchange rates from a feed. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/bugs/fx-rates/task"><code>agent-bench/bugs/fx-rates/task</code></a>.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<p>Passed the check, first attempts: <code>none</code> 1/3, <code>raw</code> 3/3, <code>ormaos</code> 3/3 (3 runs per arm). Agent: <code>claude-code / claude-opus-5-5</code>.</p>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#happened">What happened</a></li>
+  <li><a href="#given">What the agent was given</a></li>
+  <li><a href="#side-by-side">Run 1 of each arm, side by side</a></li>
+  <li><a href="#runs">Every run</a></li>
+  <li><a href="#files">The results files</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="happened" aria-labelledby="happened-title">
+<h2 id="happened-title">What happened</h2>
+<p>That night cron ran <code>python3 job.py</code>; it printed <code>rates finished: OK</code> and exited with code 0. This morning 4 currencies still have the rate of the day before: <code>CAD</code>, <code>CHF</code>, <code>JPY</code> and <code>PLN</code>. Where it behaved otherwise than its README: a retry that makes its call once.</p>
+<p>The items are those the scenario&#x27;s own check of the data found, in <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/build.json"><code>build.json</code></a>.</p>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label">The symptom, from <code>TASK.md</code> in the agent&#x27;s folder</span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s rates run said OK, but this morning some currencies still have the rate published the day before, though the feed has a newer one.</code></pre>
+</figure>
+</section>
+
+<section class="band" id="given" aria-labelledby="given-title">
+<h2 id="given-title">What the agent was given</h2>
+<p>Its folder (the code, its README, <code>TASK.md</code> and the data that night left, with what the arm adds) and the task text, the same in every arm but for the arm&#x27;s last sentence:</p>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>none</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s rates run said OK, but this morning some currencies still have the rate published the day before, though the feed has a newer one. The job runs from cron with `python3 job.py`. Find the cause and fix it.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>raw</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s rates run said OK, but this morning some currencies still have the rate published the day before, though the feed has a newer one. The job runs from cron with `python3 job.py`. Find the cause and fix it. A VizTracer trace of that run is in result.json, in the Chrome Trace Event format (JSON; &quot;traceEvents&quot; has one entry per function call, with its name, its start &quot;ts&quot; and its duration &quot;dur&quot; in microseconds); read it with python3.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s rates run said OK, but this morning some currencies still have the rate published the day before, though the feed has a newer one. The job runs from cron with `python3 job.py`. Find the cause and fix it. That run was recorded with Ormaos: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+</section>
+
+<section class="band" id="side-by-side" aria-labelledby="side-by-side-title">
+<h2 id="side-by-side-title">Run 1 of each arm, side by side</h2>
+<p>Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent&#x27;s tool calls in order; under each <code>ormaos</code> command, the first 15 lines of its output, with a link to the full output in the stream.</p>
+<div class="sbs" style="--cols:3">
+<article class="arm-col a1">
+<h4><code>none</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/fx-rates-none-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">5 tool calls, 74,050 tokens, 43 s</p>
+<p class="part">Commands, in order (5)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; cat job.py</pre></li>
+<li><pre class="cmd-text">cat README.md TASK.md currencies.txt feed.py rates.py retry.py; ls -la data; cat data/feed.json | head -50</pre></li>
+<li><pre class="cmd-text">cat data/cron.log; echo ---; python3 rates.py; python3 -c &quot;import retry; print(retry.RETRY_STATUSES, 503 in retry.RETRY_STATUSES)&quot;</pre></li>
+<li><pre class="cmd-text">Edit retry.py</pre></li>
+<li><pre class="cmd-text">T=$(mktemp -d) &amp;&amp; cp data/rates.db $T/ &amp;&amp; python3 - &quot;$T&quot; &lt;&lt;&#x27;EOF&#x27;
+import json,sys
+s=json.load(open(&quot;data/feed.json&quot;)); s[&quot;busy&quot;]={&quot;CAD&quot;:1,&quot;CHF&quot;:2,&quot;JPY&quot;:3}
+json.dump(s,open(sys.argv[1]+&quot;/feed.json&quot;,&quot;w&quot;))
+EOF
+FX_RATES_LOG_LEVEL=INFO python3 job.py --db $T/rates.db --feed $T/feed.json; echo exit=$?; python3 rates.py --db $T/rates.db</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/retry.py
++++ retry.py
+@@ -9,7 +9,12 @@
+ ATTEMPTS = int(os.environ.get(&quot;FX_RATES_ATTEMPTS&quot;, &quot;3&quot;))
+ WAIT_SECONDS = float(os.environ.get(&quot;FX_RATES_WAIT_SECONDS&quot;, &quot;0.2&quot;))
+ # The answers that mean &quot;busy, ask again&quot;: bad gateway, unavailable, timeout.
+-RETRY_STATUSES = os.environ.get(&quot;FX_RATES_RETRY_STATUSES&quot;, &quot;502,503,504&quot;).split(&quot;,&quot;)
++# Parsed to ints: FeedError.status is the HTTP code as an int.
++RETRY_STATUSES = frozenset(
++    int(status)
++    for status in os.environ.get(&quot;FX_RATES_RETRY_STATUSES&quot;, &quot;502,503,504&quot;).split(&quot;,&quot;)
++    if status.strip()
++)
+ 
+ log = logging.getLogger(&quot;fx_rates.retry&quot;)
+ </code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  the feed is busy once for four currencies: exit 0, not as expected: none
+pass  the feed is never busy: exit 0, not as expected: none
+pass  a currency stays busy and another is not carried: exit 0, not as expected: none, 3 attempts
+fixed</code></pre>
+</figure>
+</article>
+<article class="arm-col a2">
+<h4><code>raw</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/fx-rates-raw-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">5 tool calls, 63,883 tokens, 38 s</p>
+<p class="part">Commands, in order (5)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; cat job.py &amp;&amp; ls -R | head -50</pre></li>
+<li><pre class="cmd-text">cat README.md TASK.md currencies.txt feed.py rates.py retry.py data/cron.log; head -c 1500 data/feed.json</pre></li>
+<li><pre class="cmd-text">python3 -I - &lt;&lt;&#x27;EOF&#x27;
+import json, collections
+ev = json.load(open(&quot;result.json&quot;))[&quot;traceEvents&quot;]
+c = collections.Counter(e.get(&quot;name&quot;) for e in ev)
+for n,k in c.items():
+    if any(s in n for s in (&quot;latest&quot;,&quot;worth_retrying&quot;,&quot;store&quot;,&quot;update&quot;,&quot;sleep&quot;,&quot;call (&quot;,&quot;FeedError&quot;,&quot;send_error&quot;)): print(k, n)
+for e in ev:
+    n=e.get(&quot;name&quot;,&quot;&quot;)
+    if n.startswith((&quot;latest&quot;,&quot;worth_retrying&quot;,&quot;update&quot;)) or &quot;time.sleep&quot; in n or n.startswith(&quot;store&quot;):
+        print(e[&quot;ts&quot;], e.get(&quot;dur&quot;), n, e.get(&quot;args&quot;,&quot;&quot;))
+EOF
+python3 rates.py</pre></li>
+<li><pre class="cmd-text">Edit retry.py</pre></li>
+<li><pre class="cmd-text">T=$(mktemp -d) &amp;&amp; cp data/rates.db $T/ &amp;&amp; python3 - &quot;$T&quot; &lt;&lt;&#x27;EOF&#x27;
+import json,sys
+s=json.load(open(&quot;data/feed.json&quot;)); s[&quot;busy&quot;]={&quot;CHF&quot;:1,&quot;JPY&quot;:2,&quot;PLN&quot;:1,&quot;CAD&quot;:1,&quot;USD&quot;:5}
+json.dump(s,open(sys.argv[1]+&quot;/feed.json&quot;,&quot;w&quot;))
+EOF
+FX_RATES_LOG_LEVEL=INFO python3 job.py --db $T/rates.db --feed $T/feed.json; echo exit=$?; python3 rates.py --db $T/rates.db</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/retry.py
++++ retry.py
+@@ -9,7 +9,12 @@
+ ATTEMPTS = int(os.environ.get(&quot;FX_RATES_ATTEMPTS&quot;, &quot;3&quot;))
+ WAIT_SECONDS = float(os.environ.get(&quot;FX_RATES_WAIT_SECONDS&quot;, &quot;0.2&quot;))
+ # The answers that mean &quot;busy, ask again&quot;: bad gateway, unavailable, timeout.
+-RETRY_STATUSES = os.environ.get(&quot;FX_RATES_RETRY_STATUSES&quot;, &quot;502,503,504&quot;).split(&quot;,&quot;)
++# HTTP status codes are ints (FeedError.status), so parse the list into ints.
++RETRY_STATUSES = frozenset(
++    int(status)
++    for status in os.environ.get(&quot;FX_RATES_RETRY_STATUSES&quot;, &quot;502,503,504&quot;).split(&quot;,&quot;)
++    if status.strip()
++)
+ 
+ log = logging.getLogger(&quot;fx_rates.retry&quot;)
+ </code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  the feed is busy once for four currencies: exit 0, not as expected: none
+pass  the feed is never busy: exit 0, not as expected: none
+pass  a currency stays busy and another is not carried: exit 0, not as expected: none, 3 attempts
+fixed</code></pre>
+</figure>
+</article>
+<article class="arm-col a3">
+<h4><code>ormaos</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/fx-rates-ormaos-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">6 tool calls, 96,890 tokens, 40 s</p>
+<p class="part">Commands, in order (6)</p><ol class="steps">
+<li><pre class="cmd-text">.venv/bin/ormaos guide; ls -la; ls -la .ormaos</pre><pre class="out">ormaos: what happened inside a Python run, to read instead of guessing.
+
+WHEN TO USE IT
+- A Python program runs, and its output does not explain what it did: a job
+  that prints OK, an error that never shows, a result you cannot trace.
+- You want to see what ran: the project&#x27;s calls with the shape of their
+  arguments, every exception (also the caught ones), the SQL statements,
+  files, subprocesses and HTTP requests.
+
+WHERE TO START
+1. Record:  ormaos run -- &lt;command&gt;
+   The command runs unchanged (same output, same exit code); its Python must
+   have ormaos installed. In a script or notebook: `with ormaos.record():`.
+2. Read the summary printed on stderr: at most 5 lines, each starting with
+   &quot;ormaos:&quot;. To see it again, with more: ormaos show</pre><p class="note">Output: the first 15 of 68 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/fx-rates-ormaos-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos show; .venv/bin/ormaos exceptions last; cat TASK.md README.md currencies.txt; ls -la data</pre><pre class="out">r1 exit 0 in 0.62s: 1 Python process, 100 calls, 9 exceptions (4 swallowed, 0 uncaught)
+command: .venv/bin/python job.py
+swallowed 4x feed.FeedError at job.py:48 in update, raised at feed.py:41  [r1:e2]
+io: 69 events (file 22, sqlite 35, http 12)
+not collected: io: reads of the 1 file opened at job.py:39: opened for reading, and no `read` call by Python code was seen on a file of that name: if it was read, that was inside C code (a file that is iterated, `for line in f`, `csv.reader`)
+not collected: io: sockets, at feed.py:86 (once): a socket was connected or bound there; sockets are not recorded, only HTTP made through http.client or httpx is
+never recorded: values, and 13 more kinds of things (`ormaos show --json` lists them with the reason)
+next: ormaos exceptions r1:e2 | ormaos tree r1:c1 | ormaos io r1
+r1: 9 exceptions (4 swallowed, 0 uncaught)
+r1:e2 swallowed feed.FeedError  raised at feed.py:41  handled at job.py:48 in update
+r1:e4 swallowed feed.FeedError  raised at feed.py:41  handled at job.py:48 in update
+r1:e6 swallowed feed.FeedError  raised at feed.py:41  handled at job.py:48 in update
+r1:e8 swallowed feed.FeedError  raised at feed.py:41  handled at job.py:48 in update
+r1:e1 replaced urllib.error.HTTPError  raised at /usr/lib/python3.14/urllib/request.py:611  handled at feed.py:40 in latest
+r1:e3 replaced urllib.error.HTTPError  raised at /usr/lib/python3.14/urllib/request.py:611  handled at feed.py:40 in latest</pre><p class="note">Output: the first 15 of 91 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/fx-rates-ormaos-1.jsonl?plain=1#L8">Full output</a></p></li>
+<li><pre class="cmd-text">cat job.py feed.py retry.py rates.py data/cron.log data/feed.json; .venv/bin/ormaos exceptions r1:e1; .venv/bin/ormaos io r1 --kind http</pre><pre class="out">&quot;&quot;&quot;fx-rates: take over today&#x27;s exchange rates from the feed.
+
+Meant to run on a schedule (see README.md)::
+
+    python job.py
+
+For every currency in currencies.txt it asks the feed for the latest rate
+and stores it. Exit code 0 means the run is done; anything else means the
+job could not run.
+&quot;&quot;&quot;
+
+import argparse
+import logging
+import os
+import sys</pre><p class="note">Output: the first 15 of 336 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/fx-rates-ormaos-1.jsonl?plain=1#L10">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/python rates.py</pre></li>
+<li><pre class="cmd-text">Edit retry.py</pre></li>
+<li><pre class="cmd-text">T=$(mktemp -d) &amp;&amp; cp data/rates.db $T/ &amp;&amp; python3 -c &quot;
+import json,sys;s=json.load(open(&#x27;data/feed.json&#x27;));s[&#x27;busy&#x27;]={&#x27;CHF&#x27;:1,&#x27;JPY&#x27;:2,&#x27;PLN&#x27;:1,&#x27;CAD&#x27;:5};json.dump(s,open(sys.argv[1],&#x27;w&#x27;))&quot; $T/feed.json &amp;&amp; FX_RATES_LOG_LEVEL=INFO .venv/bin/python job.py --db $T/rates.db --feed $T/feed.json; echo exit=$?; .venv/bin/python rates.py --db $T/rates.db</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/retry.py
++++ retry.py
+@@ -9,7 +9,12 @@
+ ATTEMPTS = int(os.environ.get(&quot;FX_RATES_ATTEMPTS&quot;, &quot;3&quot;))
+ WAIT_SECONDS = float(os.environ.get(&quot;FX_RATES_WAIT_SECONDS&quot;, &quot;0.2&quot;))
+ # The answers that mean &quot;busy, ask again&quot;: bad gateway, unavailable, timeout.
+-RETRY_STATUSES = os.environ.get(&quot;FX_RATES_RETRY_STATUSES&quot;, &quot;502,503,504&quot;).split(&quot;,&quot;)
++# As ints: FeedError.status is the int HTTP code, so strings would never match.
++RETRY_STATUSES = {
++    int(code)
++    for code in os.environ.get(&quot;FX_RATES_RETRY_STATUSES&quot;, &quot;502,503,504&quot;).split(&quot;,&quot;)
++    if code.strip()
++}
+ 
+ log = logging.getLogger(&quot;fx_rates.retry&quot;)
+ </code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  the feed is busy once for four currencies: exit 0, not as expected: none
+pass  the feed is never busy: exit 0, not as expected: none
+pass  a currency stays busy and another is not carried: exit 0, not as expected: none, 3 attempts
+fixed</code></pre>
+</figure>
+</article>
+</div>
+</section>
+
+<section class="band" id="runs" aria-labelledby="runs-title">
+<h2 id="runs-title">Every run</h2>
+<p>The first attempt of every run of every arm.</p>
+<div class="table-wrap">
+<table class="plain runs">
+<thead><tr><th scope="col">Arm</th><th scope="col">Run</th><th scope="col">Check</th><th scope="col">Last line</th><th scope="col">Tool calls</th><th scope="col">Tokens</th><th scope="col">Wall time</th><th scope="col">Stream</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>5</td><td>74,050</td><td>43 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/fx-rates-none-1.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>2</td><td>did not pass</td><td><code>rates finished: WARNING held for review: HUF</code></td><td>7</td><td>91,607</td><td>50 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/fx-rates-none-2.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>3</td><td>did not pass</td><td><code>rates finished: INCOMPLETE (held for review: HUF)</code></td><td>8</td><td>109,670</td><td>54 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/fx-rates-none-3.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>5</td><td>63,883</td><td>38 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/fx-rates-raw-1.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>7</td><td>112,326</td><td>48 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/fx-rates-raw-2.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>5</td><td>74,942</td><td>38 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/fx-rates-raw-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>6</td><td>96,890</td><td>40 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/fx-rates-ormaos-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>6</td><td>93,700</td><td>36 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/fx-rates-ormaos-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>6</td><td>94,887</td><td>36 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/fx-rates-ormaos-3.jsonl">stream</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="files" aria-labelledby="files-title">
+<h2 id="files-title">The results files</h2>
+<ul class="rows">
+  <li>The benchmark: <a href="/benchmarks/fix/">fix</a></li>
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703"><code>agent-bench/results/20261126-220703</code></a></li>
+</ul>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>

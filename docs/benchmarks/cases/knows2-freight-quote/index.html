@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>freight-quote, in knows2 · Ormaos benchmarks</title>
+<meta name="description" content="freight-quote, in knows2: what happened, what the agent was given, run 1 of each arm side by side, and every run.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/cases/knows2-freight-quote.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long bench">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://docs.ormaos.com/">Docs</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<p class="kicker">Situation · knows2</p>
+<h1 id="top-title">freight-quote, in knows2</h1>
+<p class="lead">A scheduled job. A scheduled job that asks a carrier&#x27;s rate API for the freight of tomorrow&#x27;s shipments and writes one quote per shipment. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/freight-quote"><code>freight-quote</code></a>.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<p>Mean score over every run: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00 (3 runs per arm). Agent: <code>claude-code / claude-opus-5-5</code>.</p>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#happened">What happened</a></li>
+  <li><a href="#given">What the agent was given</a></li>
+  <li><a href="#side-by-side">Run 1 of each arm, side by side</a></li>
+  <li><a href="#answered">What Ormaos data answered</a></li>
+  <li><a href="#runs">Every run</a></li>
+  <li><a href="#files">The results files</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="happened" aria-labelledby="happened-title">
+<h2 id="happened-title">What happened</h2>
+<p>The run wrote 26 quotes: 9 from the carrier stand-in&#x27;s answer and 17 from the contract rate card, after the stand-in refused 17 requests with HTTP 429; the first quote from the rate card is <code>FR-8136</code>. <code>calls_used_today</code> went up by 9, the quotes add up to 114835 cents, and the job printed <code>quotes finished: OK</code>.</p>
+<p>The numbers are the oracle&#x27;s answers to the questions below: <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/oracle/freight-quote.json"><code>oracle/freight-quote.json</code></a>.</p>
+</section>
+
+<section class="band" id="given" aria-labelledby="given-title">
+<h2 id="given-title">What the agent was given</h2>
+<p>The folder the execution left, with what the arm adds, and 8 questions in <code>questions.json</code>, written by a model that was not told about Ormaos. The oracle&#x27;s answers were not in the folder.</p>
+<div class="table-wrap">
+<table class="plain questions">
+<thead><tr><th scope="col">Question</th><th scope="col">Asked</th><th scope="col">Format</th><th scope="col">The oracle&#x27;s answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>How many quote rows did the run write to the quotes table (that is, how many shipments were on the dispatch list it read)?</td><td>A non-negative integer, e.g. 42</td><td><code>26</code></td></tr>
+<tr><td>q2</td><td>For how many shipments was the written amount_cents the carrier stand-in&#x27;s answer (an HTTP 200 from /v1/rates), not a price from the contract rate card?</td><td>A non-negative integer, e.g. 37</td><td><code>9</code></td></tr>
+<tr><td>q3</td><td>For how many shipments did the carrier call fail, so that job.price silently fell back to ratecard.rate (the warning was not printed because the log level defaults to ERROR)?</td><td>A non-negative integer, e.g. 5</td><td><code>17</code></td></tr>
+<tr><td>q4</td><td>How many of the run&#x27;s rate requests did the stand-in refuse with HTTP 429 because the account&#x27;s calls_used_today had reached calls_per_day?</td><td>A non-negative integer, e.g. 3</td><td><code>17</code></td></tr>
+<tr><td>q5</td><td>What was the shipment_id of the first shipment, in dispatch-list order, whose quote came from the contract rate card instead of the carrier?</td><td>A single shipment_id string exactly as written in the dispatch list, or the string &quot;none&quot; if every quote came from the carrier</td><td><code>&quot;FR-8136&quot;</code></td></tr>
+<tr><td>q6</td><td>Which shipments were refused by the stand-in with HTTP 422 (chargeable weight above 1000 kg) and therefore quoted from the rate card?</td><td>A JSON list of shipment_id strings in dispatch-list order, e.g. [&quot;S-104&quot;, &quot;S-131&quot;]; [] if none</td><td><code>[]</code></td></tr>
+<tr><td>q7</td><td>By how much did the run increase calls_used_today in data/carrier.json (each request with the right account and quota left counts, including ones then refused with 404 or 422)?</td><td>A non-negative integer, e.g. 40</td><td><code>9</code></td></tr>
+<tr><td>q8</td><td>What was the sum of amount_cents over all quote rows the run wrote to the quotes table?</td><td>A non-negative integer number of euro cents, e.g. 1234567</td><td><code>114835</code></td></tr>
+</tbody>
+</table>
+</div>
+<details class="text">
+<summary>The prompt of each arm, verbatim</summary>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>none</code></span></figcaption>
+<pre tabindex="0"><code>Last night cron ran `python3 job.py` in this folder; since then the dispatch list has been replaced with today&#x27;s and the carrier&#x27;s count of calls has started again. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>raw</code></span></figcaption>
+<pre tabindex="0"><code>Last night cron ran `python3 job.py` in this folder; since then the dispatch list has been replaced with today&#x27;s and the carrier&#x27;s count of calls has started again. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. A VizTracer trace of that execution is in result.json, in the Chrome Trace Event format (JSON; &quot;traceEvents&quot; has one entry per function call, with its name, its start &quot;ts&quot; and its duration &quot;dur&quot; in microseconds); read it with python3.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos</code></span></figcaption>
+<pre tabindex="0"><code>Last night cron ran `python3 job.py` in this folder; since then the dispatch list has been replaced with today&#x27;s and the carrier&#x27;s count of calls has started again. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. That execution was recorded with Ormaos: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos-values</code></span></figcaption>
+<pre tabindex="0"><code>Last night cron ran `python3 job.py` in this folder; since then the dispatch list has been replaced with today&#x27;s and the carrier&#x27;s count of calls has started again. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. That execution was recorded with Ormaos, values included: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+</details>
+</section>
+
+<section class="band" id="side-by-side" aria-labelledby="side-by-side-title">
+<h2 id="side-by-side-title">Run 1 of each arm, side by side</h2>
+<p>Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent&#x27;s tool calls in order; under each <code>ormaos</code> command, the lines of its output that hold a value the agent wrote in <code>answers.json</code>, or its first 15 lines, with a link to the full output in the stream.</p>
+<div class="sbs" style="--cols:4">
+<article class="arm-col a1">
+<h4><code>none</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-none-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">6 tool calls, 120,175 tokens, 44 s</p>
+<p class="part">Commands, in order (6)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/freight-quote; ls -la; cat questions.json; cat job.py</pre></li>
+<li><pre class="cmd-text">cd /srv/freight-quote; cat README.md carrier.py quotes.py ratecard.py ratecard.csv shipments.py; ls -la data; cat data/carrier.json; head -5 data/shipments.csv; wc -l data/shipments.csv</pre></li>
+<li><pre class="cmd-text">cd /srv/freight-quote; cat data/cron.log; cat data/booked.csv; cat data/shipments.csv; sqlite3 data/quotes.db &#x27;select * from quotes order by rowid&#x27; 2&gt;/dev/null || python3 -I -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;data/quotes.db&#x27;)
+for r in c.execute(&#x27;select rowid,* from quotes order by rowid&#x27;):print(r)&quot;; ls -la ~ / 2&gt;/dev/null | head -40</pre></li>
+<li><pre class="cmd-text">cd /srv/freight-quote; mkdir -p /tmp/an; cat &gt; /tmp/an/a.py &lt;&lt;&#x27;EOF&#x27;
+import sqlite3,json,csv,sys
+sys.path.insert(0,&#x27;/srv/freight-quote&#x27;)
+import carrier,ratecard
+from types import SimpleNamespace as N
+st=json.load(open(&#x27;/srv/freight-quote/data/carrier.json&#x27;))
+card=ratecard.load()
+bk={r[&#x27;shipment_id&#x27;]:int(r[&#x27;charged_cents&#x27;]) for r in csv.DictReader(open(&#x27;/srv/freight-quote/data/booked.csv&#x27;))}
+c=sqlite3.connect(&#x27;/srv/freight-quote/data/quotes.db&#x27;)
+for sid,lane,svc,kg,amt,_ in c.execute(&#x27;select * from quotes order by rowid&#x27;):
+    t=carrier.tariff_price(st[&#x27;tariff&#x27;],lane,kg,svc)
+    r=ratecard.rate(card,N(lane=lane,service=svc,chargeable_kg=kg))</pre><p class="note">… 3 more lines of this command</p></li>
+<li><pre class="cmd-text">cd /srv/freight-quote; python3 -I -c &quot;
+import sqlite3;print(sqlite3.connect(&#x27;data/quotes.db&#x27;).execute(&#x27;select count(*),sum(amount_cents) from quotes&#x27;).fetchone())&quot;</pre></li>
+<li><pre class="cmd-text">Write answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>26</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>9</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>17</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>17</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>&quot;FR-8136&quot;</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>[]</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>9</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>114835</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a2">
+<h4><code>raw</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-raw-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">7 tool calls, 151,843 tokens, 56 s</p>
+<p class="part">Commands, in order (7)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/freight-quote; ls -la; cat questions.json; cat job.py</pre></li>
+<li><pre class="cmd-text">cd /srv/freight-quote; cat carrier.py quotes.py ratecard.py shipments.py ratecard.csv README.md; ls -la data; cat data/carrier.json</pre></li>
+<li><pre class="cmd-text">cd /srv/freight-quote/data; cat cron.log booked.csv shipments.csv; python3 -I -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;quotes.db&#x27;)
+for r in c.execute(&#x27;select * from quotes&#x27;):print(r)
+print(c.execute(&#x27;select count(*),sum(amount_cents) from quotes&#x27;).fetchall())&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/freight-quote; python3 -I -c &quot;
+import json,collections
+d=json.load(open(&#x27;result.json&#x27;))
+ev=d[&#x27;traceEvents&#x27;]; print(len(ev), d.keys())
+c=collections.Counter(e.get(&#x27;name&#x27;) for e in ev)
+for n,k in c.most_common():
+  if any(s in n for s in [&#x27;job.py&#x27;,&#x27;carrier.py&#x27;,&#x27;ratecard.py&#x27;,&#x27;quotes.py&#x27;,&#x27;shipments.py&#x27;,&#x27;send_error&#x27;,&#x27;do_GET&#x27;,&#x27;send_response&#x27;,&#x27;datetime&#x27;]) : print(k,n)
+print([e for e in ev if e.get(&#x27;ph&#x27;)!=&#x27;X&#x27;][:10])
+&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/freight-quote; python3 -I -c &quot;
+import json
+d=json.load(open(&#x27;result.json&#x27;))
+ev=[e for e in d[&#x27;traceEvents&#x27;] if e.get(&#x27;ph&#x27;)==&#x27;X&#x27;]
+gets=sorted([e for e in ev if &#x27;do_GET&#x27; in e[&#x27;name&#x27;]],key=lambda e:e[&#x27;ts&#x27;])
+for g in gets:
+  ch=[e[&#x27;name&#x27;].split(&#x27; (&#x27;)[0] for e in ev if e[&#x27;tid&#x27;]==g[&#x27;tid&#x27;] and g[&#x27;ts&#x27;]&lt;=e[&#x27;ts&#x27;]&lt;=g[&#x27;ts&#x27;]+g[&#x27;dur&#x27;] and e is not g]
+  inter=[n for n in ch if any(k in n for k in [&#x27;tariff_price&#x27;,&#x27;send_error&#x27;,&#x27;dumps&#x27;,&#x27;write&#x27;,&#x27;open&#x27;,&#x27;send_response&#x27;])]
+  print(g[&#x27;ts&#x27;],inter, g.get(&#x27;args&#x27;))
+&quot; | head -40
+python3 -I -c &quot;
+import json</pre><p class="note">… 3 more lines of this command</p></li>
+<li><pre class="cmd-text">cd /srv/freight-quote; python3 -I -c &quot;
+import json
+d=json.load(open(&#x27;result.json&#x27;))
+ev=[e for e in d[&#x27;traceEvents&#x27;] if e.get(&#x27;ph&#x27;)==&#x27;X&#x27;]
+prices=sorted([e for e in ev if e[&#x27;name&#x27;].startswith(&#x27;price (&#x27;)],key=lambda e:e[&#x27;ts&#x27;])
+gets=sorted([e for e in ev if &#x27;do_GET&#x27; in e[&#x27;name&#x27;]],key=lambda e:e[&#x27;ts&#x27;])
+for i,p in enumerate(prices):
+  inn=lambda e:p[&#x27;ts&#x27;]&lt;=e[&#x27;ts&#x27;]&lt;=p[&#x27;ts&#x27;]+p[&#x27;dur&#x27;]
+  rc=any(e[&#x27;name&#x27;].startswith(&#x27;rate (/srv/freight-quote/ratecard&#x27;) and inn(e) for e in ev)
+  g=[x for x in gets if inn(x)]
+  print(i,p[&#x27;tid&#x27;],p[&#x27;ts&#x27;],p[&#x27;dur&#x27;],&#x27;RC&#x27; if rc else &#x27;carrier&#x27;,len(g))
+print(set(e[&#x27;tid&#x27;] for e in gets))</pre><p class="note">… 1 more line of this command</p></li>
+<li><pre class="cmd-text">cd /srv/freight-quote; cat &gt; answers.json &lt;&lt;&#x27;E&#x27;
+{&quot;q1&quot;: 26, &quot;q2&quot;: 9, &quot;q3&quot;: 17, &quot;q4&quot;: 17, &quot;q5&quot;: &quot;FR-8136&quot;, &quot;q6&quot;: [], &quot;q7&quot;: 9, &quot;q8&quot;: 114835}
+E
+cat answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>26</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>9</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>17</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>17</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>&quot;FR-8136&quot;</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>[]</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>9</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>114835</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a3">
+<h4><code>ormaos</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">5 tool calls, 121,965 tokens, 32 s</p>
+<p class="part">Commands, in order (5)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; cat questions.json &amp;&amp; .venv/bin/ormaos guide</pre><pre class="out">drwx------ 3 levimbraga levimbraga   60 Nov 27 17:04 ..
+-rw-rw-r-- 1 levimbraga levimbraga 4091 Nov 26 18:12 README.md
+-rw-rw-r-- 1 levimbraga levimbraga 3927 Nov 26 18:13 carrier.py
+-rw-rw-r-- 1 levimbraga levimbraga 2555 Nov 26 18:12 job.py
+-rw-rw-r-- 1 levimbraga levimbraga 2970 Nov 26 18:12 quotes.py
+-rw-rw-r-- 1 levimbraga levimbraga  276 Nov 26 18:12 ratecard.csv
+-rw-rw-r-- 1 levimbraga levimbraga 1039 Nov 26 18:12 ratecard.py
+-rw-rw-r-- 1 levimbraga levimbraga 1959 Nov 26 18:12 shipments.py</pre><p class="note">Output: the 8 lines of 183 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">cat README.md job.py carrier.py quotes.py ratecard.py shipments.py ratecard.csv; ls -la data; .venv/bin/ormaos list; .venv/bin/ormaos show last --full</pre><pre class="out">r1  2026-11-27 16:57:56  complete  exit 0  649.6ms  1 process, 430 calls, 20 exceptions (17 swallowed), 103 io  .venv/bin/python job.py
+r1 exit 0 in 0.65s: 1 Python process, 430 calls, 20 exceptions (17 swallowed, 0 uncaught, 2 StopIteration taken by the interpreter)
+io: 103 events (file 47, sqlite 30, http 26)
+logs: 19 logging records (WARNING 17, INFO 2), 19 dropped by the level</pre><p class="note">Output: the 4 lines of 535 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-1.jsonl?plain=1#L7">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos io r1 --kind http; .venv/bin/ormaos exceptions r1; cat data/cron.log; cat data/carrier.json; cat data/shipments.csv; cat data/booked.csv</pre><pre class="out">r1: 103 io events (file 47, sqlite 30, http 26), showing http
+r1: 20 exceptions (17 swallowed, 0 uncaught, 2 StopIteration taken by the interpreter)
+FR-8136,2000</pre><p class="note">Output: the 3 lines of 136 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-1.jsonl?plain=1#L13">Full output</a></p></li>
+<li><pre class="cmd-text">python3 -c &quot;
+import sqlite3;c=sqlite3.connect(&#x27;file:data/quotes.db?mode=ro&#x27;,uri=True)
+for r in c.execute(&#x27;select rowid,* from quotes order by rowid&#x27;):print(r)
+print(c.execute(&#x27;select count(*),sum(amount_cents) from quotes&#x27;).fetchone())&quot;; .venv/bin/ormaos tree r1 --function price --limit 30</pre><pre class="out">(10, &#x27;FR-8136&#x27;, &#x27;MID-STH&#x27;, &#x27;standard&#x27;, 16.0, 1528, &#x27;2026-11-27T19:57:56+00:00&#x27;)
+(17, &#x27;FR-8143&#x27;, &#x27;NTH-WST&#x27;, &#x27;standard&#x27;, 75.0, 5590, &#x27;2026-11-27T19:57:56+00:00&#x27;)
+(26, &#x27;FR-8152&#x27;, &#x27;NTH-STH&#x27;, &#x27;standard&#x27;, 40.0, 4250, &#x27;2026-11-27T19:57:56+00:00&#x27;)
+(26, 114835)
+r1: 26 of the 430 calls match --function price (26 price; 0 raised)</pre><p class="note">Output: the 5 lines of 55 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-1.jsonl?plain=1#L20">Full output</a></p></li>
+<li><pre class="cmd-text">cat &gt; answers.json &lt;&lt;&#x27;EOF&#x27;
+{&quot;q1&quot;: 26, &quot;q2&quot;: 9, &quot;q3&quot;: 17, &quot;q4&quot;: 17, &quot;q5&quot;: &quot;FR-8136&quot;, &quot;q6&quot;: [], &quot;q7&quot;: 9, &quot;q8&quot;: 114835}
+EOF
+cat answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>26</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>9</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>17</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>17</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>&quot;FR-8136&quot;</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>[]</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>9</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>114835</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a4">
+<h4><code>ormaos-values</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-values-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">8 tool calls, 202,552 tokens, 38 s</p>
+<p class="part">Commands, in order (8)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; cat questions.json &amp;&amp; .venv/bin/ormaos guide</pre><pre class="out">drwx------ 3 levimbraga levimbraga   60 Nov 27 17:04 ..
+-rw-rw-r-- 1 levimbraga levimbraga 4091 Nov 26 18:12 README.md
+-rw-rw-r-- 1 levimbraga levimbraga 3927 Nov 26 18:13 carrier.py
+-rw-rw-r-- 1 levimbraga levimbraga 2555 Nov 26 18:12 job.py
+-rw-rw-r-- 1 levimbraga levimbraga 2970 Nov 26 18:12 quotes.py
+-rw-rw-r-- 1 levimbraga levimbraga  276 Nov 26 18:12 ratecard.csv
+-rw-rw-r-- 1 levimbraga levimbraga 1039 Nov 26 18:12 ratecard.py
+-rw-rw-r-- 1 levimbraga levimbraga 1959 Nov 26 18:12 shipments.py</pre><p class="note">Output: the 8 lines of 183 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-values-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">cat job.py carrier.py quotes.py ratecard.py shipments.py README.md; ls data; .venv/bin/ormaos list; .venv/bin/ormaos show last --full</pre><pre class="out">r1  2026-11-27 16:57:58  complete  exit 0  671.9ms  1 process, 430 calls, 20 exceptions (17 swallowed), 103 io  .venv/bin/python job.py
+r1 exit 0 in 0.67s: 1 Python process, 430 calls, 20 exceptions (17 swallowed, 0 uncaught, 2 StopIteration taken by the interpreter)
+io: 103 events (file 47, sqlite 30, http 26)
+logs: 19 logging records (WARNING 17, INFO 2), 19 dropped by the level</pre><p class="note">Output: the 4 lines of 517 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-values-1.jsonl?plain=1#L7">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos tree r1 --function price --limit 100 | head -150; .venv/bin/ormaos io r1 --kind http --limit 100 | head -60</pre><pre class="out">r1: 26 of the 430 calls match --function price (26 price; 0 raised)
+r1: 103 io events (file 47, sqlite 30, http 26), showing http</pre><p class="note">Output: the 2 lines of 32 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-values-1.jsonl?plain=1#L12">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos tree r1:c175; .venv/bin/ormaos tree r1 --function of --limit 3; .venv/bin/ormaos tree r1 --function read --limit 3</pre><pre class="out">r1: 26 of the 430 calls match --function of (26 Quote.of; 0 raised)
+r1:c17 read(path: pathlib.PosixPath) -&gt; list[26 shipments.Shipment]  shipments.py:56  3.3ms  io 1  calls below: 26</pre><p class="note">Output: the 2 lines of 19 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-values-1.jsonl?plain=1#L17">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos tree r1:c17 --json | python3 -I -c &quot;
+import json,sys
+d=json.load(sys.stdin)
+print(json.dumps(d)[:3000])&quot;</pre><pre class="out">{&quot;kind&quot;: &quot;tree&quot;, &quot;version&quot;: 1, &quot;recording&quot;: &quot;r1&quot;, &quot;address&quot;: &quot;r1:c17&quot;, &quot;root&quot;: &quot;r1:c17&quot;, &quot;ancestors&quot;: [{&quot;address&quot;: &quot;r1:c1&quot;, &quot;file&quot;: &quot;job.py&quot;, &quot;line&quot;: 1, &quot;fn&quot;: &quot;&lt;module&gt;&quot;}, {&quot;address&quot;: &quot;r1:c15&quot;, &quot;file&quot;: &quot;job.py&quot;, &quot;line&quot;: 57, &quot;fn&quot;: &quot;main&quot;}], &quot;depth&quot;: 2, &quot;limit&quot;: 30, &quot;offset&quot;: 0, &quot;calls_below_root&quot;: 26, &quot;nodes&quot;: [{&quot;address&quot;: &quot;r1:c17&quot;, &quot;file&quot;: &quot;shipments.py&quot;, &quot;line&quot;: 56, &quot;fn&quot;: &quot;read&quot;, &quot;depth&quot;: 0, &quot;args&quot;: {&quot;path&quot;: {&quot;type&quot;: &quot;pathlib.PosixPath&quot;}}, &quot;out&quot;: &quot;returned&quot;, &quot;duration_s&quot;: 0.003327, &quot;thread&quot;: 1, &quot;process&quot;: 1, &quot;calls_below&quot;: 26, &quot;ret&quot;: {&quot;type&quot;: &quot;list&quot;, &quot;len&quot;: 26, &quot;items&quot;: {&quot;shipments.Shipment&quot;: 26}}, &quot;io&quot;: 1}, {&quot;address&quot;: &quot;r1:c18&quot;, &quot;file&quot;: &quot;shipments.py&quot;, &quot;line&quot;: 37, &quot;fn&quot;: &quot;parse_row&quot;, &quot;depth&quot;: 1, &quot;args&quot;: {&quot;row&quot;: {&quot;type&quot;: &quot;dict&quot;, &quot;len&quot;: 8, &quot;keys&quot;: {&quot;str&quot;: 8}, &quot;values&quot;: {&quot;str&quot;: 8}, &quot;value&quot;: {&quot;shipment_id&quot;: &quot;FR-8127&quot;, &quot;origin&quot;: &quot;EST&quot;, &quot;destination&quot;: &quot;EST&quot;, &quot;weight_kg&quot;: &quot;4&quot;, &quot;length_cm&quot;: &quot;30&quot;, &quot;width_cm&quot;: &quot;20&quot;, &quot;height_cm&quot;: &quot;10&quot;, &quot;service&quot;: &quot;standard&quot;}}}, &quot;out&quot;: &quot;returned&quot;, &quot;duration_s&quot;: 0.000169, &quot;thread&quot;: 1, &quot;process&quot;: 1, &quot;calls_below&quot;: 1, &quot;ret&quot;: {&quot;type&quot;: &quot;shipments.Shipment&quot;}}, {&quot;address&quot;: &quot;r1:c19&quot;, &quot;file&quot;: &quot;&lt;string&gt;&quot;, &quot;line&quot;: 2, &quot;fn&quot;: &quot;__create_fn__.&lt;locals&gt;.__init__&quot;, &quot;depth&quot;: 2, &quot;args&quot;: {&quot;self&quot;: {&quot;type&quot;: &quot;shipments.Shipment&quot;}, &quot;shipment_id&quot;: {&quot;type&quot;: &quot;str&quot;, &quot;len&quot;: 7, &quot;value&quot;: &quot;FR-8127&quot;}, &quot;origin&quot;: {&quot;type&quot;: &quot;str&quot;, &quot;len&quot;: 3, &quot;value&quot;: &quot;EST&quot;}, &quot;destination&quot;: {&quot;type&quot;: &quot;str&quot;, &quot;len&quot;: 3, &quot;value&quot;: &quot;EST&quot;}, &quot;weight_kg&quot;: {&quot;type&quot;: &quot;float&quot;, &quot;value&quot;: 4.0}, &quot;length_cm&quot;: {&quot;type&quot;: &quot;int&quot;, &quot;value&quot;: 30}, &quot;width_cm&quot;: {&quot;type&quot;: &quot;int&quot;, &quot;value&quot;: 20}, &quot;height_cm&quot;: {&quot;type&quot;: &quot;int&quot;, &quot;value&quot;: 10}, &quot;service&quot;: {&quot;type&quot;: &quot;str&quot;, &quot;len&quot;: 8, &quot;value&quot;: &quot;standard&quot;}}, &quot;out&quot;: &quot;returned&quot;, &quot;duration_s&quot;: 6.2e-05, &quot;thread&quot;: 1, &quot;process&quot;: 1, &quot;calls_below&quot;: 0, &quot;ret&quot;: {&quot;type&quot;: &quot;NoneType&quot;, &quot;value&quot;: null}}, {&quot;address&quot;: &quot;r1:c20&quot;, &quot;file&quot;: &quot;shipments.py&quot;, &quot;line&quot;: 37, &quot;fn&quot;: &quot;parse_row&quot;, &quot;depth&quot;: 1, &quot;args&quot;: {&quot;row&quot;: {&quot;type&quot;: &quot;dict&quot;, &quot;len&quot;: 8, &quot;keys&quot;: {&quot;str&quot;: 8}, &quot;values&quot;: {&quot;str&quot;: 8}, &quot;value&quot;: {&quot;shipment_id&quot;: &quot;FR-8128&quot;, &quot;origin&quot;: &quot;NTH&quot;, &quot;destination&quot;: &quot;NTH&quot;, &quot;weight_kg&quot;: &quot;0.8&quot;, &quot;length_cm&quot;: &quot;80&quot;, &quot;width_cm&quot;: &quot;60&quot;, &quot;height_cm&quot;: &quot;40&quot;, &quot;service&quot;: &quot;standard&quot;}}}, &quot;out&quot;: &quot;returned&quot;, &quot;duration_s&quot;: 0.000117, &quot;thread&quot;: 1, &quot;process&quot;: 1, &quot;calls_below&quot;: 1, &quot;ret&quot;: {&quot;type&quot;: &quot;shipments.Shipment&quot;}}, {&quot;address&quot;: &quot;r1:c21&quot;, &quot;file&quot;: &quot;&lt;string&gt;&quot;, &quot;line&quot;: 2, &quot;fn&quot;: &quot;__create_fn__.&lt;locals&gt;.__init__&quot;, &quot;depth&quot;: 2, &quot;args&quot;: {&quot;self&quot;: {&quot;type&quot;: &quot;shipments.Shipment&quot;}, &quot;shipment_id&quot;: {&quot;type&quot;: &quot;str&quot;, &quot;len&quot;: 7, &quot;value&quot;: &quot;FR-8128&quot;}, &quot;origin&quot;: {&quot;type&quot;: &quot;str&quot;, &quot;len&quot;: 3, &quot;value&quot;: &quot;NTH&quot;}, &quot;destination&quot;: {&quot;type&quot;: &quot;str&quot;, &quot;len&quot;: 3, &quot;value&quot;: &quot;NTH&quot;}, &quot;weight_kg&quot;: {&quot;type&quot;: &quot;float&quot;, &quot;value&quot;: 0.8}, &quot;length_cm&quot;: {&quot;type&quot;: &quot;int&quot;, &quot;value&quot;: 80}, &quot;width_cm&quot;: {&quot;type&quot;: &quot;int&quot;, &quot;value&quot;: 60}, &quot;height_cm&quot;: {&quot;type&quot;: &quot;int&quot;, &quot;value&quot;: 40}, &quot;service&quot;: {&quot;type&quot;: &quot;str&quot;, &quot;len&quot;: 8, &quot;value&quot;: &quot;standard&quot;}}, &quot;out&quot;: &quot;returned&quot;, &quot;duration_s&quot;: 4.3e-05, &quot;thread&quot;: 1, &quot;process&quot;: 1, &quot;calls_below&quot;: 0, &quot;ret&quot;: {&quot;type&quot;: &quot;NoneType&quot;, &quot;value&quot;: null}}, {&quot;address&quot;: &quot;r1:c22&quot;, &quot;file&quot;: &quot;shipment</pre><p class="note">Output: the 1 line of 1 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-values-1.jsonl?plain=1#L22">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos tree r1:c17 --json --limit 100 | python3 -I -c &quot;
+import json,sys
+d=json.load(sys.stdin)
+ids=[n[&#x27;args&#x27;][&#x27;row&#x27;][&#x27;value&#x27;][&#x27;shipment_id&#x27;] for n in d[&#x27;nodes&#x27;] if n[&#x27;fn&#x27;]==&#x27;parse_row&#x27;]
+print(len(ids), ids)&quot;
+.venv/bin/ormaos exceptions r1 --limit 30</pre><pre class="out">26 [&#x27;FR-8127&#x27;, &#x27;FR-8128&#x27;, &#x27;FR-8129&#x27;, &#x27;FR-8130&#x27;, &#x27;FR-8131&#x27;, &#x27;FR-8132&#x27;, &#x27;FR-8133&#x27;, &#x27;FR-8134&#x27;, &#x27;FR-8135&#x27;, &#x27;FR-8136&#x27;, &#x27;FR-8137&#x27;, &#x27;FR-8138&#x27;, &#x27;FR-8139&#x27;, &#x27;FR-8140&#x27;, &#x27;FR-8141&#x27;, &#x27;FR-8142&#x27;, &#x27;FR-8143&#x27;, &#x27;FR-8144&#x27;, &#x27;FR-8145&#x27;, &#x27;FR-8146&#x27;, &#x27;FR-8147&#x27;, &#x27;FR-8148&#x27;, &#x27;FR-8149&#x27;, &#x27;FR-8150&#x27;, &#x27;FR-8151&#x27;, &#x27;FR-8152&#x27;]
+r1: 20 exceptions (17 swallowed, 0 uncaught, 2 StopIteration taken by the interpreter)</pre><p class="note">Output: the 2 lines of 22 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-values-1.jsonl?plain=1#L25">Full output</a></p></li>
+<li><pre class="cmd-text">python3 -I -c &quot;
+v=[1232,2528,5858,3120,6792,1404,3161,13362,3392,1528,12753,1598,6290,950,3930,2522,5590,5186,4460,1556,10620,1456,3950,1437,5910,4250]
+print(len(v),sum(v))&quot;</pre></li>
+<li><pre class="cmd-text">Write answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>26</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>9</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>17</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>17</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>&quot;FR-8136&quot;</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>[]</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>9</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>114835</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+</div>
+</section>
+
+<section class="band" id="answered" aria-labelledby="answered-title">
+<h2 id="answered-title">What Ormaos data answered</h2>
+<p>Read from the streams: in each run of an Ormaos arm, the <code>ormaos</code> verbs in its commands up to its last write of <code>answers.json</code>. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them.</p>
+<div class="table-wrap">
+<table class="plain">
+<thead><tr><th scope="col">Question</th><th scope="col"><code>ormaos</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th><th scope="col"><code>ormaos-values</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>show 3, exceptions 3, io 3, list 3, guide 3, tree 1</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, exceptions 3, io 3, list 3, guide 3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q2</td><td>show 3, exceptions 3, io 3, list 3, guide 3, tree 1</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, exceptions 3, io 3, list 3, guide 3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q3</td><td>show 3, exceptions 3, io 3, list 3, guide 3, tree 1</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, exceptions 3, io 3, list 3, guide 3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q4</td><td>show 3, exceptions 3, io 3, list 3, guide 3, tree 1</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, exceptions 3, io 3, list 3, guide 3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q5</td><td>show 3, exceptions 3, io 3, list 3, guide 3, tree 1</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, exceptions 3, io 3, list 3, guide 3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q6</td><td>show 3, exceptions 3, io 3, list 3, guide 3, tree 1</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, exceptions 3, io 3, list 3, guide 3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q7</td><td>show 3, exceptions 3, io 3, list 3, guide 3, tree 1</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, exceptions 3, io 3, list 3, guide 3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q8</td><td>show 3, exceptions 3, io 3, list 3, guide 3, tree 1</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, exceptions 3, io 3, list 3, guide 3</td><td>3/3</td><td>3/3</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="runs" aria-labelledby="runs-title">
+<h2 id="runs-title">Every run</h2>
+<p>Every run of every arm.</p>
+<div class="table-wrap">
+<table class="plain runs">
+<thead><tr><th scope="col">Arm</th><th scope="col">Run</th><th scope="col">Score</th><th scope="col">Right</th><th scope="col">Null</th><th scope="col">Wrong</th><th scope="col"><code>ormaos</code> verbs before answers.json</th><th scope="col">Tool calls</th><th scope="col">Tokens</th><th scope="col">Wall time</th><th scope="col">Stream</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>6</td><td>120,175</td><td>44 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-none-1.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>5</td><td>93,621</td><td>37 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-none-2.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>5</td><td>92,436</td><td>34 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-none-3.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>7</td><td>151,843</td><td>56 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-raw-1.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>8</td><td>164,720</td><td>57 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-raw-2.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>10</td><td>251,138</td><td>88 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-raw-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, io, exceptions, tree</td><td>5</td><td>121,965</td><td>32 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, io, exceptions</td><td>5</td><td>119,402</td><td>36 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, io, exceptions</td><td>5</td><td>119,174</td><td>38 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree, io, exceptions</td><td>8</td><td>202,552</td><td>38 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-values-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, io, tree, exceptions</td><td>7</td><td>186,298</td><td>37 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-values-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, exceptions, tree, io</td><td>6</td><td>149,571</td><td>32 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/freight-quote-ormaos-values-3.jsonl">stream</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="files" aria-labelledby="files-title">
+<h2 id="files-title">The results files</h2>
+<ul class="rows">
+  <li>The benchmark: <a href="/benchmarks/knows2/#freight-quote">knows2</a></li>
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801"><code>agent-bench/knows2/results/20261127-165801</code></a></li>
+</ul>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>
