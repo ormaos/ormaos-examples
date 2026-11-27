@@ -416,6 +416,38 @@ pre code {
   .facts dd { font-size: 30px; }
 }
 
+/* A measured table: rows on hairlines, numbers aligned. */
+.table-wrap {
+  overflow-x: auto;
+  margin-block: 24px;
+}
+
+table.results {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+table.results th,
+table.results td {
+  padding: 10px 12px 10px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  white-space: nowrap;
+}
+
+table.results th:first-child,
+table.results td:first-child {
+  text-align: left;
+}
+
+table.results th {
+  font-weight: 500;
+  color: var(--text-dim);
+  border-top: 1px solid var(--line);
+}
+
 /* Lists: rows on hairlines. */
 ul.rows {
   margin: 0;
@@ -585,6 +617,27 @@ footer ul {
   <div class="text">
     <p class="caption">Measured: N = 5 runs per side, model <code>claude-opus-5-5</code>, each run started with only the prompt, in a sandbox that holds only its own folder.</p>
     <p>On both sides, every run named the <code>except</code> that prices a shipment from an older rate card when the call to the carrier fails, and the 17 quotes that are equal to that rate card. Without the recordings, all five runs produced a 429 themselves on a copy, named a used-up daily allowance of calls as the most likely reason, and said they could not confirm which error it was last night. With the recordings, all five gave it as what happened: 9 calls answered with 200, 17 with 429, and 17 exceptions caught at <code>job.py:43</code>.</p>
+  </div>
+
+  <h2>Eight bugs, three ways in</h2>
+  <div class="text">
+    <p>A larger measurement, <a href="https://github.com/ormaos/ormaos-examples/tree/main/agent-bench"><code>agent-bench</code></a>: eight small scheduled jobs, each with one bug of a different kind, each printing its OK line on the bad night. A coding agent gets the code, the data that night left and the symptom, and is asked to find the cause and fix it: with nothing more (<code>none</code>), with a VizTracer trace of the bad night (<code>raw</code>), or with its Ormaos recording (<code>ormaos</code>). A hidden check then decides whether the code it left is fixed.</p>
+  </div>
+  <div class="text table-wrap">
+    <table class="results">
+      <thead>
+        <tr><th scope="col">Arm</th><th scope="col">Fixed</th><th scope="col">95% interval</th><th scope="col">Median time</th><th scope="col">Median tool calls</th><th scope="col">Median tokens</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>none</code></td><td>21/24</td><td>69% to 96%</td><td>50 s</td><td>7</td><td>94,458</td></tr>
+        <tr><td><code>raw</code></td><td>23/24</td><td>80% to 99%</td><td>56 s</td><td>8</td><td>140,558</td></tr>
+        <tr><td><code>ormaos</code></td><td>24/24</td><td>86% to 100%</td><td>44 s</td><td>7</td><td>112,676</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="text">
+    <p class="caption">Measured: N = 24 runs per arm (8 bugs, 3 runs each), model <code>claude-opus-5-5</code>, the first attempt of every run counted. The interval is the 95% Wilson score interval; tokens include cache tokens, as the command line reports them.</p>
+    <p>At this size the difference is within the margin. The four runs that were not fixed had found the cause, but changed the job's last line, which the check reads as cron does. The bugs were written for this benchmark by the people who make Ormaos. The <a href="https://github.com/ormaos/ormaos-examples/blob/main/agent-bench/results/20261126-220703/report.md">report</a> has every run, per bug, with what the check said.</p>
   </div>
 
   <h2>Try it in 3 commands</h2>
