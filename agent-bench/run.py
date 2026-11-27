@@ -10,10 +10,12 @@ machine but the system, the claude program and its login, and ``claude -p``
 is asked to find the cause and fix it. When it ends, or the time is up, the
 bug's ``hidden/check.py`` judges the code it left.
 
-A run in which the agent named a path outside its folder is kept in
-``results.jsonl`` marked ``discarded``, does not count, and is run again; so
-is a run that the claude command line ended with an error (no answer from
-the model). A run that used up its time counts, with what it left.
+The report counts the first attempt of every bug, arm and run, all of
+them. An attempt in which the agent named a path outside its folder, or
+that the claude command line ended with an error (no answer from the
+model), is marked ``discarded`` in ``results.jsonl`` and run again; the
+report lists the marked and the later attempts and does not count the later
+ones. A run that used up its time counts, with what it left.
 
 Build first: ``python3 build.py``.
 """
@@ -206,21 +208,59 @@ def cell(fixed, total):
     return f"{fixed}/{total} ({100 * low:.0f}%-{100 * high:.0f}%)"
 
 
+ENDED = re.compile(r"^(?:FAIL\s+(?P<case>.+?): )?[\w-]+: the job did not finish with '(?P<line>[^']+)':$")
+
+
+def reason(record):
+    """What the check said against the code: its lines other than the passes."""
+    said = [line for line in record["check"] if not line.startswith("pass ") and line != "not fixed"]
+    parts = []
+    for index, line in enumerate(said):
+        ended = ENDED.match(line)
+        if not ended:
+            if not (index and ENDED.match(said[index - 1])):
+                parts.append(line.strip())
+            continue
+        part = f"the job did not end with `{ended['line']}`"
+        if ended["case"]:
+            part = f"{ended['case']}: {part}"
+        following = said[index + 1] if index + 1 < len(said) else None
+        if following and not following.startswith("FAIL") and not ENDED.match(following):
+            part += f"; it printed `{following.strip()}`"
+        parts.append(part)
+    return "; ".join(parts) or "the check gave no reason"
+
+
+def ended_otherwise(record):
+    return any(ENDED.match(line) for line in record["check"])
+
+
+def overlap(intervals):
+    return max(low for low, _ in intervals) <= min(high for _, high in intervals)
+
+
 def write_report(out):
     records = [json.loads(line) for line in (out / "results.jsonl").read_text().splitlines() if line]
-    kept = [r for r in records if r["discarded"] is None]
-    thrown = [r for r in records if r["discarded"] is not None]
+    # What counts is the first attempt of every bug, arm and run, as planned
+    # before the run. Later attempts were made after an attempt was marked
+    # (see the README) and are listed only.
+    first = [r for r in records if r["attempt"] == 0]
+    marked = [r for r in records if r["discarded"] is not None]
+    later = [r for r in records if r["attempt"] > 0]
     arms = [a for a in benchlib.ARMS if any(r["arm"] == a for r in records)]
     bugs = sorted({r["bug"] for r in records})
     manifest = benchlib.TOOLS / "manifest.json"
     built = json.loads(manifest.read_text()) if manifest.exists() else {}
+    if (out / "build.json").exists():
+        built = json.loads((out / "build.json").read_text())
 
     def of(arm, bug=None):
-        return [r for r in kept if r["arm"] == arm and bug in (None, r["bug"])]
+        return [r for r in first if r["arm"] == arm and bug in (None, r["bug"])]
 
     lines = ["# agent-bench: fixes per arm", ""]
     lines.append(
-        f"{len(kept)} runs that count, {len(thrown)} discarded and run again. "
+        f"N = {len(first)} runs, the first attempt of every bug, arm and run; all of them count. "
+        f"{len(bugs)} bugs x {len(arms)} arms x {len({r['run'] for r in first})} runs. "
         f"Model: {', '.join(sorted({str(r['model']) for r in records})) or MODEL}. "
         f"Ormaos {built.get('ormaos_commit', '?')}, VizTracer {built.get('viztracer', '?')}, "
         f"{built.get('python', '?')}; built {built.get('built', '?')}."
@@ -229,30 +269,62 @@ def write_report(out):
               "The interval is the 95% Wilson score interval.", ""]
     lines += ["| Arm | Fixed | 95% interval | Median wall time | Median tool calls | Median tokens | Timed out |",
               "|---|---|---|---|---|---|---|"]
+    intervals = []
     for arm in arms:
         runs = of(arm)
         fixed = sum(r["fixed"] for r in runs)
         low, high = benchlib.wilson(fixed, len(runs))
+        intervals.append((low, high))
         wall, calls = median(r["wall_seconds"] for r in runs), median(r["tool_calls"] for r in runs)
         tokens = median(tokens_of(r) for r in runs)
         lines.append(
-            f"| {arm} | {fixed} of {len(runs)} | {100 * low:.0f}% to {100 * high:.0f}% | "
+            f"| {arm} | {fixed}/{len(runs)} | {100 * low:.0f}% to {100 * high:.0f}% | "
             f"{'-' if wall is None else f'{wall:.0f} s'} | {'-' if calls is None else f'{calls:g}'} | "
             f"{'-' if tokens is None else f'{tokens:,.0f}'} | {sum(r['timed_out'] for r in runs)} |"
         )
-    lines += ["", "Tokens are input, output and cache tokens added up, as the claude command line reports them.",
-              "", "## Per bug", "", "| Bug | " + " | ".join(arms) + " |", "|---|" + "---|" * len(arms)]
+    lines += ["", "Tokens are input, output and cache tokens added up, as the claude command line reports them.", ""]
+    if overlap(intervals):
+        lines.append("At this size the difference is within the margin: the 95% intervals of the arms "
+                     "overlap, so these runs do not show that one arm fixes more bugs than another.")
+    else:
+        lines.append("The 95% intervals of the arms do not all overlap.")
+    lines += ["", "## Per bug", "", "| Bug | " + " | ".join(arms) + " |", "|---|" + "---|" * len(arms)]
     for bug in bugs:
         cells = [cell(sum(r["fixed"] for r in of(arm, bug)), len(of(arm, bug))) for arm in arms]
         lines.append(f"| {bug} | " + " | ".join(cells) + " |")
-    lines += ["", "## Discarded runs", ""]
-    lines += [f"- {r['bug']}, {r['arm']}, run {r['run']}, attempt {r['attempt']}: {r['discarded']} "
-              f"(`{r['stream']}`)" for r in thrown] or ["None."]
-    missing = [r for r in kept if r["to_look_at"]]
+
+    not_fixed = [r for r in first if not r["fixed"]]
+    lines += ["", "## Not fixed", "", "The first attempts that the check did not pass, with what the check said.", ""]
+    lines += [f"- {r['bug']}, {r['arm']}, run {r['run']}: {reason(r)} (`{r['stream']}`, `{r['folder']}`)"
+              for r in not_fixed] or ["None."]
+    if not_fixed and all(ended_otherwise(r) for r in not_fixed):
+        lines += ["", "In each of them, on a night that the check expects to end OK, the job the agent left "
+                  "did not end with exit code 0 and its OK line exactly as before. The check reads the end "
+                  "of a night as cron does, so it rejects a changed last line."]
+
+    lines += ["", "## Marked attempts", "",
+              "Attempts in which the agent named a path outside its folder. The sandbox has nothing there "
+              "to find: `/etc` is the host's, read-only, and holds nothing of these jobs; the home folder, "
+              "`/var` and `/tmp` are empty; `/opt` does not exist and `/srv` holds only the agent's folder. "
+              "The first attempts among them count in the tables above; each was run again, "
+              f"and the {len(later)} later attempts are listed here and do not count.", ""]
+    if marked:
+        lines += ["| Bug | Arm | Run | Attempt | Fixed | Paths named | Stream |", "|---|---|---|---|---|---|---|"]
+        lines += [f"| {r['bug']} | {r['arm']} | {r['run']} | {r['attempt']} | {'yes' if r['fixed'] else 'no'} | "
+                  f"{', '.join(r['read_outside']) or r['discarded']} | `{r['stream']}` |" for r in marked]
+    else:
+        lines.append("None.")
+    unmarked_later = [r for r in later if r["discarded"] is None]
+    if unmarked_later:
+        lines += ["", "Later attempts that were not marked (they do not count either):", ""]
+        lines += [f"- {r['bug']}, {r['arm']}, run {r['run']}, attempt {r['attempt']}: "
+                  f"{'fixed' if r['fixed'] else 'not fixed'} (`{r['stream']}`)" for r in unmarked_later]
+
+    looked = [r for r in first if r["to_look_at"]]
     lines += ["", "## Runs that used `..` in a command", "",
-              "Not discarded by themselves: `..` from a subfolder stays inside the folder. To look at by hand.", ""]
+              "`..` from a subfolder stays inside the folder. To look at by hand.", ""]
     lines += [f"- {r['bug']}, {r['arm']}, run {r['run']}: {', '.join(r['to_look_at'])} (`{r['stream']}`)"
-              for r in missing] or ["None."]
+              for r in looked] or ["None."]
     text = "\n".join(lines) + "\n"
     (out / "report.md").write_text(text, encoding="utf-8")
     return text

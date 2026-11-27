@@ -19,7 +19,8 @@ __pycache__/
 
 # agent-bench: what build.py makes and what run.py writes
 agent-bench/.build/
-agent-bench/results/
+agent-bench/results/*
+!agent-bench/results/20261126-220703/
 agent-bench/bugs/*/arms/
 agent-bench/bugs/*/task/data/
 agent-bench/bugs/*/task/inbox/

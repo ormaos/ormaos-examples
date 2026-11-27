@@ -52,12 +52,30 @@ A run: `task/` and what the arm adds are copied to a new folder; the folder is m
 `run.py` writes, in `results/<date>-<time>/`:
 
 - `results.jsonl`: one line per run, with whether it is fixed and what the check said, the wall time, the tool calls, the tokens as the command line reports them, and the paths outside its folder that the agent named;
-- `report.md`: per arm, fixes out of runs with the 95% Wilson score interval, and the same per bug;
+- `report.md`: per arm, fixes out of runs with the 95% Wilson score interval, and the same per bug; the runs that were not fixed, with what the check said; the marked attempts;
 - `streams/` and `work/`: what every agent said and did, and the folder it left.
 
-A run in which the agent named a path outside its folder (or another host) does not count: it stays in `results.jsonl`, marked, and is run again. So is a run that ended with an error of the command line or of the model. A run that used up its time counts, with the code it left.
+What counts is the first attempt of every bug, arm and run: all of them, as planned before the run. A run that used up its time counts, with the code it left. An attempt in which the agent named a path outside its folder (or another host), or that ended with an error of the command line or of the model, is marked in `results.jsonl` and run again; the report lists the marked attempts and the later ones in a second table, and does not count the later ones.
 
-Options: `--bugs a,b`, `--arms none,raw`, `--timeout SECONDS`, `--jobs N` (agents at the same time, default 3), `--out DIR`, `--report DIR` (write the report of a finished run again).
+### Why the first attempt, and not the attempt that was not marked
+
+The first version of the report left out every marked attempt and counted the one that replaced it. That was wrong for this sandbox. Inside it, `/etc` is the host's, read-only, and holds nothing of these jobs; the home folder, `/var` and `/tmp` are empty; `/opt` does not exist and `/srv` holds only the agent's own folder. An agent that lists `/` or reads `/etc/crontab` learns nothing about the bug, so there is no reason to throw its run away. Throwing them away was not neutral either: agents without a recording looked for the cron set-up outside the folder far more often, and for `late-fees` and `order-sync` every one of the up to four attempts of the `none` arm was marked, so these two bugs had no run at all in that arm.
+
+The detection of paths outside the folder stays: it is how the report shows what the agents looked at.
+
+## The run of 2026-11-26
+
+[`results/20261126-220703/report.md`](results/20261126-220703/report.md): 8 bugs x 3 arms x 3 runs, `claude-opus-5-5`, N = 24 per arm.
+
+| Arm | Fixed | 95% interval | Median wall time | Median tool calls | Median tokens |
+|---|---|---|---|---|---|
+| none | 21/24 | 69% to 96% | 50 s | 7 | 94,458 |
+| raw | 23/24 | 80% to 99% | 56 s | 8 | 140,558 |
+| ormaos | 24/24 | 86% to 100% | 44 s | 7 | 112,676 |
+
+At this size the difference is within the margin: the intervals overlap. The four runs that were not fixed all fixed the cause but changed the job's last line (two `fx-rates` runs of the `none` arm made it a warning, two `late-fees` runs added details to it), and the check, which reads that line as cron does, rejects that. The report lists them with what the check said.
+
+Options: `--bugs a,b`, `--arms none,raw`, `--timeout SECONDS`, `--jobs N` (agents at the same time, default 3), `--replacements N` (how often a marked attempt is run again, default 3), `--out DIR`, `--report DIR` (write the report of a finished run again).
 
 ## What it does not show
 
