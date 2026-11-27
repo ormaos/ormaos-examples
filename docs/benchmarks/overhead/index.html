@@ -25,7 +25,7 @@
 
 <link rel="stylesheet" href="/benchmarks/style.css">
 </head>
-<body class="long">
+<body class="long bench">
 
 <header class="site-header">
   <nav aria-label="Main navigation">
@@ -108,9 +108,46 @@
 <section class="band" id="results" aria-labelledby="results-title">
 <h2 id="results-title">Results</h2>
 <figure class="chart">
-<svg viewBox="0 0 600 210" role="img" aria-labelledby="ratios-t ratios-d" xmlns="http://www.w3.org/2000/svg">
+<div class="wide-only">
+<svg viewBox="0 0 1060 210" role="img" aria-labelledby="ratios-t ratios-d" xmlns="http://www.w3.org/2000/svg">
 <title id="ratios-t">Time of a recorded run, as a multiple of the same run without Ormaos</title>
 <desc id="ratios-d">The median wall time of each capability set divided by the median without Ormaos, per workload, on a log scale. context only: CPU-bound x1.59 (130.2 ms), I/O x2.50 (86.3 ms); calls and exceptions: CPU-bound x31.17 (2544.4 ms), I/O x4.00 (138.0 ms); calls, exceptions and path: CPU-bound x33.58 (2741.4 ms), I/O x4.10 (141.7 ms); calls, exceptions and io (the default): CPU-bound x34.28 (2798.2 ms), I/O x7.69 (265.7 ms).</desc>
+<circle class="s1 dot" cx="276" cy="16" r="6"/>
+<text x="288" y="20.5">CPU-bound</text>
+<circle class="s2 dot" cx="394" cy="16" r="6"/>
+<text x="406" y="20.5">I/O</text>
+<line class="grid" x1="270" y1="40" x2="270" y2="176"/>
+<text x="270" y="196" text-anchor="middle">x1</text>
+<line class="grid" x1="384.4" y1="40" x2="384.4" y2="176"/>
+<text x="384.4" y="196" text-anchor="middle">x2</text>
+<line class="grid" x1="535.6" y1="40" x2="535.6" y2="176"/>
+<text x="535.6" y="196" text-anchor="middle">x5</text>
+<line class="grid" x1="650" y1="40" x2="650" y2="176"/>
+<text x="650" y="196" text-anchor="middle">x10</text>
+<line class="grid" x1="764.4" y1="40" x2="764.4" y2="176"/>
+<text x="764.4" y="196" text-anchor="middle">x20</text>
+<line class="grid" x1="915.6" y1="40" x2="915.6" y2="176"/>
+<text x="915.6" y="196" text-anchor="middle">x50</text>
+<line class="grid" x1="1030" y1="40" x2="1030" y2="176"/>
+<text x="1030" y="196" text-anchor="middle">x100</text>
+<text class="label" x="256" y="61.5" text-anchor="end">context only</text>
+<circle class="s1 dot" cx="346.5" cy="52" r="5"><title>context only, CPU-bound: x1.59 (130.2 ms)</title></circle>
+<circle class="s2 dot" cx="421.2" cy="62" r="5"><title>context only, I/O: x2.50 (86.3 ms)</title></circle>
+<text class="label" x="256" y="95.5" text-anchor="end">calls and exceptions</text>
+<circle class="s1 dot" cx="837.6" cy="86" r="5"><title>calls and exceptions, CPU-bound: x31.17 (2544.4 ms)</title></circle>
+<circle class="s2 dot" cx="498.8" cy="96" r="5"><title>calls and exceptions, I/O: x4.00 (138.0 ms)</title></circle>
+<text class="label" x="256" y="129.5" text-anchor="end">calls, exceptions and path</text>
+<circle class="s1 dot" cx="849.9" cy="120" r="5"><title>calls, exceptions and path, CPU-bound: x33.58 (2741.4 ms)</title></circle>
+<circle class="s2 dot" cx="502.9" cy="130" r="5"><title>calls, exceptions and path, I/O: x4.10 (141.7 ms)</title></circle>
+<text class="label" x="256" y="163.5" text-anchor="end">calls, exceptions and io, the default</text>
+<circle class="s1 dot" cx="853.3" cy="154" r="5"><title>calls, exceptions and io, the default, CPU-bound: x34.28 (2798.2 ms)</title></circle>
+<circle class="s2 dot" cx="606.7" cy="164" r="5"><title>calls, exceptions and io, the default, I/O: x7.69 (265.7 ms)</title></circle>
+</svg>
+</div>
+<div class="narrow-only">
+<svg viewBox="0 0 600 210" role="img" aria-labelledby="ratios-n-t ratios-n-d" xmlns="http://www.w3.org/2000/svg">
+<title id="ratios-n-t">Time of a recorded run, as a multiple of the same run without Ormaos</title>
+<desc id="ratios-n-d">The median wall time of each capability set divided by the median without Ormaos, per workload, on a log scale. context only: CPU-bound x1.59 (130.2 ms), I/O x2.50 (86.3 ms); calls and exceptions: CPU-bound x31.17 (2544.4 ms), I/O x4.00 (138.0 ms); calls, exceptions and path: CPU-bound x33.58 (2741.4 ms), I/O x4.10 (141.7 ms); calls, exceptions and io (the default): CPU-bound x34.28 (2798.2 ms), I/O x7.69 (265.7 ms).</desc>
 <circle class="s1 dot" cx="276" cy="16" r="6"/>
 <text x="288" y="20.5">CPU-bound</text>
 <circle class="s2 dot" cx="394" cy="16" r="6"/>
@@ -142,6 +179,7 @@
 <circle class="s1 dot" cx="500.3" cy="154" r="5"><title>calls, exceptions and io, the default, CPU-bound: x34.28 (2798.2 ms)</title></circle>
 <circle class="s2 dot" cx="402.9" cy="164" r="5"><title>calls, exceptions and io, the default, I/O: x7.69 (265.7 ms)</title></circle>
 </svg>
+</div>
 </figure>
 <div class="table-wrap">
 <table class="results">

@@ -25,7 +25,7 @@
 
 <link rel="stylesheet" href="/benchmarks/style.css">
 </head>
-<body class="long">
+<body class="long bench">
 
 <header class="site-header">
   <nav aria-label="Main navigation">
@@ -110,9 +110,47 @@
 <h2 id="results-title">Results</h2>
 <p>The score of a run is the share of its questions that are right, by the rules of <a href="https://github.com/ormaos/ormaos-examples/blob/e0ffe13724a3147b1ed40177890ef757b48c00eb/agent-bench/knows/rules.json"><code>rules.json</code></a>, written before the run. The interval is a 95% bootstrap interval of the mean over the runs of the arm.</p>
 <figure class="chart">
-<svg viewBox="0 0 600 166" role="img" aria-labelledby="score-t score-d" xmlns="http://www.w3.org/2000/svg">
+<div class="wide-only">
+<svg viewBox="0 0 1060 166" role="img" aria-labelledby="score-t score-d" xmlns="http://www.w3.org/2000/svg">
 <title id="score-t">Mean score per arm, knows</title>
 <desc id="score-d">The mean score of the runs of each arm, with its 95% bootstrap interval. none 0.69 (0.55 to 0.83); raw 0.94 (0.88 to 1.00); ormaos 1.00 (1.00 to 1.00).</desc>
+<line class="grid" x1="130" y1="12" x2="130" y2="132"/>
+<text x="130" y="152" text-anchor="middle">0.00</text>
+<line class="grid" x1="315" y1="12" x2="315" y2="132"/>
+<text x="315" y="152" text-anchor="middle">0.25</text>
+<line class="grid" x1="500" y1="12" x2="500" y2="132"/>
+<text x="500" y="152" text-anchor="middle">0.50</text>
+<line class="grid" x1="685" y1="12" x2="685" y2="132"/>
+<text x="685" y="152" text-anchor="middle">0.75</text>
+<line class="grid" x1="870" y1="12" x2="870" y2="132"/>
+<text x="870" y="152" text-anchor="middle">1.00</text>
+<g><title>none: mean score 0.69, 95% interval 0.55 to 0.83, 27 runs</title>
+<text class="label" x="116" y="36.5" text-anchor="end">none</text>
+<line class="s1 whisker" x1="534.6" y1="32" x2="746" y2="32"/>
+<line class="s1 whisker" x1="534.6" y1="26" x2="534.6" y2="38"/>
+<line class="s1 whisker" x1="746" y1="26" x2="746" y2="38"/>
+<circle class="s1 dot" cx="642.9" cy="32" r="6"/>
+<text class="value" x="884" y="36.5">0.69 (0.55 to 0.83)</text></g>
+<g><title>raw: mean score 0.94, 95% interval 0.88 to 1.00, 27 runs</title>
+<text class="label" x="116" y="76.5" text-anchor="end">raw</text>
+<line class="s2 whisker" x1="780.4" y1="72" x2="866.6" y2="72"/>
+<line class="s2 whisker" x1="780.4" y1="66" x2="780.4" y2="78"/>
+<line class="s2 whisker" x1="866.6" y1="66" x2="866.6" y2="78"/>
+<circle class="s2 dot" cx="827.4" cy="72" r="6"/>
+<text class="value" x="884" y="76.5">0.94 (0.88 to 1.00)</text></g>
+<g><title>ormaos: mean score 1.00, 95% interval 1.00 to 1.00, 27 runs</title>
+<text class="label" x="116" y="116.5" text-anchor="end">ormaos</text>
+<line class="s3 whisker" x1="870" y1="112" x2="870" y2="112"/>
+<line class="s3 whisker" x1="870" y1="106" x2="870" y2="118"/>
+<line class="s3 whisker" x1="870" y1="106" x2="870" y2="118"/>
+<circle class="s3 dot" cx="870" cy="112" r="6"/>
+<text class="value" x="884" y="116.5">1.00 (1.00 to 1.00)</text></g>
+</svg>
+</div>
+<div class="narrow-only">
+<svg viewBox="0 0 600 166" role="img" aria-labelledby="score-n-t score-n-d" xmlns="http://www.w3.org/2000/svg">
+<title id="score-n-t">Mean score per arm, knows</title>
+<desc id="score-n-d">The mean score of the runs of each arm, with its 95% bootstrap interval. none 0.69 (0.55 to 0.83); raw 0.94 (0.88 to 1.00); ormaos 1.00 (1.00 to 1.00).</desc>
 <line class="grid" x1="130" y1="12" x2="130" y2="132"/>
 <text x="130" y="152" text-anchor="middle">0.00</text>
 <line class="grid" x1="200" y1="12" x2="200" y2="132"/>
@@ -145,6 +183,7 @@
 <circle class="s3 dot" cx="410" cy="112" r="6"/>
 <text class="value" x="424" y="116.5">1.00 (1.00 to 1.00)</text></g>
 </svg>
+</div>
 </figure>
 <div class="table-wrap">
 <table class="results">
