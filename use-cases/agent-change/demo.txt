@@ -1,0 +1,15 @@
+$ ormaos diff r1 r2
+r1 -> r2, matched by place in the code and order, not by address
+  r1: exit 0, 75 calls, 0 exceptions, 6 io events
+  r2: exit 0, 113 calls, 0 exceptions, 82 io events
+code: the two code versions differ: git commit bf1b795c2e, no uncommitted changes in r1, git commit 40059d6f5d, no uncommitted changes in r2
+calls: 1 of 11 places differ
+  discount_percent at billing.py:10: none in r1, 38 in r2  [r2:c9]
+exceptions: the same in both (0 groups)
+io: 2 of 8 groups differ
+  file open tiers.json (read)  at billing.py:11 in discount_percent: none in r1, 38 in r2  [r2:i5]
+  file read tiers.json  at billing.py:12 in discount_percent: none in r1, 38 in r2  [r2:i6]
+logs: the same in both (0 groups)
+data: the same in both (0 places)
+not compared: values, shapes of arguments and results, durations, cpu and memory, the lines of `path`, which process or thread an event was in
+next: ormaos tree r2:c9 | ormaos io r2:i5 | ormaos io r2:i6 | ormaos show r1 | ormaos show r2

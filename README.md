@@ -10,6 +10,7 @@ Ormaos records and shows what happened inside your Python execution — the runt
 |---|---|
 | [`order-sync/`](order-sync/) | a scheduled job that syncs orders from a sales system into an inventory (CSV or a local HTTP API in, SQLite out) |
 | [`freight-quote/`](freight-quote/) | a scheduled job that asks a carrier's API for the freight of tomorrow's shipments and writes the quotes (a local HTTP API in, SQLite out) |
+| [`use-cases/`](use-cases/) | seven small programs, one per kind of developer (web backend, data pipeline, notebook, ML training, RL environment, AI app, a change made by an agent), each with one recorded execution and factual questions about what happened in it |
 
 ## A run that already happened
 

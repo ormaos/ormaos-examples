@@ -1,0 +1,70 @@
+{
+  "use_case": "notebook",
+  "recordings": [
+    "r1",
+    "r2",
+    "r3",
+    "r4"
+  ],
+  "answers_from": "an execution of the same program without Ormaos, under sys.settrace and the counters named in each question",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "In which order did the code cells run? Give each by its position among the code cells of the notebook, from 1.",
+      "answer": [
+        1,
+        2,
+        4,
+        3,
+        5
+      ],
+      "oracle": "the execution counts the kernel gave, read through nbclient"
+    },
+    {
+      "id": "q2",
+      "question": "In which order did load, drop_key_accounts, add_tax and total run?",
+      "answer": [
+        "load",
+        "add_tax",
+        "drop_key_accounts",
+        "total"
+      ],
+      "oracle": "sys.settrace in the kernel"
+    },
+    {
+      "id": "q3",
+      "question": "How many times did each of load, drop_key_accounts, add_tax and total run?",
+      "answer": {
+        "load": 1,
+        "drop_key_accounts": 1,
+        "add_tax": 1,
+        "total": 1
+      },
+      "oracle": "sys.settrace in the kernel"
+    },
+    {
+      "id": "q4",
+      "question": "How many rows did add_tax receive, and how many did it return?",
+      "answer": {
+        "in": 40,
+        "out": 40
+      },
+      "oracle": "sys.settrace call and return events, len()"
+    },
+    {
+      "id": "q5",
+      "question": "How many rows did drop_key_accounts receive, and how many did it return?",
+      "answer": {
+        "in": 40,
+        "out": 22
+      },
+      "oracle": "sys.settrace call and return events, len()"
+    },
+    {
+      "id": "q6",
+      "question": "How many rows did total receive?",
+      "answer": 22,
+      "oracle": "sys.settrace call event, len()"
+    }
+  ]
+}

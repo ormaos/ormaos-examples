@@ -27,3 +27,12 @@ agent-bench/bugs/*/task/inbox/
 agent-bench/bugs/*/task/TASK.md
 agent-bench/bugs/order-sync/task/
 agent-bench/bugs/freight-quote/task/
+
+# use-cases: what the programs write when they run
+use-cases/web-backend/orders.db
+use-cases/data-pipeline/report.csv
+use-cases/notebook/report.executed.ipynb
+use-cases/ml-training/model.pt
+use-cases/ai-app/summaries.json
+use-cases/agent-change/invoices.csv
+use-cases/agent-change/refunds.csv

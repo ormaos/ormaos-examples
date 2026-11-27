@@ -1,0 +1,8 @@
+$ ormaos io r1:c9 --kind sqlite
+r1:c9 list_orders and the calls below it: 38 io events (sqlite 38), showing sqlite
+  1x sqlite "SELECT id, name, tier FROM customers WHERE id = ?"  at app.py:21 in find_customer  [r1:i50]
+  1x sqlite "SELECT id, placed FROM orders WHERE customer_id = ? ORDER BY placed"  at app.py:57 in list_orders  [r1:i51]
+  12x sqlite "SELECT product_id, quantity FROM order_items WHERE order_id = ?"  at app.py:35 in items_of  [r1:i52]
+  24x sqlite "SELECT cents FROM products WHERE id = ?"  at app.py:41 in price_of  [r1:i53]
+calls directly below: 1 find_customer (1 io), 1 discount_for (no io), 12 order_total (36 io)
+next: ormaos io r1:i50 | ormaos io r1:i51 | ormaos tree r1:c9

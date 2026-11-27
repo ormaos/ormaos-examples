@@ -1,0 +1,57 @@
+{
+  "use_case": "rl-env",
+  "recordings": [
+    "r1"
+  ],
+  "answers_from": "an execution of the same program without Ormaos, under sys.settrace and the counters named in each question",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "How many times did GridEnv.reset run, and how many times GridEnv.step?",
+      "answer": {
+        "reset": 20,
+        "step": 363
+      },
+      "oracle": "sys.settrace"
+    },
+    {
+      "id": "q2",
+      "question": "In how many calls of GridEnv.step did _reward run before _move, and in how many after?",
+      "answer": {
+        "before": 363,
+        "after": 0
+      },
+      "oracle": "sys.settrace, the order of the calls made from each step"
+    },
+    {
+      "id": "q3",
+      "question": "How many episodes ended in ended_at_goal and how many in ended_at_limit?",
+      "answer": {
+        "ended_at_goal": 19,
+        "ended_at_limit": 1
+      },
+      "oracle": "sys.settrace"
+    },
+    {
+      "id": "q4",
+      "question": "How many times did GridEnv._arrival_bonus run?",
+      "answer": 0,
+      "oracle": "sys.settrace"
+    },
+    {
+      "id": "q5",
+      "question": "How many times did GridEnv._bump run?",
+      "answer": 89,
+      "oracle": "sys.settrace"
+    },
+    {
+      "id": "q6",
+      "question": "How many calls of GridEnv.step did the shortest and the longest episode make?",
+      "answer": {
+        "shortest": 13,
+        "longest": 30
+      },
+      "oracle": "sys.settrace, the calls made from each run_episode"
+    }
+  ]
+}

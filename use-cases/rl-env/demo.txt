@@ -1,0 +1,10 @@
+$ ormaos path r1:c9
+r1:c9 GridEnv.step env.py:25: 7 steps, showing 1-7
+  1    26 |         reward = self._reward()
+  2        call GridEnv._reward [r1:c10] returned
+  3    27 |         self._move(action)
+  4        call GridEnv._move [r1:c12] returned
+  5    28 |         self.steps += 1
+  6    29 |         done = self.position == self.goal or self.steps >= self.limit
+  7    30 |         return self.position, reward, done
+next: ormaos tree r1:c9

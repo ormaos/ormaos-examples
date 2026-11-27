@@ -1,0 +1,9 @@
+$ ormaos show r1
+r1 exit 0 in 5.10s: 1 Python process, 203 calls, 0 exceptions (0 swallowed, 0 uncaught)
+command: python train.py
+code: git commit not read (the working directory is not inside a git repository)
+io: 10 events (file 10)
+tensors: an array or a tensor was an argument or a result 400 times, 10 with NaN or inf: return of standardize at train.py:32  [r1:c56]
+not collected: logs with no line of user code: 5 logging records were asked for with no frame of user code waiting (library threads, the end of the interpreter): they are counted here and not recorded; the first loggers: torch._dynamo.eval_frame, torch._dynamo.utils, torch._subclasses.fake_tensor
+never recorded: values, and 20 more kinds of things (`ormaos show --full` lists them with the reason)
+next: ormaos tree r1:c1 | ormaos io r1 | ormaos tree r1:c56

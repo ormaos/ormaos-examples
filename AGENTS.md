@@ -29,6 +29,15 @@ A scheduled Python job that quotes the freight of tomorrow's shipments.
 - Other code paths that also change a price and are correct: the volume weight, the half-kilo rounding, the express factor, the minimum charge. Nothing in `freight-quote/` says where the bug is.
 - `scenarios/two_nights.py` builds, in a new folder, the morning after a good night and a bad night; with `--record`, both runs are recorded with Ormaos (`r1`, `r2`), for `ormaos diff`.
 
+## One program per kind of developer: `use-cases/`
+
+Seven small programs: `web-backend` (FastAPI, SQLite), `data-pipeline` (pandas), `notebook` (Jupyter, nbclient), `ml-training` (PyTorch on CPU), `rl-env`, `ai-app` (a local stand-in for a model API) and `agent-change` (a repository and a change an agent made).
+
+- Each is a normal program with a README that presents it as one, the standard library plus only the library its kind needs, runnable from a copy of its folder.
+- Each has one execution in which something happened that its output does not say. `scenario.py` records it with Ormaos; `questions.json` has 5 to 8 factual questions about what happened, and `demo.txt` one `ormaos` command with its output.
+- The answer of every question is computed by an independent oracle in `scenario.py` (a second execution under `sys.settrace`, counters), never by reading the recording. `scenario.py <folder> --check` compares with the committed answers; CI runs it.
+- The questions ask what happened, not whether it should have: Ormaos shows, the reader decides.
+
 ## The demo page: `docs/`
 
 A static page, no build step, that shows without installing anything:

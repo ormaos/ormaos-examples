@@ -1,0 +1,56 @@
+{
+  "use_case": "ml-training",
+  "recordings": [
+    "r1"
+  ],
+  "answers_from": "an execution of the same program without Ormaos, under sys.settrace and the counters named in each question",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "How many times did train_step run?",
+      "answer": 40,
+      "oracle": "sys.settrace"
+    },
+    {
+      "id": "q2",
+      "question": "In how many calls of loss_of was the returned loss NaN?",
+      "answer": 2,
+      "oracle": "sys.settrace return event, torch.isnan"
+    },
+    {
+      "id": "q3",
+      "question": "Which function was the first to return a tensor with NaN in it?",
+      "answer": "standardize",
+      "oracle": "sys.settrace return events in order, torch.isnan"
+    },
+    {
+      "id": "q4",
+      "question": "In which call of train_step, counted from 1, did a tensor with NaN first appear?",
+      "answer": 11,
+      "oracle": "sys.settrace return events in order, torch.isnan"
+    },
+    {
+      "id": "q5",
+      "question": "How many times did apply_update run?",
+      "answer": 38,
+      "oracle": "sys.settrace"
+    },
+    {
+      "id": "q6",
+      "question": "What was the shape of the batch tensor passed to standardize?",
+      "answer": [
+        [
+          8,
+          4
+        ]
+      ],
+      "oracle": "sys.settrace call event, Tensor.shape"
+    },
+    {
+      "id": "q7",
+      "question": "How many times did save_checkpoint run?",
+      "answer": 1,
+      "oracle": "sys.settrace"
+    }
+  ]
+}

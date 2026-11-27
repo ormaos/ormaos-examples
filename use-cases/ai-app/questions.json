@@ -1,0 +1,68 @@
+{
+  "use_case": "ai-app",
+  "recordings": [
+    "r1"
+  ],
+  "answers_from": "an execution of the same program without Ormaos, under sys.settrace and the counters named in each question",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "How many HTTP requests did the model server receive?",
+      "answer": 11,
+      "oracle": "sys.settrace on the server's generate function"
+    },
+    {
+      "id": "q2",
+      "question": "How many requests were answered with each HTTP status?",
+      "answer": {
+        "200": 8,
+        "503": 3
+      },
+      "oracle": "sys.settrace on the server's reply function, its status argument"
+    },
+    {
+      "id": "q3",
+      "question": "How many requests went to each model?",
+      "answer": {
+        "large-1": 3,
+        "small-1": 8
+      },
+      "oracle": "sys.settrace on the server's generate function, its model argument"
+    },
+    {
+      "id": "q4",
+      "question": "Which exceptions were handled in summarize, and how many of each?",
+      "answer": {
+        "urllib.error.HTTPError": 3
+      },
+      "oracle": "sys.settrace exception events"
+    },
+    {
+      "id": "q5",
+      "question": "Which calls of summarize, counted from 1 in order, called ask more than once?",
+      "answer": [
+        3,
+        5,
+        8
+      ],
+      "oracle": "sys.settrace, the calls made from each summarize"
+    },
+    {
+      "id": "q6",
+      "question": "How many times did ask run?",
+      "answer": 11,
+      "oracle": "sys.settrace"
+    },
+    {
+      "id": "q7",
+      "question": "Which files of the folder did the program open for writing, and from which function?",
+      "answer": [
+        {
+          "file": "summaries.json",
+          "function": "save"
+        }
+      ],
+      "oracle": "a wrapper around builtins.open"
+    }
+  ]
+}

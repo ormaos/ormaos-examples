@@ -1,0 +1,6 @@
+$ ormaos io r1 --kind http
+r1: 112 io events (file 101, http 11), showing http
+  5x http POST http://127.0.0.1:41231/v1/models/small-1/generate -> 200  at app.py:20 in ask  [r1:i3]
+  3x http POST http://127.0.0.1:41231/v1/models/small-1/generate -> 503  at app.py:20 in ask  [r1:i5]
+  3x http POST http://127.0.0.1:41231/v1/models/large-1/generate -> 200  at app.py:20 in ask  [r1:i6]
+next: ormaos io r1:i3 | ormaos io r1:i5 | ormaos io r1:c8 | ormaos exceptions r1

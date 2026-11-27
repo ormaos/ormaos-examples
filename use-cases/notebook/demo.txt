@@ -1,0 +1,3 @@
+$ ormaos tree r2
+r2:c1 add_tax(rows: list[40 dict]) -> list[40 dict]  /tmp/ipykernel_297801/1887773198.py:21  70us  task 1
+next: ormaos exceptions r2

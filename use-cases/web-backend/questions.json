@@ -1,0 +1,64 @@
+{
+  "use_case": "web-backend",
+  "recordings": [
+    "r1"
+  ],
+  "answers_from": "an execution of the same program without Ormaos, under sys.settrace and the counters named in each question",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "How many SQL SELECT statements ran while the request GET /customers/3/orders was handled?",
+      "answer": 38,
+      "oracle": "sqlite3 trace callback on every connection"
+    },
+    {
+      "id": "q2",
+      "question": "How many times did the SELECT on the table order_items run, and in which function?",
+      "answer": {
+        "times": 12,
+        "function": [
+          "items_of"
+        ]
+      },
+      "oracle": "sqlite3 trace callback, with the function of the program on the stack"
+    },
+    {
+      "id": "q3",
+      "question": "Which function of the program ran the most SELECT statements during the request, and how many?",
+      "answer": {
+        "function": "price_of",
+        "times": 24
+      },
+      "oracle": "sqlite3 trace callback, with the function of the program on the stack"
+    },
+    {
+      "id": "q4",
+      "question": "How many times was order_total called?",
+      "answer": 12,
+      "oracle": "sys.settrace"
+    },
+    {
+      "id": "q5",
+      "question": "Did product_names run?",
+      "answer": false,
+      "oracle": "sys.settrace"
+    },
+    {
+      "id": "q6",
+      "question": "How many sqlite3 connections did the whole execution open?",
+      "answer": 2,
+      "oracle": "a wrapper around sqlite3.connect"
+    },
+    {
+      "id": "q7",
+      "question": "Which exceptions were raised and handled inside the program, and in which function was each handled?",
+      "answer": [
+        {
+          "type": "builtins.KeyError",
+          "handled_in": "discount_for"
+        }
+      ],
+      "oracle": "sys.settrace exception events"
+    }
+  ]
+}

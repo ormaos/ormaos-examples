@@ -1,0 +1,7 @@
+$ ormaos tree r1 --function join_customers
+r1: 1 of the 8 calls matches --function join_customers (1 join_customers; 0 raised)
+r1:c6 join_customers(orders: DataFrame[195x4], customers: DataFrame[40x3]) -> DataFrame[178x6]  pipeline.py:27  1.8ms
+      orders: 195 rows x 4 columns: order_id int64 0 null, customer_id string 0 null, placed str 0 null, amount float64 0 null
+      customers: 40 rows x 3 columns: customer_id string 0 null, name str 0 null, region str 0 null
+      returned: 178 rows x 6 columns: order_id int64 0 null, customer_id string 0 null, placed str 0 null, amount float64 0 null, name str 0 null, region str 0 null
+next: ormaos tree r1:c6 | ormaos tree r1 | ormaos exceptions r1

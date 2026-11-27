@@ -1,0 +1,65 @@
+{
+  "use_case": "data-pipeline",
+  "recordings": [
+    "r1"
+  ],
+  "answers_from": "an execution of the same program without Ormaos, under sys.settrace and the counters named in each question",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "How many rows and how many nulls had the DataFrame that load_orders returned?",
+      "answer": {
+        "rows": 200,
+        "nulls": 5
+      },
+      "oracle": "sys.settrace return event, DataFrame.shape and isna().sum()"
+    },
+    {
+      "id": "q2",
+      "question": "How many rows went into drop_unpriced and how many came out?",
+      "answer": {
+        "in": 200,
+        "out": 195
+      },
+      "oracle": "sys.settrace call and return events, DataFrame.shape"
+    },
+    {
+      "id": "q3",
+      "question": "How many rows of orders went into join_customers and how many rows came out?",
+      "answer": {
+        "in": 195,
+        "out": 178
+      },
+      "oracle": "sys.settrace call and return events, DataFrame.shape"
+    },
+    {
+      "id": "q4",
+      "question": "How many columns had the DataFrame that join_customers returned?",
+      "answer": 6,
+      "oracle": "sys.settrace return event, DataFrame.columns"
+    },
+    {
+      "id": "q5",
+      "question": "Did drop_repeats run?",
+      "answer": false,
+      "oracle": "sys.settrace"
+    },
+    {
+      "id": "q6",
+      "question": "How many rows had the DataFrame passed to write_report?",
+      "answer": 4,
+      "oracle": "sys.settrace call event, DataFrame.shape"
+    },
+    {
+      "id": "q7",
+      "question": "Which files of the folder did the program open for writing, and from which function?",
+      "answer": [
+        {
+          "file": "report.csv",
+          "function": "write_report"
+        }
+      ],
+      "oracle": "a wrapper around builtins.open"
+    }
+  ]
+}
