@@ -23,8 +23,9 @@ differ. The prompts of knows2 are the text its run.py gives each agent.
 The commits named on the pages are those that added each results file, so
 the build needs the full git history.
 
-Each page is written as HTML (index.html) and as Markdown (index.html.md),
-and llms.txt lists them. The charts are inline SVG, with no script; each is
+Each page is written as HTML (index.html) and as Markdown at the sibling
+path (docs/benchmarks.md, docs/benchmarks/knows2.md, ...), and llms.txt
+lists them. The charts are inline SVG, with no script; each is
 followed by a table of its numbers. The style is that of docs/index.html.
 Standard library only.
 """
@@ -91,7 +92,7 @@ KINDS = {
                      "commits: before and after a change that a coding agent made."),
     "order-sync": ("For scheduled jobs: order-sync", "order-sync",
                    "A scheduled job that applies the new orders of a sales system to a warehouse inventory; the "
-                   "execution is the night that printed its OK line while some stock came out wrong."),
+                   "execution is a night on which it printed its OK line and some orders did not reach the inventory."),
     "freight-quote": ("For scheduled jobs: freight-quote", "freight-quote",
                       "A scheduled job that asks a carrier's rate API for the freight of tomorrow's shipments and "
                       "writes one quote per shipment; the execution is a night on which some calls were refused."),
@@ -200,6 +201,12 @@ def overlap_sentence(pairs, arms):
     if len(pairs) == len(arms) * (len(arms) - 1) // 2:
         return f"The 95% intervals of all {len(arms)} arms overlap one another."
     return "These 95% intervals overlap: " + "; ".join(f"`{a}` and `{b}`" for a, b in pairs) + "."
+
+
+def md_url(path):
+    """The address of a page's Markdown: /benchmarks.md for /benchmarks/,
+    /benchmarks/knows2.md for /benchmarks/knows2/."""
+    return "/benchmarks.md" if not path else f"/benchmarks/{path.rstrip('/')}.md"
 
 
 def date_of(folder):
@@ -650,13 +657,12 @@ class Frame:
                                            '<a href="/benchmarks/"{current}>Benchmarks</a>')
 
     def page(self, path, title, description, sections, current=False):
-        md_url = f"/benchmarks/{path}index.html.md"
         out = ['<!doctype html>', '<html lang="en">', '<head>', '<meta charset="utf-8">',
                '<meta name="viewport" content="width=device-width, initial-scale=1">',
                f"<title>{esc(title)}</title>", f'<meta name="description" content="{esc(description)}">',
                '<meta name="color-scheme" content="light">', '<meta name="theme-color" content="#ffffff">',
                '<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">',
-               f'<link rel="alternate" type="text/markdown" href="{md_url}">', "", self.head_script, "",
+               f'<link rel="alternate" type="text/markdown" href="{md_url(path)}">', "", self.head_script, "",
                '<link rel="stylesheet" href="/benchmarks/style.css">', "</head>", '<body class="long">', "",
                self.header.replace("{current}", ' aria-current="page"' if current else ""), self.header_script,
                "", "<main>", ""]
@@ -1283,6 +1289,20 @@ def knows_page(run, new):
 # ---------------------------------------------------------------- fix
 
 
+# Where each program of the fix benchmark behaves otherwise than its README
+# says, in the words of the benchmark's README, without judging them.
+DIFFERS = {
+    "order-sync": "an exception that is caught and not shown",
+    "freight-quote": "a fallback, with nothing printed, after HTTP calls that returned an error",
+    "late-fees": "a branch taken because of a value in the environment",
+    "statement-import": "a loop that stops before the end of its input",
+    "fx-rates": "a retry that makes its call once",
+    "price-import": "a subprocess whose exit code is not read",
+    "points-grant": "an SQL statement that also writes other rows",
+    "commission-run": "a value kept from one item to the next",
+}
+
+
 class FixRun:
     def __init__(self, folder, h):
         self.folder, self.h = folder, h
@@ -1293,21 +1313,26 @@ class FixRun:
         self.arms = [a for a in ARMS4 if any(r["arm"] == a for r in self.first)]
         readme = (BENCH / "README.md").read_text(encoding="utf-8")
         table = re.search(r"\| Bug \| The job \| The kind of bug \|\n\|.*?\n((?:\|.*\n)+)", readme).group(1)
-        self.bugs = []
+        self.cases = []
         for line in table.splitlines():
-            bug, job, kind = [c.strip() for c in line.strip("|").split("|")]
-            self.bugs.append((bug.strip("`"), re.sub(r"\s*\(\[`[^`]*`\]\([^)]*\)\)", "", job), kind))
+            name, job, _ = [c.strip() for c in line.strip("|").split("|")]
+            name = name.strip("`")
+            if name not in DIFFERS:
+                raise SystemExit(f"agent-bench/README.md: {name} has no line in DIFFERS of build.py")
+            self.cases.append((name, re.sub(r"\s*\(\[`[^`]*`\]\([^)]*\)\)", "", job), DIFFERS[name]))
+        if {r["bug"] for r in self.first} != {c for c, _, _ in self.cases}:
+            raise SystemExit("the cases of results.jsonl are not those of agent-bench/README.md")
         self.runs = sorted({r["run"] for r in self.first})
         self.commit = added_in(folder / "results.jsonl")
         self.models = sorted({r["model"] for r in self.records})
         self.claude = sorted({r["claude"] for r in self.records})
         self.date = date_of(folder)
 
-    def of(self, arm=None, bug=None):
-        return [r for r in self.first if arm in (None, r["arm"]) and bug in (None, r["bug"])]
+    def of(self, arm=None, case=None):
+        return [r for r in self.first if arm in (None, r["arm"]) and case in (None, r["bug"])]
 
-    def fixed(self, arm, bug=None):
-        return sum(1 for r in self.of(arm, bug) if r["fixed"])
+    def fixed(self, arm, case=None):
+        return sum(1 for r in self.of(arm, case) if r["fixed"])
 
     def summary_rows(self):
         bench_run, number = self.h.base.bench_run, self.h.base.number
@@ -1324,56 +1349,63 @@ class FixRun:
         return rows
 
 
+def fix_title(run):
+    return f"fix: {len(run.cases)} programs that do otherwise than their README says"
+
+
 def fix_page(run):
     model = joined(code(m) for m in run.models)
     h = run.h
     intervals = {a: h.benchlib.wilson(run.fixed(a), len(run.of(a))) for a in run.arms}
     pairs = overlapping(intervals)
-    sections = [Section("top", f"fix: {len(run.bugs)} bugs, fixed or not", [
-        P(f"N = {len(run.first)} runs: {len(run.bugs)} bugs x {len(run.arms)} arms x {len(run.runs)} runs, the "
-          f"first attempt of every slot, model {model}, {run.date}. A coding agent gets a scheduled job that "
-          "printed its OK line on a bad night, the data that night left and the symptom, and is asked to find "
-          "the cause and fix it; a hidden check decides whether the code it left is fixed.", "lead"),
+    sections = [Section("top", fix_title(run), [
+        P(f"N = {len(run.first)} runs: {len(run.cases)} programs x {len(run.arms)} arms x {len(run.runs)} runs, "
+          f"the first attempt of every slot, model {model}, {run.date}. A coding agent gets a scheduled program "
+          "whose behaviour on one night differs from what its README says, the data that night left and a "
+          "one-sentence symptom. A check it does not see then plays that night again on the code the agent left; "
+          "`fixed` is the name of the metric that counts the runs whose code passed it.", "lead"),
         P(SENTENCE, "sentence"),
-        Facts([(f"{run.fixed(a)}/{len(run.of(a))}", f"`{a}`, fixed, 95% interval "
+        Facts([(f"{run.fixed(a)}/{len(run.of(a))}", f"`{a}`, `fixed`, 95% interval "
                 f"{100 * intervals[a][0]:.0f}% to {100 * intervals[a][1]:.0f}%") for a in run.arms]),
         Toc([("method", "Method"), ("results", "Results"), ("limits", "Limits"), ("this-run", "This run")]),
     ], first=True)]
     sections.append(Section("method", "Method", [
-        H(3, "The bugs"),
-        P(f"{len(run.bugs)} small Python jobs, standard library only, each with one bug of a different kind. Each runs from "
-          "cron, prints its OK line and exits with code 0; what went wrong is visible only in the data it left, "
-          "and running the job again today does not show it."),
-        Table(["Bug", "The job", "The kind of bug"], [[code(b), j, k] for b, j, k in run.bugs], numbers=False),
+        H(3, "The programs"),
+        P(f"{len(run.cases)} small scheduled Python programs, standard library only. Each runs from cron, prints "
+          "its OK line and exits with code 0; on one night its behaviour differs from what its README says, in "
+          "a different place in each program, and that shows only in the data it left. Running it again today "
+          "does not show it: that night's input is gone."),
+        Table(["Program", "What it does, by its README", "Where its behaviour differs"],
+              [[code(c), j, d] for c, j, d in run.cases], numbers=False),
         H(3, "The arms"),
         Table(["Arm", "Added to the folder", "Added to the prompt"], [
             ["`none`", "nothing", "nothing"],
-            ["`raw`", "`result.json`: a [VizTracer](https://github.com/gaogaotiantian/viztracer) trace of the bad "
+            ["`raw`", "`result.json`: a [VizTracer](https://github.com/gaogaotiantian/viztracer) trace of that "
                       "night's run, default settings", "that the file is there and how to read it"],
-            ["`ormaos`", "`.ormaos/`: the Ormaos recording of the bad night's run, and `.venv/` with the `ormaos` "
+            ["`ormaos`", "`.ormaos/`: the Ormaos recording of that night's run, and `.venv/` with the `ormaos` "
                          "command line", "that the recording is there, and to run `.venv/bin/ormaos guide` first"],
         ], numbers=False),
-        P("All arms have the same code, data and task text: the symptom, how cron runs the job, and \"Find the "
-          "cause and fix it.\" The nights are played once per arm, in copies mounted at the same path, and the "
-          "build stops if the copies do not leave the same data."),
+        P("All arms have the same code, data and task text: the symptom, how cron runs the program, and \"Find "
+          "the cause and fix it.\" The nights are played once per arm, in copies mounted at the same path, and "
+          "the build stops if the copies do not leave the same data."),
         H(3, "The check"),
-        P("For each bug, `hidden/check.py`, not in the agent's folder, plays the bad night again on the code the "
-          "agent left, and nights on which nothing is wrong. It passes only when the bad night no longer ends "
-          "wrong and the other nights end as before, with exit code 0 and the job's last line as cron reads it. "
-          "The metric `fixed` is that the check passed."),
+        P("For each program, `hidden/check.py`, not in the agent's folder, plays that night again on the code the "
+          "agent left, and nights on which the program did what its README says. It passes when that night's "
+          "data now comes out as the README describes and the other nights end as before, with exit code 0 and "
+          "the program's last line as cron reads it. The metric `fixed` counts the runs whose code passed it."),
         H(3, "The sandbox"),
-        P(f"The folder is mounted at `/srv/<bug>` inside bubblewrap, with nothing else of the machine but the "
+        P(f"The folder is mounted at `/srv/<program>` inside bubblewrap, with nothing else of the machine but the "
           f"system (`/usr` and `/etc`, read-only), the `claude` program and its login. `claude -p --model "
           f"{', '.join(run.models)} --safe-mode --strict-mcp-config` gets the task text, with the tools Bash, "
-          "Read, Grep, Glob, Edit and Write, and the runner's time limit. The network is not cut: the agent needs it to reach "
-          "the model."),
+          "Read, Grep, Glob, Edit and Write, and the runner's time limit. The network is not cut: the agent needs "
+          "it to reach the model."),
         H(3, "Scored by the first attempt of every slot"),
-        P(f"What counts is the first attempt of every bug, arm and run: all {len(run.first)} of them, as planned "
-          "before the run. A run that used up its time counts with the code it left. An attempt in which the "
-          "agent named a path outside its folder, or that ended with an error, was marked and run again; the "
+        P(f"What counts is the first attempt of every program, arm and run: all {len(run.first)} of them, as "
+          "planned before the run. A run that used up its time counts with the code it left. An attempt in which "
+          "the agent named a path outside its folder, or that ended with an error, was marked and run again; the "
           f"later attempts ({len(run.records) - len(run.first)}) are listed in the report and do not count. "
           f"First attempts that were marked: {sum(1 for r in run.first if r['read_outside'])}; they count like "
-          "the others, since the sandbox has nothing of these jobs outside the folder."),
+          "the others, since the sandbox has nothing of these programs outside the folder."),
     ]))
 
     rows = []
@@ -1382,17 +1414,17 @@ def fix_page(run):
         f, n = run.fixed(arm), len(run.of(arm))
         rows.append((arm, SLOT[arm], f / n, low, high, f"{f}/{n} ({100 * low:.0f}% to {100 * high:.0f}%)",
                      f"{arm}: fixed {f} of {n}, 95% Wilson interval {100 * low:.0f}% to {100 * high:.0f}%"))
-    title = "Fixed per arm"
-    desc = ("The share of first attempts of each arm that the check passed, with its 95% Wilson score interval. "
-            + "; ".join(f"{r[0]} {r[5]}" for r in rows) + ".")
+    title = "The metric fixed, per arm"
+    desc = ("The share of first attempts of each arm whose code passed the check, with its 95% Wilson score "
+            "interval. " + "; ".join(f"{r[0]} {r[5]}" for r in rows) + ".")
     chart = Chart(interval_chart("fixed", title, desc, rows, [0, 0.25, 0.5, 0.75, 1.0],
                                  lambda t: f"{100 * t:.0f}%"), title, desc,
                   Table(["Arm", "Fixed", "95% interval", "Median wall time", "Median tool calls", "Median tokens",
                          "Timed out"], [[code(r[0])] + r[1:] for r in run.summary_rows()]))
-    per_bug = Table(["Bug"] + [code(a) for a in run.arms],
-                    [[code(b)] + [f"{run.fixed(a, b)}/{len(run.of(a, b))}" for a in run.arms]
-                     for b, _, _ in run.bugs])
-    order = {b: i for i, (b, _, _) in enumerate(run.bugs)}
+    per_case = Table(["Program"] + [code(a) for a in run.arms],
+                     [[code(c)] + [f"{run.fixed(a, c)}/{len(run.of(a, c))}" for a in run.arms]
+                      for c, _, _ in run.cases])
+    order = {c: i for i, (c, _, _) in enumerate(run.cases)}
     not_fixed = sorted((r for r in run.first if not r["fixed"]),
                        key=lambda r: (order[r["bug"]], run.arms.index(r["arm"]), r["run"]))
     sections.append(Section("results", "Results", [
@@ -1400,9 +1432,9 @@ def fix_page(run):
           "input, output and cache tokens added up, as the claude command line reports them."),
         chart,
         P(overlap_sentence(pairs, run.arms)),
-        H(3, "Per bug"),
-        per_bug,
-        H(3, "The first attempts that were not fixed"),
+        H(3, "Per program"),
+        per_case,
+        H(3, "First attempts whose code did not pass the check"),
         P("With what the check said:"),
         UL([f"{code(r['bug'])}, `{r['arm']}`, run {r['run']}: {h.base.bench_run.reason(r)}" for r in not_fixed]
            or ["none"]),
@@ -1410,18 +1442,18 @@ def fix_page(run):
           "nothing in the tables: the folders these runs left were read by hand. See its section \"After the "
           f"run\" in [`report.md`]({blob(run.commit, run.folder / 'report.md')})."),
     ]))
-    readme = (BENCH / "README.md").read_text(encoding="utf-8")
-    limits = re.search(r"## What it does not show\n\n((?:- .*\n?)+)", readme).group(1)
-    sections.append(Section("limits", "Limits", [
-        P("As the benchmark's README lists them:"),
-        UL([line[2:] for line in limits.splitlines() if line.startswith("- ")]),
-    ]))
+    sections.append(Section("limits", "Limits", [UL([
+        f"The {len(run.cases)} programs, and where each one's behaviour differs from its README, were written "
+        "for this benchmark by the people who make Ormaos; they are not a sample of real programs.",
+        "One model, one prompt per arm, one tracer with its default settings.",
+        "The dates in the data are relative to the day `build.py` ran: build on the day of the run.",
+    ])]))
     sections.append(about_run(
         "this-run", run.folder, run.commit, run.built["ormaos_commit"], run.models, run.claude, run.date,
         f"; VizTracer {run.built['viztracer']}; {run.built['python']}",
         clone_commands(run.commit, run.built["ormaos_commit"], "agent-bench")
         + ["python3 build.py", f"python3 run.py --runs {len(run.runs)}"], NEEDS))
-    return f"fix: {len(run.bugs)} bugs, fixed or not", sections
+    return fix_title(run), sections
 
 
 # ---------------------------------------------------------------- overhead
@@ -1545,11 +1577,12 @@ def index_page(k2, k1, fix, over):
             "Mean score per arm:"), arm_facts(k1)],
          "The run, and why knows2 replaced it", "/benchmarks/knows/"),
         (f"fix · {fix.date} · {joined(fix.models)} · N = {len(fix.first)} runs, {len(fix.of(fix.arms[0]))} per arm",
-         f"{len(fix.bugs)} bugs, fixed or not",
-         [P("A coding agent fixes a bug from the night it happened; a hidden check decides. Fixed per arm:"),
+         fix_title(fix)[len("fix: "):][:1].upper() + fix_title(fix)[len("fix: ") + 1:],
+         [P("A coding agent changes a program whose behaviour on one night differed from what its README says; "
+            "a check it does not see runs that night again. The metric `fixed`, per arm:"),
           Facts([(f"{fix.fixed(a)}/{len(fix.of(a))}", f"`{a}`, 95% interval {100 * fix_int[a][0]:.0f}% to "
                   f"{100 * fix_int[a][1]:.0f}%") for a in fix.arms])],
-         "The bugs, the check and every run", "/benchmarks/fix/"),
+         "The programs, the check and every run", "/benchmarks/fix/"),
         (f"overhead · {over.facts['When'].split(' ')[0]} · N = {over.runs} runs per row",
          "What recording adds to the time of a run",
          [P("The default capability set, as a multiple of the same run without Ormaos, with the p25 to p75 of "
@@ -1566,8 +1599,9 @@ def index_page(k2, k1, fix, over):
             P(SENTENCE, "sentence"),
         ], first=True),
         Section("measured", "What is measured", [
-            P("Whether a coding agent knows what happened in an execution it did not see, and whether it fixes a "
-              "bug from a night that went wrong, when it has the folder the execution left and nothing more "
+            P("Whether a coding agent knows what happened in an execution it did not see, and whether the code it "
+              "leaves passes a check, for a program whose behaviour on one night differed from what its README "
+              "says, when it has the folder the execution left and nothing more "
               "(`none`), a VizTracer trace of the execution (`raw`), or its Ormaos recording (`ormaos`, and in "
               f"knows2 also `ormaos-values`); the agent is {model}, in a sandbox, and its answers or its code are "
               "graded by an oracle or a check that reads neither the trace nor the recording. And how much time "
@@ -1575,8 +1609,8 @@ def index_page(k2, k1, fix, over):
             Cards(cards),
         ]),
         Section("not-shown", "What these benchmarks do not show", [UL([
-            "The programs, the executions and the bugs were written for these benchmarks by the people who make "
-            "Ormaos; they are not a sample of real programs or real bugs.",
+            "The programs and their executions were written for these benchmarks by the people who make Ormaos; "
+            "they are not a sample of real programs.",
             f"One model, one prompt per arm, one tracer with its default settings, and few runs: "
             f"{len(k2.of(k2.arms[0]))} per arm in knows2, {len(fix.of(fix.arms[0]))} in fix. Several 95% "
             "intervals overlap; each page says which.",
@@ -1588,7 +1622,8 @@ def index_page(k2, k1, fix, over):
             "reader decides.",
         ])]),
         Section("files", "The pages as files", [UL([
-            "Each page is also Markdown, at its address followed by `index.html.md`.",
+            "Each page is also Markdown, at its address with `.md` in place of the last slash: "
+            "[`/benchmarks.md`](/benchmarks.md), [`/benchmarks/knows2.md`](/benchmarks/knows2.md), and so on.",
             "[`/benchmarks/llms.txt`](/benchmarks/llms.txt) lists them for agents.",
             f"The pages are written by [`site/benchmarks/build.py`]({EXAMPLES}/blob/main/site/benchmarks/build.py) "
             "from the results files.",
@@ -1602,13 +1637,13 @@ def index_page(k2, k1, fix, over):
 
 def llms_txt(pages):
     lines = ["# Ormaos benchmarks", "",
-             f"> {SENTENCE} These pages measure what a coding agent knows about an execution and what it fixes, "
-             "with nothing, a raw trace or an Ormaos recording, and what recording costs in time. Every number is "
+             f"> {SENTENCE} These pages measure what a coding agent knows about an execution and whether the "
+             "code it changes passes a check, with nothing, a raw trace or an Ormaos recording, and what recording costs in time. Every number is "
              "read from a results file by site/benchmarks/build.py in ormaos-examples.", "",
-             "Each page is plain Markdown at the address below; the HTML page is the same address without "
-             "`index.html.md`.", "", "## Pages", ""]
+             "Each page is plain Markdown at the address below; the HTML page is the same address with a slash "
+             "in place of `.md`.", "", "## Pages", ""]
     for path, title, description, _ in pages:
-        lines.append(f"- [{title}]({SITE}/benchmarks/{path}index.html.md): {description}")
+        lines.append(f"- [{title}]({SITE}{md_url(path)}): {description}")
     lines += ["", "## Results files", ""]
     for path, title, _, files in pages:
         for name, url in files:
@@ -1623,7 +1658,9 @@ def llms_txt(pages):
 # ---------------------------------------------------------------- build
 
 
-def build(out):
+def build(root):
+    """Write root/benchmarks/ and root/benchmarks.md."""
+    out = root / "benchmarks"
     h = runners()
     frame = Frame()
     k2 = KnowsRun(KNOWS2, ARMS4, h)
@@ -1647,7 +1684,8 @@ def build(out):
     pages.append(("knows/", title, "the earlier run of the same executions, and why knows2 replaced it", sections,
                   result_files(k1)))
     title, sections = fix_page(fix)
-    pages.append(("fix/", title, f"{len(fix.bugs)} bugs, {len(fix.arms)} arms, scored by the first attempt of every slot", sections,
+    pages.append(("fix/", title, f"{len(fix.cases)} programs, {len(fix.arms)} arms, the metric fixed, scored by the "
+                  "first attempt of every slot", sections,
                   result_files(fix)))
     title, sections = overhead_page(over)
     pages.append(("overhead/", title, f"the time a recorded run takes, per capability set, on {len(over.workloads)} workloads",
@@ -1662,7 +1700,7 @@ def build(out):
         page_title = f"{title} · Ormaos benchmarks" if path else "Ormaos benchmarks"
         (folder / "index.html").write_text(
             frame.page(path, page_title, f"{title}: {description}.", sections, current=not path), encoding="utf-8")
-        (folder / "index.html.md").write_text(Frame.markdown(sections), encoding="utf-8")
+        (root / md_url(path).lstrip("/")).write_text(Frame.markdown(sections), encoding="utf-8")
     (out / "llms.txt").write_text(llms_txt([(p, t, d, f) for p, t, d, _, f in pages]), encoding="utf-8")
     (out / "style.css").write_text(frame.style + EXTRA_CSS, encoding="utf-8")
     shutil.copyfile(DOCS / "favicon.svg", out / "favicon.svg")
@@ -1703,15 +1741,19 @@ def main(argv=None):
     if args.overhead:
         take_overhead(args.overhead)
     if not args.check:
-        build(OUT)
-        print(f"wrote {rel(OUT)}/")
+        build(DOCS)
+        print(f"wrote {rel(OUT)}/ and {rel(DOCS / 'benchmarks.md')}")
         return 0
     with tempfile.TemporaryDirectory() as scratch:
-        fresh = Path(scratch) / "benchmarks"
+        fresh = Path(scratch)
         build(fresh)
-        changed = differences(fresh, OUT) if OUT.exists() else ["docs/benchmarks/ does not exist"]
+        changed = ["benchmarks/" + n for n in differences(fresh / "benchmarks", OUT)] if OUT.exists() \
+            else ["benchmarks/"]
+        if not (DOCS / "benchmarks.md").exists() or not filecmp.cmp(fresh / "benchmarks.md", DOCS / "benchmarks.md",
+                                                                   shallow=False):
+            changed.append("benchmarks.md")
     for name in changed:
-        print(f"docs/benchmarks/{name}: not as a fresh build writes it")
+        print(f"docs/{name}: not as a fresh build writes it")
     if changed:
         print("run: python3 site/benchmarks/build.py")
         return 1
