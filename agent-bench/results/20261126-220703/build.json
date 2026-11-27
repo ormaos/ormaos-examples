@@ -1,0 +1,126 @@
+{
+  "bugs": {
+    "late-fees": {
+      "wrong": [
+        "no fee on 2026-11-25"
+      ],
+      "trace_attempts": 1,
+      "lines_of_code": 246,
+      "trace_events": 16432,
+      "trace_bytes": 3938898,
+      "recording": "r1 exit 0 in 0.05s: 1 Python process, 34 calls, 1 exception (0 swallowed, 0 uncaught)"
+    },
+    "statement-import": {
+      "wrong": [
+        "ledger 2049385, bank 2072155"
+      ],
+      "trace_attempts": 1,
+      "lines_of_code": 249,
+      "trace_events": 11362,
+      "trace_bytes": 3186257,
+      "recording": "r1 exit 0 in 0.06s: 1 Python process, 68 calls, 1 exception (0 swallowed, 0 uncaught)"
+    },
+    "commission-run": {
+      "wrong": [
+        "R-12",
+        "R-13",
+        "R-15",
+        "R-17"
+      ],
+      "trace_attempts": 1,
+      "lines_of_code": 244,
+      "trace_events": 11693,
+      "trace_bytes": 3231011,
+      "recording": "r1 exit 0 in 0.06s: 1 Python process, 85 calls, 2 exceptions (0 swallowed, 0 uncaught, 1 StopIteration taken by the interpreter)"
+    },
+    "freight-quote": {
+      "wrong": [
+        "FR-8136",
+        "FR-8137",
+        "FR-8138",
+        "FR-8139",
+        "FR-8140",
+        "FR-8141",
+        "FR-8142",
+        "FR-8143",
+        "FR-8144",
+        "FR-8145",
+        "FR-8146",
+        "FR-8147",
+        "FR-8148",
+        "FR-8149",
+        "FR-8150",
+        "FR-8151",
+        "FR-8152"
+      ],
+      "trace_attempts": 2,
+      "lines_of_code": 375,
+      "trace_events": 72708,
+      "trace_bytes": 11862204,
+      "recording": "r1 exit 0 in 0.63s: 1 Python process, 430 calls, 20 exceptions (17 swallowed, 0 uncaught, 2 StopIteration taken by the interpreter)"
+    },
+    "fx-rates": {
+      "wrong": [
+        "CAD",
+        "CHF",
+        "JPY",
+        "PLN"
+      ],
+      "trace_attempts": 1,
+      "lines_of_code": 296,
+      "trace_events": 51676,
+      "trace_bytes": 8810522,
+      "recording": "r1 exit 0 in 0.62s: 1 Python process, 100 calls, 9 exceptions (4 swallowed, 0 uncaught)"
+    },
+    "order-sync": {
+      "wrong": [
+        "HDS-0402",
+        "KBD-0101",
+        "MON-0201"
+      ],
+      "trace_attempts": 4,
+      "lines_of_code": 434,
+      "trace_events": 42163,
+      "trace_bytes": 7980773,
+      "recording": "r1 exit 0 in 0.60s: 1 Python process, 240 calls, 6 exceptions (5 swallowed, 0 uncaught)"
+    },
+    "points-grant": {
+      "wrong": [
+        "M-1042",
+        "M-1043",
+        "M-1050",
+        "M-1051",
+        "M-1052"
+      ],
+      "trace_attempts": 1,
+      "lines_of_code": 229,
+      "trace_events": 11555,
+      "trace_bytes": 3211065,
+      "recording": "r1 exit 0 in 0.06s: 1 Python process, 62 calls, 2 exceptions (0 swallowed, 0 uncaught, 1 StopIteration taken by the interpreter)"
+    },
+    "price-import": {
+      "wrong": [
+        "ART-2110",
+        "ART-2112",
+        "ART-2114",
+        "ART-2115",
+        "ART-2116",
+        "ART-2117",
+        "ART-2120",
+        "ART-2121",
+        "ART-2122",
+        "ART-2124",
+        "ART-2125"
+      ],
+      "trace_attempts": 1,
+      "lines_of_code": 216,
+      "trace_events": 12508,
+      "trace_bytes": 3031332,
+      "recording": "r1 exit 0 in 0.10s: 2 Python processes, 28 calls, 3 exceptions (0 swallowed, 1 uncaught, 1 StopIteration taken by the interpreter)"
+    }
+  },
+  "ormaos_commit": "75c191a",
+  "viztracer": "1.1.1",
+  "python": "Python 3.14.4",
+  "built": "2026-11-26T22:06:14"
+}

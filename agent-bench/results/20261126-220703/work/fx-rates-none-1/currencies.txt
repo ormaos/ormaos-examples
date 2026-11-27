@@ -1,0 +1,13 @@
+# The currencies the price lists need, one per line.
+USD
+GBP
+CHF
+JPY
+SEK
+NOK
+DKK
+PLN
+CZK
+HUF
+CAD
+AUD

@@ -1,0 +1,10 @@
+order_id,placed_at,sku,quantity,channel,unit
+SO-20538,2026-11-25T21:30,CAB-0302,4,marketplace,each
+SO-20539,2026-11-26T06:10,MSE-0102,2,web,each
+SO-20540,2026-11-26T06:48,KBD-0101,3,marketplace,each
+SO-20541,2026-11-26T07:15,CAB-0302,1,store,pack
+SO-20542,2026-11-26T07:40,HDS-0402,2,marketplace,each
+SO-20543,2026-11-26T08:05,WEB-0401,1,web,each
+SO-20544,2026-11-26T08:31,MON-0201,1,marketplace,each
+SO-20545,2026-11-26T08:55,HUB-0301,2,store,each
+SO-20546,2026-11-26T09:12,KBD-0101,1,web,each

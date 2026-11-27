@@ -1,0 +1,2 @@
+{"format":"provisional-0","kind":"run","core":{"ormaos":"0.0.1","mode":"run","pid":2,"command":[".venv/bin/python","job.py"],"cwd":"/srv/statement-import","env_names":["HOME","LANG","PATH","PWD"],"platform":"linux","anchor":{"t":0,"unix":1795741622.576121,"clock":"monotonic, nanoseconds"}}}
+{"k":"end","exit_code":0,"signal":null,"command_pid":3,"dur":56340801,"cpu_user":0.04,"cpu_system":0.01,"max_rss_kb":19708}
