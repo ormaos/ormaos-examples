@@ -1,0 +1,254 @@
+{
+ "web-backend": {
+  "q1": "number",
+  "q2": {
+   "record": {
+    "times": "number",
+    "function": {
+     "set": "name"
+    }
+   }
+  },
+  "q3": {
+   "record": {
+    "function": "name",
+    "times": "number"
+   }
+  },
+  "q4": "number",
+  "q5": "bool",
+  "q6": "number",
+  "q7": {
+   "set": {
+    "record": {
+     "type": "name",
+     "handled_in": "name"
+    }
+   }
+  }
+ },
+ "data-pipeline": {
+  "q1": {
+   "record": {
+    "rows": "number",
+    "nulls": "number"
+   }
+  },
+  "q2": {
+   "record": {
+    "in": "number",
+    "out": "number"
+   }
+  },
+  "q3": {
+   "record": {
+    "in": "number",
+    "out": "number"
+   }
+  },
+  "q4": "number",
+  "q5": "bool",
+  "q6": "number",
+  "q7": {
+   "set": {
+    "record": {
+     "file": "file",
+     "function": "name"
+    }
+   }
+  }
+ },
+ "notebook": {
+  "q1": {
+   "list": "number"
+  },
+  "q2": {
+   "list": "name"
+  },
+  "q3": {
+   "record": {
+    "load": "number",
+    "drop_key_accounts": "number",
+    "add_tax": "number",
+    "total": "number"
+   }
+  },
+  "q4": {
+   "record": {
+    "in": "number",
+    "out": "number"
+   }
+  },
+  "q5": {
+   "record": {
+    "in": "number",
+    "out": "number"
+   }
+  },
+  "q6": "number"
+ },
+ "ml-training": {
+  "q1": "number",
+  "q2": "number",
+  "q3": "name",
+  "q4": "number",
+  "q5": "number",
+  "q6": {
+   "set": {
+    "list": "number"
+   }
+  },
+  "q7": "number"
+ },
+ "rl-env": {
+  "q1": {
+   "record": {
+    "reset": "number",
+    "step": "number"
+   }
+  },
+  "q2": {
+   "record": {
+    "before": "number",
+    "after": "number"
+   }
+  },
+  "q3": {
+   "record": {
+    "ended_at_goal": "number",
+    "ended_at_limit": "number"
+   }
+  },
+  "q4": "number",
+  "q5": "number",
+  "q6": {
+   "record": {
+    "shortest": "number",
+    "longest": "number"
+   }
+  }
+ },
+ "ai-app": {
+  "q1": "number",
+  "q2": {
+   "map": [
+    "text",
+    "number"
+   ]
+  },
+  "q3": {
+   "map": [
+    "text",
+    "number"
+   ]
+  },
+  "q4": {
+   "map": [
+    "name",
+    "number"
+   ]
+  },
+  "q5": {
+   "set": "number"
+  },
+  "q6": "number",
+  "q7": {
+   "set": {
+    "record": {
+     "file": "file",
+     "function": "name"
+    }
+   }
+  }
+ },
+ "agent-change": {
+  "q1": {
+   "record": {
+    "r1": "number",
+    "r2": "number"
+   }
+  },
+  "q2": {
+   "record": {
+    "invoice_total": "number",
+    "refund_amount": "number"
+   }
+  },
+  "q3": {
+   "record": {
+    "r1": "number",
+    "r2": "number"
+   }
+  },
+  "q4": {
+   "set": "name"
+  },
+  "q5": {
+   "record": {
+    "r1": "number",
+    "r2": "number"
+   }
+  },
+  "q6": {
+   "record": {
+    "r1": {
+     "set": "file"
+    },
+    "r2": {
+     "set": "file"
+    }
+   }
+  },
+  "q7": "bool",
+  "q8": "bool"
+ },
+ "order-sync": {
+  "q1": {
+   "set": "name"
+  },
+  "q2": "number",
+  "q3": {
+   "record": {
+    "check_order": "number",
+    "apply_order": "number"
+   }
+  },
+  "q4": {
+   "map": [
+    "name",
+    "number"
+   ]
+  },
+  "q5": {
+   "set": "name"
+  },
+  "q6": {
+   "record": {
+    "true": "number",
+    "false": "number"
+   }
+  },
+  "q7": "number"
+ },
+ "freight-quote": {
+  "q1": {
+   "record": {
+    "carrier.py": "number",
+    "ratecard.py": "number"
+   }
+  },
+  "q2": {
+   "map": [
+    "name",
+    "number"
+   ]
+  },
+  "q3": "number",
+  "q4": {
+   "set": "number"
+  },
+  "q5": "number",
+  "q6": "number",
+  "q7": "number"
+ }
+}

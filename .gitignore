@@ -36,3 +36,7 @@ use-cases/ml-training/model.pt
 use-cases/ai-app/summaries.json
 use-cases/agent-change/invoices.csv
 use-cases/agent-change/refunds.csv
+
+# agent-bench/knows: what build.py makes and what run.py writes
+agent-bench/knows/.build/
+agent-bench/knows/results/
