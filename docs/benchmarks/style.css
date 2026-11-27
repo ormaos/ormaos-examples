@@ -175,6 +175,15 @@ a:hover {
   .nav-links a[href$="ormaos.com/contact"] { display: none; }
 }
 
+/* Below 30rem the links and the theme switch sit closer, and the GitHub
+   link, which the footer also has, is left out. */
+@media (max-width: 30rem) {
+  .site-header nav { gap: 12px; }
+  .nav-links { gap: 10px; }
+  .nav-links .nav-github { display: none; }
+  .theme-switch button { padding-inline: 6px; }
+}
+
 /* Theme: a two-option switch, the current one filled. */
 .theme-switch {
   display: flex;
@@ -1180,14 +1189,6 @@ main .band > details.text {
 
 main .band > p.sentence {
   margin-top: 16px;
-}
-
-/* The header has one link more than the demo page's: on a narrow screen
-   the link to the guide is left out, as the demo page leaves out the
-   contact link, and the links sit closer. */
-@media (max-width: 30rem) {
-  .nav-links { gap: 10px; }
-  .nav-links a[href="https://ormaos.com/guide/"] { display: none; }
 }
 
 /* From 64rem the benchmark pages use a wider column, 1100 px: charts,
