@@ -27,7 +27,8 @@
       integrity="sha384-Yn8PvH1/b3JcY3/foiDV8Uh+1CrHj//nlQEvCkWelMiyeP864lRMxx4ywG2RYNqj"
       crossorigin="anonymous">
 <style>
-/* The colours, header and footer are the ones of ormaos.com. */
+/* Colour tokens. privacy.html and 404.html carry the same block, and
+   tools/check_placeholders.py fails if they drift. */
 :root {
   color-scheme: light;
   --bg: #ffffff;
@@ -65,6 +66,11 @@
 html {
   overflow-y: scroll;
   -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
 }
 
 body {
@@ -163,6 +169,10 @@ a:hover {
   .theme-switch button { padding-inline: 12px; }
 }
 
+.nav-links a[aria-current="page"] {
+  text-decoration: underline;
+}
+
 .nav-github {
   display: flex;
   align-items: center;
@@ -173,6 +183,25 @@ a:hover {
   width: 18px;
   height: 18px;
   flex: none;
+}
+
+/* On a narrow screen the GitHub link is its mark alone. */
+@media (max-width: 26rem) {
+  .nav-github span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* On a narrow screen the contact link is in the footer only. */
+@media (max-width: 26rem) {
+  .nav-links a[href="/contact"],
+  .nav-links a[href$="ormaos.com/contact"] { display: none; }
 }
 
 /* Theme: a two-option switch, the current one filled. */
@@ -210,36 +239,47 @@ a:hover {
   box-shadow: 0 0 0 1px var(--line);
 }
 
-.nav-links a[aria-current="page"] {
-  text-decoration: underline;
-}
-
-@media (max-width: 26rem) {
-  .nav-github span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-}
-
-/* Main: text in one narrow column, recordings in a wider one. */
+/* Main: one centred column, everything stacked: 42rem for text and code.
+   Only a terminal window that plays a recording is wider (56rem), so its
+   font is large. */
 main {
   width: 100%;
-  max-width: calc(60rem + 2 * var(--gutter));
-  margin-inline: auto;
-  padding: 80px var(--gutter) 64px;
+  padding: 48px var(--gutter) 80px;
 }
 
 @media (min-width: 48rem) {
-  main { padding-top: 96px; }
+  main { padding-top: 72px; }
 }
 
-.text {
-  max-width: 36rem;
+.band {
+  margin-top: 72px;
+  scroll-margin-top: 24px;
+}
+
+.band.first {
+  margin-top: 0;
+}
+
+@media (min-width: 48rem) {
+  .band { margin-top: 96px; }
+}
+
+main .band > * {
+  max-width: 42rem;
   margin-inline: auto;
+}
+
+main .band > .wide {
+  max-width: 56rem;
+}
+
+/* The home page is short and its column is narrower, as on ollama.com. */
+.short main .band > * {
+  max-width: 36rem;
+}
+
+.short main .band > .wide {
+  max-width: 48rem;
 }
 
 h1 {
@@ -253,32 +293,69 @@ h1 {
 .lead {
   margin: 16px 0 0;
   font-size: 18px;
-  line-height: 1.625;
+  line-height: 1.5;
 }
 
 h2 {
-  max-width: 36rem;
-  margin: 64px auto 16px;
+  margin: 0 0 16px;
   font-size: 18px;
   font-weight: 500;
-  line-height: 1.5;
+  line-height: 1.4;
   letter-spacing: -0.025em;
+}
+
+h3 {
+  margin: 32px 0 8px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
 }
 
 @media (min-width: 48rem) {
   h1 { font-size: 22px; }
   .lead { font-size: 20px; line-height: 28px; }
-  h2 { margin-top: 80px; }
 }
+
+/* The long pages are read like an article: larger titles, same weight. */
+.long h1 { font-size: 30px; line-height: 1.25; }
+.long h2 { font-size: 24px; line-height: 1.3; }
+.long h3 { font-size: 18px; }
 
 p {
   margin: 0 0 16px;
   font-size: 16px;
-  line-height: 1.625;
+  line-height: 1.65;
 }
 
-main a {
+main p a,
+main li a,
+main td a,
+main dd a,
+main summary a {
   text-decoration: underline;
+}
+
+.kicker {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  margin-top: 32px;
+}
+
+.actions a:not(.button) {
+  text-decoration: underline;
+}
+
+main .band > .video {
+  margin-top: 56px;
 }
 
 code,
@@ -288,107 +365,239 @@ pre {
 }
 
 code {
-  padding: 2px 5px;
+  padding: 2px 6px;
+  border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--panel);
-  font-size: 0.85em;
+  font-size: 0.875em;
 }
 
-pre {
-  margin: 0 0 16px;
-  padding: 16px 20px;
-  overflow-x: auto;
+/* Code blocks. Two kinds, so that they are told apart at a glance:
+   - a file or commands to copy: a light panel with a bar above it;
+   - what a terminal printed: a dark terminal window, in both themes.
+   The bar holds what the block is and, with JavaScript, its copy button. */
+.code {
+  margin: 20px 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--panel);
-  font-size: 12px;
-  line-height: 1.7;
 }
 
-pre code {
+.code-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 8px 6px 16px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-soft);
+}
+
+.code pre {
+  margin: 0;
+  padding: 16px;
+  overflow-x: auto;
+  font-size: 14px;
+  line-height: 1.7;
+  tab-size: 4;
+  color: var(--text);
+}
+
+.code.tall pre {
+  max-height: 30rem;
+  overflow-y: auto;
+}
+
+/* Prose in a block (a sentence to hand to an agent) wraps. */
+.code.wrap pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.code pre code {
   padding: 0;
+  border: 0;
   background: none;
   font-size: 1em;
 }
 
-/* Recordings: the player takes its colours from the page, so it follows the
-   theme switch. */
-.cast {
-  margin: 24px 0 12px;
+/* Commands to copy: each line starts with a "$" that is drawn, not text,
+   so it is never copied. */
+.code.sh .cmd::before,
+.chip code::before {
+  content: "$ ";
+  color: var(--text-dim);
+  user-select: none;
+}
+
+.code .cmd {
+  font-weight: 600;
+}
+
+/* The terminal window. */
+.term {
+  text-align: left;
+  margin: 20px 0;
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: #101010;
+}
+
+.term .code-bar {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  background: #1b1b1b;
+  color: #b5b5b5;
+}
+
+.term .code-label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.term pre {
+  color: #e5e5e5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.term .cmd {
+  color: #ffffff;
+}
+
+.term .prompt {
+  color: #56d364;
+  font-weight: 600;
+  user-select: none;
+}
+
+.term .out {
+  color: #d4d4d4;
+}
+
+.term .hl {
+  color: #79c0ff;
+}
+
+.term .next,
+.term .elide {
+  color: #9a9a9a;
+}
+
+.copy {
+  flex: none;
+  min-width: 64px;
+  min-height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.copy:hover {
+  border-color: var(--text);
+}
+
+.term .copy {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: transparent;
+  color: #f5f5f5;
+}
+
+.term .copy:hover {
+  border-color: #ffffff;
+}
+
+.term :focus-visible {
+  outline-color: #ffffff;
+}
+
+/* One command on a line of its own, with its copy button. */
+.chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 7px 8px 7px 16px;
+  border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--panel);
 }
 
-.cast .ap-player {
-  border-radius: 12px;
-}
-
-.asciinema-player-theme-ormaos {
-  --term-color-foreground: #171717;
-  --term-color-background: #f5f5f5;
-  --term-color-0: #171717;
-  --term-color-1: #b42318;
-  --term-color-2: #1a7f37;
-  --term-color-3: #8a6100;
-  --term-color-4: #0b5cad;
-  --term-color-5: #8250df;
-  --term-color-6: #0e7490;
-  --term-color-7: #525252;
-  --term-color-8: #737373;
-  --term-color-9: #b42318;
-  --term-color-10: #1a7f37;
-  --term-color-11: #8a6100;
-  --term-color-12: #0b5cad;
-  --term-color-13: #8250df;
-  --term-color-14: #0e7490;
-  --term-color-15: #171717;
-}
-
-:root[data-theme="dark"] .asciinema-player-theme-ormaos {
-  --term-color-foreground: #f5f5f5;
-  --term-color-background: #1a1a1a;
-  --term-color-0: #1a1a1a;
-  --term-color-1: #ff7b72;
-  --term-color-2: #56d364;
-  --term-color-3: #e3b341;
-  --term-color-4: #79c0ff;
-  --term-color-5: #d2a8ff;
-  --term-color-6: #76e3ea;
-  --term-color-7: #b5b5b5;
-  --term-color-8: #a3a3a3;
-  --term-color-9: #ff7b72;
-  --term-color-10: #56d364;
-  --term-color-11: #e3b341;
-  --term-color-12: #79c0ff;
-  --term-color-13: #d2a8ff;
-  --term-color-14: #76e3ea;
-  --term-color-15: #ffffff;
-}
-
-.cast-note {
-  max-width: 36rem;
-  margin: 24px auto 12px;
-  padding: 16px 20px;
-  border-radius: 12px;
-  background: var(--panel);
-  color: var(--text-soft);
-  font-size: 14px;
+.chip code {
+  padding: 0;
+  overflow-x: auto;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .caption {
-  max-width: 36rem;
-  margin-inline: auto;
+  margin: 12px 0 16px;
   font-size: 14px;
+  line-height: 1.6;
   color: var(--text-dim);
 }
 
-/* Measured: a big value over a small grey label. The <dt> comes first for
+/* The text of a recording, closed until it is asked for. */
+details.text {
+  margin: 12px 0 0;
+}
+
+details.text summary {
+  display: inline-block;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none;
+}
+
+details.text summary::-webkit-details-marker {
+  display: none;
+}
+
+details.text summary::before {
+  content: "+ ";
+  color: var(--text-dim);
+}
+
+details.text[open] summary::before {
+  content: "2  ";
+}
+
+details.text summary:hover {
+  border-color: var(--field);
+}
+
+/* Facts: a big value over a small grey label. The <dt> comes first for
    screen readers and is drawn under its value. */
 .facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px 64px;
+  margin: 40px auto 0;
+}
+
+.facts.two {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px;
-  margin-block: 32px 24px;
+  gap: 24px 32px;
+  margin-block: 24px;
 }
 
 .facts div {
@@ -400,6 +609,7 @@ pre code {
 .facts dt {
   margin-top: 4px;
   font-size: 14px;
+  line-height: 1.45;
   color: var(--text-dim);
 }
 
@@ -413,26 +623,121 @@ pre code {
 }
 
 @media (min-width: 48rem) {
-  .facts dd { font-size: 30px; }
+  .facts dd { font-size: 28px; }
 }
 
-/* A measured table: rows on hairlines, numbers aligned. */
+/* Steps: a number, a name, what it does, and its command. */
+.steps {
+  margin: 24px auto 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  padding: 0 0 32px;
+}
+
+.step:last-child {
+  padding-bottom: 0;
+}
+
+.step h3 {
+  margin: 0 0 6px;
+}
+
+.steps {
+  counter-reset: step;
+}
+
+.step h3::before {
+  counter-increment: step;
+  content: counter(step);
+  margin-right: 10px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.step p {
+  color: var(--text-soft);
+}
+
+.step > :last-child {
+  margin-bottom: 0;
+}
+
+/* On this page: the sections of a long page. */
+.toc {
+  margin-top: 32px;
+}
+
+.toc h2 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: normal;
+  color: var(--text-dim);
+}
+
+.toc ol {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px 32px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: toc;
+  font-size: 16px;
+}
+
+@media (min-width: 40rem) {
+  .toc ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.toc li {
+  counter-increment: toc;
+}
+
+.toc li::before {
+  content: counter(toc);
+  display: inline-block;
+  width: 1.5em;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tables: rows on hairlines. */
 .table-wrap {
   overflow-x: auto;
-  margin-block: 24px;
+  margin: 20px auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+th,
+td {
+  padding: 12px 16px 12px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-soft);
 }
 
 table.results {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
   font-variant-numeric: tabular-nums;
 }
 
 table.results th,
 table.results td {
-  padding: 10px 12px 10px 0;
-  border-bottom: 1px solid var(--line);
   text-align: right;
   white-space: nowrap;
 }
@@ -440,33 +745,326 @@ table.results td {
 table.results th:first-child,
 table.results td:first-child {
   text-align: left;
+  white-space: normal;
 }
 
-table.results th {
+table.results td {
   font-weight: 500;
-  color: var(--text-dim);
+}
+
+/* The verbs: one block per verb: its name, what it is for, one example. */
+table.verbs thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+table.verbs,
+table.verbs tbody,
+table.verbs tr,
+table.verbs td {
+  display: block;
+}
+
+table.verbs tr {
+  padding-block: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+table.verbs tbody tr:first-child {
   border-top: 1px solid var(--line);
+}
+
+table.verbs td {
+  padding: 0;
+  border: 0;
+}
+
+table.verbs td:first-child code {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+table.verbs td:nth-child(2) {
+  margin: 4px 0 12px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-soft);
 }
 
 /* Lists: rows on hairlines. */
 ul.rows {
-  margin: 0;
+  margin: 0 auto 16px;
   padding: 0;
   list-style: none;
   border-top: 1px solid var(--line);
 }
 
 ul.rows li {
-  padding: 14px 0;
+  padding: 12px 0;
   border-bottom: 1px solid var(--line);
   font-size: 16px;
   line-height: 1.5;
 }
 
+ul.rows.links li {
+  padding: 0;
+}
+
+ul.rows.links a {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  text-decoration: none;
+}
+
+ul.rows.links a:hover b {
+  text-decoration: underline;
+}
+
+ul.rows.links b {
+  flex: none;
+  font-weight: 600;
+}
+
+ul.rows.links span {
+  color: var(--text-soft);
+  text-align: right;
+}
+
+ol.plain {
+  margin: 0 auto 16px;
+  padding-left: 1.25rem;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+ol.plain li {
+  margin-bottom: 8px;
+}
+
+/* Questions: the question, then its answer. */
+.qa {
+  scroll-margin-top: 24px;
+}
+
+.qa h3 {
+  margin-top: 40px;
+}
+
+.qa .a > :last-child {
+  margin-bottom: 0;
+}
+
+.qa .a p,
+.qa .a li {
+  color: var(--text-soft);
+}
+
+/* Items: one under the other, on hairlines. */
+.cards {
+  margin: 32px auto 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.card {
+  min-width: 0;
+  padding-block: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.card h3 {
+  margin-top: 0;
+}
+
+.card:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* Under a wide terminal window, the words stay in the text column. */
+.wide > .caption,
+.wide > h3 {
+  max-width: 42rem;
+  margin-inline: auto;
+}
+
+.wide > h3 {
+  margin-top: 48px;
+}
+
+.wide > details.text > summary {
+  margin-left: max(0px, calc((100% - 42rem) / 2));
+}
+
+.short .wide > .caption {
+  max-width: 36rem;
+}
+
+.short .wide > details.text > summary {
+  margin-left: max(0px, calc((100% - 36rem) / 2));
+}
+
+.card p {
+  color: var(--text-soft);
+}
+
+.card .more {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.card > :last-child {
+  margin-bottom: 0;
+}
+
+/* Recordings: the player sits in a terminal window and takes its colours
+   from the class below. On a narrow screen it keeps a readable font and
+   scrolls sideways. */
+.cast {
+  overflow: hidden;
+  background: #101010;
+}
+
+.cast.scroll {
+  overflow-x: auto;
+}
+
+.cast .ap-player {
+  border-radius: 0;
+}
+
+.asciinema-player-theme-ormaos {
+  --term-color-foreground: #e5e5e5;
+  --term-color-background: #101010;
+  --term-color-0: #101010;
+  --term-color-1: #ff7b72;
+  --term-color-2: #56d364;
+  --term-color-3: #e3b341;
+  --term-color-4: #79c0ff;
+  --term-color-5: #d2a8ff;
+  --term-color-6: #76e3ea;
+  --term-color-7: #c9c9c9;
+  --term-color-8: #9a9a9a;
+  --term-color-9: #ff7b72;
+  --term-color-10: #56d364;
+  --term-color-11: #e3b341;
+  --term-color-12: #79c0ff;
+  --term-color-13: #d2a8ff;
+  --term-color-14: #76e3ea;
+  --term-color-15: #ffffff;
+}
+
+.cast-note {
+  padding: 16px 20px;
+  color: #b5b5b5;
+  font-size: 14px;
+}
+
 .about {
-  margin-top: 64px;
+  margin: 48px auto 0;
   font-size: 14px;
   color: var(--text-dim);
+}
+
+/* The signup form. */
+.signup {
+  margin: 0;
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.field-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 44px;
+  padding: 0 20px;
+  border: 1px solid var(--field);
+  border-radius: 9999px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;
+}
+
+.field-row input::placeholder {
+  color: var(--text-dim);
+}
+
+.button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--button);
+  color: var(--button-text);
+  font: inherit;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+main p a.button,
+.button:hover {
+  text-decoration: none;
+}
+
+.button:hover {
+  background: var(--button-hover);
+}
+
+
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.micro,
+.form-status {
+  margin: 16px 0 0;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.micro a,
+.form-status a {
+  text-decoration: underline;
+}
+
+.form-status {
+  margin-top: 8px;
+  color: var(--text);
+}
+
+.form-status:empty {
+  display: none;
 }
 
 /* Footer: one line, small and grey. */
@@ -508,7 +1106,7 @@ footer ul {
 }
 </style>
 </head>
-<body>
+<body class="long">
 
 <header class="site-header">
   <nav aria-label="Main navigation">
@@ -525,6 +1123,7 @@ footer ul {
         <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
         <span>GitHub</span>
       </a>
+      <a href="https://ormaos.com/guide/">Guide</a>
       <a href="./" aria-current="page">Demo</a>
       <a href="https://ormaos.com/contact">Contact</a>
       <div class="theme-switch" role="group" aria-label="Theme" hidden>
@@ -566,90 +1165,571 @@ footer ul {
 </script>
 
 <main>
-  <div class="text">
-    <h1>Ormaos</h1>
-    <p class="lead">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
 
-    <h2>The problem</h2>
+  <section class="band first" aria-labelledby="top-title">
+    <h1 id="top-title">Demo</h1>
+    <p class="lead">Three tests on small scheduled jobs that print OK on a night that went wrong. Everything here is a real run.</p>
+    <p style="margin-top:16px">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+    <ul class="cards">
+      <li class="card">
+        <p class="kicker">Test 1 · order-sync</p>
+        <h3>One job, the morning after</h3>
+        <p>With last night's recording, 5 of 5 agent runs stated the cause as proven. Without it, 0 of 5.</p>
+        <p class="more"><a href="#agent">See the two runs</a></p>
+      </li>
+      <li class="card">
+        <p class="kicker">Test 2 · freight-quote</p>
+        <h3>A second job, two nights compared</h3>
+        <p>With the recordings of both nights, 5 of 5 runs gave the carrier's 429 as what happened. Without them, 0 of 5.</p>
+        <p class="more"><a href="#two-nights">See the diff</a></p>
+      </li>
+      <li class="card">
+        <p class="kicker">Test 3 · agent-bench</p>
+        <h3>Eight bugs, three ways in</h3>
+        <p>Fixed: 21/24 with nothing more, 23/24 with a raw trace, 24/24 with Ormaos. Within the margin: this benchmark does not separate them.</p>
+        <p class="more"><a href="#bench">See the table</a></p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="band" id="by-hand" aria-labelledby="by-hand-title">
+    <p class="kicker">First, by hand</p>
+    <h2 id="by-hand-title">The job, and reading a recording</h2>
     <p>A scheduled Python job prints <code>sync finished: OK</code>, exits without an error, and in the morning the stock of some products is wrong. The run cannot be repeated and nothing was logged, so whoever investigates, a person or a coding agent, has only the code and the data that is left.</p>
-  </div>
+    <p>Here is the demo job, <a href="https://github.com/ormaos/ormaos-examples/tree/main/order-sync"><code>order-sync</code></a>, in a fresh copy: install Ormaos, record one run, then read the recording.</p>
+    <div class="wide">
+      <div class="term player">
+<div class="code-bar"><span class="code-label">order-sync</span></div>
+<div class="cast" id="cast-human" data-cast="casts/human.cast" data-poster="npt:0:24" data-rows="30"></div>
+</div>
+      <p class="caption">A real terminal session, not edited. Pauses are shortened during playback. The summary names an exception that was caught and never seen; the next commands show where it was raised and handled, the calls below the handler, and the I/O they did.</p>
+      <details class="text">
+<summary>The same session as text</summary>
+<figure class="code term tall" data-copy="all" data-source="casts/human.cast" data-whole="1">
+<figcaption class="code-bar"><span class="code-label">Terminal</span></figcaption>
+<pre tabindex="0" role="region" aria-label="Terminal"><code><span class="prompt">$ </span><span class="cmd">python3 -m venv .venv &amp;&amp; . .venv/bin/activate</span>
+<span class="prompt">$ </span><span class="cmd">pip install git+https://github.com/ormaos/ormaos-python</span>
+<span class="out">Collecting git+https://github.com/ormaos/ormaos-python</span>
+<span class="out">  Cloning https://github.com/ormaos/ormaos-python to /tmp/pip-req-build-97xkcehx</span>
+<span class="out">  Running command git clone --filter=blob:none --quiet https://github.com/ormaos/ormaos-python /tmp/pip-req-build-97xkcehx</span>
+<span class="out">  Resolved https://github.com/ormaos/ormaos-python to commit 75c191a4150205e8ee729dc6bdc501e0806705af</span>
+<span class="out">  Installing build dependencies ... done</span>
+<span class="out">  Getting requirements to build wheel ... done</span>
+<span class="out">  Preparing metadata (pyproject.toml) ... done</span>
+<span class="out">Building wheels for collected packages: ormaos</span>
+<span class="out">  Building wheel for ormaos (pyproject.toml) ... done</span>
+<span class="out">  Created wheel for ormaos: filename=ormaos-0.0.1-py3-none-any.whl size=94283 sha256=fb1a9a6cb20706934dda466492e9457b8d5c3df1cd0fceda1f69d8b28bc24836</span>
+<span class="out">  Stored in directory: /tmp/pip-ephem-wheel-cache-q57yzjgu/wheels/43/ae/47/13d7c37f884c60f106a242046ccd81a9db830e167a116eb9e8</span>
+<span class="out">Successfully built ormaos</span>
+<span class="out">Installing collected packages: ormaos</span>
+<span class="out">Successfully installed ormaos-0.0.1</span>
+<span class="out"></span>
+<span class="out">[notice] A new release of pip is available: 26.2.2 -&gt; 26.3</span>
+<span class="out">[notice] To update, run: pip install --upgrade pip</span>
+<span class="prompt">$ </span><span class="cmd">./reset.sh</span>
+<span class="out">inventory: 8 items loaded into data/inventory.db</span>
+<span class="out">reset: data/orders.csv restored</span>
+<span class="prompt">$ </span><span class="cmd">ormaos run -- python job.py</span>
+<span class="out">sync finished: OK</span>
+<span class="out"><span class="hl">ormaos:</span> r1 exit 0 in 0.34s: 1 Python process, 322 calls, 7 exceptions (6 swallowed), 182 io</span>
+<span class="out"><span class="hl">ormaos:</span> swallowed 6x validate.SkuFormatError at job.py:57, raised at validate.py:24 [r1:e1]</span>
+<span class="out"><span class="hl">ormaos:</span> not collected: io: reads of the 1 file opened at fetch.py:26: opened for reading, and no `read` call by Python code was seen on a file of that name: if it was read, that was inside C code (a file that is iterated, `for line in f`, `csv.reader`)</span>
+<span class="out"><span class="hl">ormaos:</span> saved in .ormaos/r1, next: ormaos exceptions r1:e1 | ormaos tree r1:c1</span>
+<span class="prompt">$ </span><span class="cmd">ormaos exceptions r1:e1</span>
+<span class="out">r1:e1 validate.SkuFormatError: swallowed</span>
+<span class="out">  raised at   validate.py:24 in check_sku  [r1:c168]</span>
+<span class="out">  left calls   check_sku [r1:c168], check_order [r1:c167]</span>
+<span class="out">  handled at  job.py:57 in sync_orders  [r1:c130]  and not raised again</span>
+<span class="out">  message     not recorded; args: tuple[1 str]</span>
+<span class="out">  same type, same handler: 6 in all: r1:e1 r1:e2 r1:e3 r1:e4 r1:e5 ...</span>
+<span class="out next">next: ormaos tree r1:c130 | ormaos io r1:c130 | ormaos tree r1:c168 | ormaos exceptions r1:e2 | ormaos path r1:e1</span>
+<span class="prompt">$ </span><span class="cmd">ormaos tree r1:c130 --depth 1 --limit 4</span>
+<span class="out">inside: r1:c1 &lt;module&gt; &gt; r1:c16 main</span>
+<span class="out">r1:c130 sync_orders(conn: sqlite3.Connection, orders: list[36 parse.Order]) -&gt; int  job.py:49  11.7ms  io 180  [swallowed 6x validate.SkuFormatError: r1:e1]  calls below: 66</span>
+<span class="out">  r1:c131 check_order(order: parse.Order) -&gt; NoneType  validate.py:47  38us  calls below: 3</span>
+<span class="out">  r1:c135 apply_order(conn: sqlite3.Connection, order: parse.Order) -&gt; bool  inventory.py:78  548us  io 6  calls below: 1</span>
+<span class="out">  r1:c137 check_order(order: parse.Order) -&gt; NoneType  validate.py:47  249us  calls below: 3</span>
+<span class="out">... 63 of the 66 calls directly below r1:c130 are not shown (34 check_order, 29 apply_order; 6 raised): --offset 3</span>
+<span class="out next">next: ormaos exceptions r1:e1 | ormaos tree r1:c130 --offset 3 | ormaos tree r1:c131 | ormaos tree r1:c16 | ormaos exceptions r1:c130</span>
+<span class="prompt">$ </span><span class="cmd">ormaos io r1:c130</span>
+<span class="out">r1:c130 sync_orders and the calls below it: 180 io events (sqlite 180)</span>
+<span class="out">  30x sqlite SELECT on_hand, pack_size FROM stock WHERE sku = ?  at inventory.py:87 in apply_order  [r1:i3]</span>
+<span class="out">  30x sqlite SELECT ? FROM applied_orders WHERE order_id = ?  at inventory.py:92 in apply_order  [r1:i4]</span>
+<span class="out">  30x sqlite BEGIN  at inventory.py:101 in apply_order  [r1:i5]</span>
+<span class="out">  30x sqlite UPDATE stock SET on_hand = on_hand - ? WHERE sku = ?  at inventory.py:101 in apply_order  [r1:i6]</span>
+<span class="out">  30x sqlite INSERT INTO applied_orders (order_id, sku, quantity, applied_at) VALU...  at inventory.py:105 in apply_order  [r1:i7]</span>
+<span class="out">  30x sqlite COMMIT  at inventory.py:100 in apply_order  [r1:i8]</span>
+<span class="out">calls directly below: 36 check_order (6 raised, no io), 30 apply_order (180 io)</span>
+<span class="out next">next: ormaos io r1:i3 | ormaos io r1:i4 | ormaos tree r1:c130 | ormaos io r1:c16</span></code></pre>
+</figure>
+</details>
+    </div>
+  </section>
 
-  <h2>Reading a recording by hand</h2>
-  <div class="text">
-    <p>The demo job, <a href="https://github.com/ormaos/ormaos-examples/tree/main/order-sync"><code>order-sync</code></a>, in a fresh copy: install Ormaos, record one run, then read the recording. The summary names an exception that was caught and never seen; the next commands show where it was raised and handled, the calls below the handler, and the I/O they did.</p>
-  </div>
-  <div class="cast" id="cast-human" data-cast="casts/human.cast"></div>
-  <p class="caption">A real terminal session, not edited. Pauses are shortened during playback.</p>
-
-  <h2>An agent, without and with the recording</h2>
-  <div class="text">
+  <section class="band" id="agent" aria-labelledby="agent-title">
+    <p class="kicker">Test 1</p>
+    <h2 id="agent-title">An agent, without and with the recording</h2>
     <p>The same job on the morning after a night run that cannot be repeated. A coding agent gets the folder and one sentence: the run said OK, some products have wrong stock, find out why. On one side the folder has last night's recording, on the other it has not.</p>
-  </div>
-  <dl class="facts text">
-    <div><dt>runs with the recording stated the cause as proven</dt><dd>5 of 5</dd></div>
-    <div><dt>runs without the recording stated the cause as proven</dt><dd>0 of 5</dd></div>
-  </dl>
-  <div class="text">
+    <dl class="facts two">
+      <div><dt>runs with the recording stated the cause as proven</dt><dd>5 of 5</dd></div>
+      <div><dt>runs without the recording stated the cause as proven</dt><dd>0 of 5</dd></div>
+    </dl>
     <p class="caption">Measured: N = 5 runs per side, model <code>claude-opus-5-5</code>, each run started with only the prompt, in a sandbox that holds only its own folder.</p>
     <p>On both sides, every run named the <code>except</code> that skips orders and the orders that were skipped. The difference is the reason for the skips. With the recording, the answer gave the exception type, how many times it was raised, and the lines where it was raised and handled, as what happened last night. Without it, every answer said the reason could not be confirmed and left other causes open.</p>
     <p>On neither side could a run say what exactly was wrong in the text of the rejected values: Ormaos records shapes (types, lengths, structure), never values.</p>
     <p>Below, one more run per side, recorded in a terminal. They are not among the runs counted above.</p>
-  </div>
-  <div class="cast" id="cast-without" data-cast="casts/without.cast" data-poster="npt:0:12" data-rows="49"></div>
-  <p class="caption">Without the recording. The agent finds the five orders that were skipped and the <code>except</code> that skips them, and says it cannot tell why they failed.</p>
-  <div class="cast" id="cast-with" data-cast="casts/with.cast" data-poster="npt:0:16" data-rows="42"></div>
-  <p class="caption">With the recording. The agent reads it first and gives the exception type, the five times it was raised, and the lines where it was raised and handled.</p>
-  <p class="caption">Real sessions, not edited; pauses are shortened during playback. Each step of the agent is printed as it arrives: what it runs, the first 12 lines of each result, and its answer.</p>
+    <div class="wide">
+      <h3>Without the recording</h3>
+      <div class="term player">
+<div class="code-bar"><span class="code-label">claude, without the recording</span></div>
+<div class="cast" id="cast-without" data-cast="casts/without.cast" data-poster="npt:0:12" data-rows="34"></div>
+</div>
+      <p class="caption">The agent finds the five orders that were skipped and the <code>except</code> that skips them, and says that nothing on the machine records why each of them was skipped.</p>
+      <details class="text">
+<summary>The same session as text</summary>
+<figure class="code term tall" data-copy="all" data-source="casts/without.cast" data-whole="1">
+<figcaption class="code-bar"><span class="code-label">Terminal</span></figcaption>
+<pre tabindex="0" role="region" aria-label="Terminal"><code><span class="prompt">$ </span><span class="cmd">cd /tmp/morning-plain</span>
+<span class="prompt">$ </span><span class="cmd">claude -p --model claude-opus-5-5 "Last night's order sync run said OK, but this morning some products have wrong stock. Find out why. The job runs with python3."</span>
+<span class="out"></span>
+<span class="out">&gt; Bash ls -laR | head -100</span>
+<span class="out">  .:</span>
+<span class="out">  total 32</span>
+<span class="out">  drwxrwxr-x 3 levimbraga levimbraga  180 Nov 26 23:55 .</span>
+<span class="out">  drwxr-xr-x 4 levimbraga levimbraga   80 Nov 26 23:55 ..</span>
+<span class="out">  -rw-rw-r-- 1 levimbraga levimbraga 4104 Nov 13 10:41 README.md</span>
+<span class="out">  drwxrwxr-x 2 levimbraga levimbraga  120 Nov 26 23:55 data</span>
+<span class="out">  -rw-rw-r-- 1 levimbraga levimbraga 2227 Nov 13 10:41 fetch.py</span>
+<span class="out">  -rw-rw-r-- 1 levimbraga levimbraga 5822 Nov 13 10:39 inventory.py</span>
+<span class="out">  -rw-rw-r-- 1 levimbraga levimbraga 2607 Nov 11 13:16 job.py</span>
+<span class="out">  -rw-rw-r-- 1 levimbraga levimbraga 1425 Nov 13 10:39 parse.py</span>
+<span class="out">  -rw-rw-r-- 1 levimbraga levimbraga 1236 Nov 13 10:39 validate.py</span>
+<span class="out"></span>
+<span class="out">  ... 8 more lines</span>
+<span class="out"></span>
+<span class="out">&gt; Bash for f in README.md job.py fetch.py parse.py validate.py inventory.py data/*.csv data/cron.log;</span>
+<span class="out">    do echo "=== $f"; cat -n $f; done</span>
+<span class="out">  === README.md</span>
+<span class="out">       1  # order-sync</span>
+<span class="out">       2</span>
+<span class="out">       3  A scheduled job that takes the new orders from the sales system and applies them to the</span>
+<span class="out">  warehouse inventory: for every order, the ordered quantity leaves the stock of that SKU.</span>
+<span class="out">       4</span>
+<span class="out">       5  It uses only the Python standard library (Python 3.12 or newer). The folder is self-</span>
+<span class="out">  contained: copy it anywhere and it runs.</span>
+<span class="out">       6</span>
+<span class="out">       7  ## Run it</span>
+<span class="out">       8</span>
+<span class="out">       9  ```bash</span>
+<span class="out">  ... 571 more lines</span>
+<span class="out"></span>
+<span class="out">&gt; Bash cat -A data/orders.csv &amp;&amp; echo &amp;&amp; python3 -I - &lt;&lt;'EOF'</span>
+<span class="out">    import sqlite3</span>
+<span class="out">    c=sqlite3.connect("file:data/inventory.db?mode=ro",uri=True)</span>
+<span class="out">    for t in ("stock","applied_orders","backorders"):</span>
+<span class="out">        print("==",t)</span>
+<span class="out">        for r in c.execute(f"select * from {t}"): print(r)</span>
+<span class="out">    EOF</span>
+<span class="out">    python3 inventory.py --db data/inventory.db --count data/count.csv</span>
+<span class="out">  order_id,placed_at,sku,quantity,channel,unit^M$</span>
+<span class="out">  SO-20538,2026-11-25T21:30,CAB-0302,4,marketplace,each^M$</span>
+<span class="out">  SO-20539,2026-11-26T06:10,MSE-0102,2,web,each^M$</span>
+<span class="out">  SO-20540,2026-11-26T06:48,KBD-0101,3,marketplace,each^M$</span>
+<span class="out">  SO-20541,2026-11-26T07:15,CAB-0302,1,store,pack^M$</span>
+<span class="out">  SO-20542,2026-11-26T07:40,HDS-0402,2,marketplace,each^M$</span>
+<span class="out">  SO-20543,2026-11-26T08:05,WEB-0401,1,web,each^M$</span>
+<span class="out">  SO-20544,2026-11-26T08:31,MON-0201,1,marketplace,each^M$</span>
+<span class="out">  SO-20545,2026-11-26T08:55,HUB-0301,2,store,each^M$</span>
+<span class="out">  SO-20546,2026-11-26T09:12,KBD-0101,1,web,each^M$</span>
+<span class="out"></span>
+<span class="out">  == stock</span>
+<span class="out">  ... 54 more lines</span>
+<span class="out"></span>
+<span class="out">&gt; Bash S=/tmp/claude-1000/-tmp-morning-plain/f4cc5982-8527-4585-9778-7f25f3413caf/scratchpad; mkdir -p</span>
+<span class="out">     $S &amp;&amp; cp /tmp/morning-plain/data/inventory.db $S/copy.db &amp;&amp; cd /tmp/morning-plain &amp;&amp;</span>
+<span class="out">    ORDER_SYNC_LOG_LEVEL=INFO python3 job.py --source api --db $S/copy.db; echo exit=$?;</span>
+<span class="out">    ORDER_SYNC_LOG_LEVEL=INFO python3 job.py --db $S/copy.db; echo exit=$?</span>
+<span class="out">  2026-11-26 23:55:52,922 order_sync INFO fetching orders from http://127.0.0.1:38437</span>
+<span class="out">  2026-11-26 23:55:53,432 order_sync INFO 9 orders read, 8 applied in this run</span>
+<span class="out">  sync finished: OK</span>
+<span class="out">  exit=0</span>
+<span class="out">  2026-11-26 23:55:53,511 order_sync INFO reading orders from /tmp/morning-plain/data/orders.csv</span>
+<span class="out">  2026-11-26 23:55:53,512 order_sync INFO 9 orders read, 0 applied in this run</span>
+<span class="out">  sync finished: OK</span>
+<span class="out">  exit=0</span>
+<span class="out"></span>
+<span class="out">&gt; Bash S=/tmp/claude-1000/-tmp-morning-plain/f4cc5982-8527-4585-9778-7f25f3413caf/scratchpad; cp</span>
+<span class="out">    /tmp/morning-plain/data/inventory.db $S/copy2.db; printf</span>
+<span class="out">    'order_id,placed_at,sku,quantity,channel,unit\nX-1,2026-11-26T10:00,KBD-0101</span>
+<span class="out">    ,3,web,each\nX-2,2026-11-26T10:01,KBD-0101,3,web,units\n' &gt; $S/bad.csv; cd /tmp/morning-plain;</span>
+<span class="out">    echo "-- default (cron) logging:"; python3 job.py --db $S/copy2.db --orders $S/bad.csv; echo</span>
+<span class="out">    exit=$?; echo "-- with WARNING:"; ORDER_SYNC_LOG_LEVEL=WARNING python3 job.py --db $S/copy2.db</span>
+<span class="out">    --orders $S/bad.csv; echo exit=$?</span>
+<span class="out">  -- default (cron) logging:</span>
+<span class="out">  sync finished: OK</span>
+<span class="out">  exit=0</span>
+<span class="out">  -- with WARNING:</span>
+<span class="out">  2026-11-26 23:56:12,018 order_sync WARNING order X-1 skipped: SKU 'KBD-0101 ' is not in the</span>
+<span class="out">  format AAA-0000</span>
+<span class="out">  2026-11-26 23:56:12,018 order_sync WARNING order X-2 skipped: unit 'units' is not one of each,</span>
+<span class="out">  pack</span>
+<span class="out">  sync finished: OK</span>
+<span class="out">  exit=0</span>
+<span class="out"></span>
+<span class="out">Last night's job skipped some orders, and the code is built so that a skip leaves no message and</span>
+<span class="out">still ends in "sync finished: OK". The stock for those products was never reduced.</span>
+<span class="out"></span>
+<span class="out">**What the data shows**</span>
+<span class="out"></span>
+<span class="out">- Last night's batch was SO-20501…SO-20538. Five of those orders are missing from `applied_orders`:</span>
+<span class="out"> **SO-20521, SO-20526, SO-20530, SO-20533, SO-20537**. Every other order in the range was applied.</span>
+<span class="out">- Compared with `data/count.csv`, three products show more stock in the system than on the shelf,</span>
+<span class="out">which is what you get when sales were not taken off:</span>
+<span class="out"></span>
+<span class="out">  | SKU | System | Counted | Diff |</span>
+<span class="out">  |---|---|---|---|</span>
+<span class="out">  | KBD-0101 | 103 | 94 | +9 |</span>
+<span class="out">  | HDS-0402 | 61 | 57 | +4 |</span>
+<span class="out">  | MON-0201 | 38 | 37 | +1 |</span>
+<span class="out"></span>
+<span class="out">  The other five SKUs match the count exactly.</span>
+<span class="out">- The current `data/orders.csv` (SO-20539…46) is the next batch, not last night's. On a copy of the</span>
+<span class="out"> DB, all 8 new orders apply cleanly, so this file isn't the problem.</span>
+<span class="out"></span>
+<span class="out">**Why it happened without any warning**</span>
+<span class="out"></span>
+<span class="out">1. `job.py:53-59`: `sync_orders` wraps each order in `except Exception`. It logs a warning and</span>
+<span class="out">moves on. Bad SKU format, bad unit, quantity out of range, unknown SKU and database errors are all</span>
+<span class="out">handled the same way.</span>
+<span class="out">2. `job.py:30`: the default log level is `ERROR`, so those warnings are never printed. Cron</span>
+<span class="out">captures nothing.</span>
+<span class="out">3. `job.py:78-82`: the job prints "sync finished: OK" and exits 0 whatever the skip count was.</span>
+<span class="out">4. `parse.py:38`: the SKU is the one field that isn't `.strip()`ed. A stray space (`"KBD-0101 "`)</span>
+<span class="out">fails validation and the order is dropped.</span>
+<span class="out"></span>
+<span class="out">I tested this on a scratch copy of the DB with a SKU that has a trailing space and an unknown unit</span>
+<span class="out">(`units`). Both orders were skipped, and with default logging the output was just `sync finished:</span>
+<span class="out">OK`, exit 0. With `ORDER_SYNC_LOG_LEVEL=WARNING` the two skip messages appear.</span>
+<span class="out"></span>
+<span class="out">**What I couldn't find out**</span>
+<span class="out"></span>
+<span class="out">Nothing on this machine records why each of the five orders was skipped. Only "OK" was logged, and</span>
+<span class="out">there's no `seed/` folder or `.ormaos/` recording here. The diffs add up to 14 items across 3 SKUs</span>
+<span class="out">from 5 orders, so some of those orders may have been genuinely invalid and others real sales. Those</span>
+<span class="out"> details are only in the sales system. In production the job runs with `--source api`, and the API</span>
+<span class="out">hands each order over once, so the job won't get these orders again on its own. You'll need to look</span>
+<span class="out"> up the five order IDs in the sales system and correct the stock by hand.</span>
+<span class="out"></span>
+<span class="out">Also, `data/cron.log` shows two runs in the same second. That probably didn't cause this (an order</span>
+<span class="out">already applied is skipped, and the DB writes are transactional). But if two runs fetch from the</span>
+<span class="out">real API at once, the batch could be split between them, so it's worth checking why it ran twice.</span>
+<span class="out"></span>
+<span class="out">**Suggested fixes** (I haven't changed any code):</span>
+<span class="out">- Count the skipped orders, log them at ERROR, and exit non-zero (or print "OK with N skipped")</span>
+<span class="out">whenever there are any.</span>
+<span class="out">- Write rejected orders to a table such as `rejected_orders`, with the raw row and the reason.</span>
+<span class="out">Because the API can't resend orders, this is the only way to recover them later.</span>
+<span class="out">- Strip the SKU in `parse.py`, as the other fields already are.</span>
+<span class="out">- Catch only `ValidationError` and `UnknownSkuError` per order, so database errors stop the run</span>
+<span class="out">instead of skipping orders.</span>
+<span class="out"></span>
+<span class="out">I didn't change the real `data/inventory.db`. All test runs used copies in `/tmp/claude-1000/-tmp-</span>
+<span class="out">morning-plain/f4cc5982-8527-4585-9778-7f25f3413caf/scratchpad/`. Do you want me to make these</span>
+<span class="out">fixes?</span>
+<span class="out"></span>
+<span class="out">-- end of the run: 5 tool calls, 57 s --</span></code></pre>
+</figure>
+</details>
+      <h3>With the recording</h3>
+      <div class="term player">
+<div class="code-bar"><span class="code-label">claude, with the recording</span></div>
+<div class="cast" id="cast-with" data-cast="casts/with.cast" data-poster="npt:0:13" data-rows="34"></div>
+</div>
+      <p class="caption">The agent reads the recording first and gives the exception type, the five times it was raised (<code>r1:e1</code> to <code>r1:e5</code>), and the lines where it was raised and handled.</p>
+      <details class="text">
+<summary>The same session as text</summary>
+<figure class="code term tall" data-copy="all" data-source="casts/with.cast" data-whole="1">
+<figcaption class="code-bar"><span class="code-label">Terminal</span></figcaption>
+<pre tabindex="0" role="region" aria-label="Terminal"><code><span class="prompt">$ </span><span class="cmd">cd /tmp/morning-recorded</span>
+<span class="prompt">$ </span><span class="cmd">claude -p --model claude-opus-5-5 "Last night's order sync run said OK, but this morning some products have wrong stock. Find out why. The job runs with .venv/bin/python. Last night's run was recorded; the ormaos CLI is at .venv/bin/ormaos; run ".venv/bin/ormaos guide" first."</span>
+<span class="out"></span>
+<span class="out">&gt; Bash ls -la &amp;&amp; .venv/bin/ormaos guide</span>
+<span class="out">  total 32</span>
+<span class="out">  drwxrwxr-x 5 levimbraga levimbraga  220 Nov 26 23:55 .</span>
+<span class="out">  drwxr-xr-x 4 levimbraga levimbraga   80 Nov 26 23:55 ..</span>
+<span class="out">  drwxrwxr-x 3 levimbraga levimbraga   80 Nov 26 23:55 .ormaos</span>
+<span class="out">  drwxrwxr-x 5 levimbraga levimbraga  160 Nov 26 23:55 .venv</span>
+<span class="out">  -rw-rw-r-- 1 levimbraga levimbraga 4104 Nov 13 10:41 README.md</span>
+<span class="out">  drwxrwxr-x 2 levimbraga levimbraga  120 Nov 26 23:55 data</span>
+<span class="out">  -rw-rw-r-- 1 levimbraga levimbraga 2227 Nov 13 10:41 fetch.py</span>
+<span class="out">  -rw-rw-r-- 1 levimbraga levimbraga 5822 Nov 13 10:39 inventory.py</span>
+<span class="out">  -rw-rw-r-- 1 levimbraga levimbraga 2607 Nov 11 13:16 job.py</span>
+<span class="out">  -rw-rw-r-- 1 levimbraga levimbraga 1425 Nov 13 10:39 parse.py</span>
+<span class="out">  -rw-rw-r-- 1 levimbraga levimbraga 1236 Nov 13 10:39 validate.py</span>
+<span class="out">  ... 50 more lines</span>
+<span class="out"></span>
+<span class="out">&gt; Bash .venv/bin/ormaos list; .venv/bin/ormaos show; .venv/bin/ormaos exceptions last</span>
+<span class="out">  1 recording in .ormaos, newest first</span>
+<span class="out">  r1  2026-11-26 23:55:13  exit 0  607.5ms  1 process, 240 calls, 6 exceptions (5 swallowed), 123</span>
+<span class="out">  io  .venv/bin/python job.py --source &lt;str[3]&gt;</span>
+<span class="out">  next: ormaos show r1</span>
+<span class="out">  r1 exit 0 in 0.61s: 1 Python process, 240 calls, 6 exceptions (5 swallowed, 0 uncaught)</span>
+<span class="out">  command: .venv/bin/python job.py --source &lt;str[3]&gt;</span>
+<span class="out">  swallowed 5x validate.SkuFormatError at job.py:57 in sync_orders, raised at validate.py:24</span>
+<span class="out">  [r1:e1]</span>
+<span class="out">  io: 123 events (sqlite 121, http 1, file 1)</span>
+<span class="out">  not collected: io: reads of the 1 file opened at fetch.py:26: opened for reading, and no `read`</span>
+<span class="out">  call by Python code was seen on a file of that name: if it was read, that was inside C code (a</span>
+<span class="out">  file that is iterated, `for line in f`, `csv.reader`)</span>
+<span class="out">  ... 18 more lines</span>
+<span class="out"></span>
+<span class="out">&gt; Bash cat job.py validate.py parse.py; .venv/bin/ormaos exceptions r1:e1</span>
+<span class="out">  """order-sync: apply the orders from the sales system to the inventory.</span>
+<span class="out"></span>
+<span class="out">  Meant to run on a schedule (see README.md)::</span>
+<span class="out"></span>
+<span class="out">      python job.py                 # read the CSV export</span>
+<span class="out">      python job.py --source api    # ask the sales API instead</span>
+<span class="out"></span>
+<span class="out">  Exit code 0 means the sync finished; anything else means it could not run.</span>
+<span class="out">  """</span>
+<span class="out"></span>
+<span class="out">  import argparse</span>
+<span class="out">  import logging</span>
+<span class="out">  ... 182 more lines</span>
+<span class="out"></span>
+<span class="out">&gt; Bash cat fetch.py inventory.py README.md; ls -la data; head -50 data/*.csv</span>
+<span class="out">  """Get the raw orders from the sales system.</span>
+<span class="out"></span>
+<span class="out">  Two sources:</span>
+<span class="out"></span>
+<span class="out">  - a CSV export (the default), one order per line;</span>
+<span class="out">  - the sales API, which answers ``GET /orders`` with a JSON list of the orders</span>
+<span class="out">    placed since the fetch before (it keeps the cursor; an order is handed over</span>
+<span class="out">    once, except that the last ones before a fetch may come again).</span>
+<span class="out"></span>
+<span class="out">  There is no real sales API in this repository. ``local_api`` starts a small</span>
+<span class="out">  stand-in on 127.0.0.1 that serves the orders in the CSV file.</span>
+<span class="out">  """</span>
+<span class="out">  ... 381 more lines</span>
+<span class="out"></span>
+<span class="out">&gt; Bash cat data/cron.log; .venv/bin/python inventory.py --count data/count.csv; .venv/bin/ormaos tree</span>
+<span class="out">    r1:c106 --limit 200</span>
+<span class="out">  2026-11-26T23:55:13 order-sync exit=0 sync finished: OK</span>
+<span class="out">  2026-11-26T23:55:14 order-sync exit=0 sync finished: OK</span>
+<span class="out">  SKU        ITEM                   ON HAND COUNTED  DIFF</span>
+<span class="out">  CAB-0302   HDMI cable 2 m             219     219    +0</span>
+<span class="out">  DOC-0501   Laptop dock                  0       0    +0</span>
+<span class="out">  HDS-0402   Headset                     61      57    +4</span>
+<span class="out">  HUB-0301   USB-C hub                   61      61    +0</span>
+<span class="out">  KBD-0101   Mechanical keyboard        103      94    +9</span>
+<span class="out">  MON-0201   27-inch monitor             38      37    +1</span>
+<span class="out">  MSE-0102   Wireless mouse             172     172    +0</span>
+<span class="out">  WEB-0401   Webcam 1080p                51      51    +0</span>
+<span class="out">  inside: r1:c1 &lt;module&gt; &gt; r1:c16 main</span>
+<span class="out">  ... 158 more lines</span>
+<span class="out"></span>
+<span class="out">&gt; Bash .venv/bin/python -I -c "</span>
+<span class="out">    import sqlite3;c=sqlite3.connect('data/inventory.db')</span>
+<span class="out">    for r in c.execute('select order_id,sku,quantity,applied_at from applied_orders order by</span>
+<span class="out">    order_id'):print(r)</span>
+<span class="out">    print(c.execute('select * from backorders').fetchall())</span>
+<span class="out">    print(c.execute('select sku,pack_size from stock').fetchall())"; .venv/bin/ormaos io r1 --kind</span>
+<span class="out">    http</span>
+<span class="out">  ('SO-20501', 'KBD-0101', 2, '2026-11-27T02:55:13+00:00')</span>
+<span class="out">  ('SO-20502', 'CAB-0302', 30, '2026-11-27T02:55:13+00:00')</span>
+<span class="out">  ('SO-20503', 'DOC-0501', 6, '2026-11-27T02:55:13+00:00')</span>
+<span class="out">  ('SO-20504', 'MSE-0102', 4, '2026-11-27T02:55:13+00:00')</span>
+<span class="out">  ('SO-20505', 'HDS-0402', 3, '2026-11-27T02:55:13+00:00')</span>
+<span class="out">  ('SO-20506', 'MON-0201', 2, '2026-11-27T02:55:13+00:00')</span>
+<span class="out">  ('SO-20507', 'DOC-0501', 8, '2026-11-27T02:55:13+00:00')</span>
+<span class="out">  ('SO-20508', 'HUB-0301', 5, '2026-11-27T02:55:13+00:00')</span>
+<span class="out">  ('SO-20509', 'WEB-0401', 4, '2026-11-27T02:55:13+00:00')</span>
+<span class="out">  ('SO-20510', 'KBD-0101', 6, '2026-11-27T02:55:13+00:00')</span>
+<span class="out">  ('SO-20511', 'MSE-0102', 10, '2026-11-27T02:55:13+00:00')</span>
+<span class="out">  ('SO-20512', 'DOC-0501', 5, '2026-11-27T02:55:13+00:00')</span>
+<span class="out">  ... 27 more lines</span>
+<span class="out"></span>
+<span class="out">I found the cause. The job silently skipped 5 of last night's 26 orders, so their quantities were</span>
+<span class="out">never taken out of stock. It still printed OK.</span>
+<span class="out"></span>
+<span class="out">**What happened**</span>
+<span class="out"></span>
+<span class="out">1. Five orders failed the SKU format check (`AAA-0000`) at `validate.py:24` (exceptions</span>
+<span class="out">`r1:e1`–`r1:e5`).</span>
+<span class="out">2. `sync_orders` catches every exception at `job.py:57`, logs a warning and moves on. Logging is</span>
+<span class="out">set to ERROR by default, so the warning never appeared. Nothing is printed and the exit code stays</span>
+<span class="out">0, so cron reported OK.</span>
+<span class="out">3. The database confirms it: these five order IDs are missing from `applied_orders`, while every</span>
+<span class="out">order around them was applied:</span>
+<span class="out">   **SO-20521, SO-20526, SO-20530, SO-20533, SO-20537**</span>
+<span class="out">4. Stock compared with this morning's shelf count (`data/count.csv`):</span>
+<span class="out"></span>
+<span class="out">   | SKU | On hand | Counted | Diff |</span>
+<span class="out">   |---|---|---|---|</span>
+<span class="out">   | KBD-0101 | 103 | 94 | +9 |</span>
+<span class="out">   | HDS-0402 | 61 | 57 | +4 |</span>
+<span class="out">   | MON-0201 | 38 | 37 | +1 |</span>
+<span class="out"></span>
+<span class="out">   The database shows 14 more units than the shelves across these three SKUs, which fits 5 lost</span>
+<span class="out">orders. Every other SKU matches the count.</span>
+<span class="out"></span>
+<span class="out">**Why the SKUs failed**</span>
+<span class="out"></span>
+<span class="out">The recording keeps value sizes but not the values themselves. Two of the rejected SKUs were 9</span>
+<span class="out">characters long instead of 8, which points to extra whitespace. The other three were 8 characters</span>
+<span class="out">but didn't match the pattern, which points to something like lowercase letters. `parse.py:39`</span>
+<span class="out">passes `sku=row["sku"]` through unchanged, even though it strips `order_id` and `channel` and</span>
+<span class="out">lowercases `unit`. So the likely root cause is that some SKUs from the sales API aren't cleaned up.</span>
+<span class="out"></span>
+<span class="out">**Why this matters more than a normal skip**</span>
+<span class="out"></span>
+<span class="out">The README says the sales API hands each order over only once, because it keeps a cursor. Those 5</span>
+<span class="out">orders won't come back in tonight's run, so the stock won't fix itself. It has to be corrected by</span>
+<span class="out">hand: for KBD-0101, HDS-0402 and MON-0201, get the 5 orders from the sales system (or use the</span>
+<span class="out">count) and set the stock to match.</span>
+<span class="out"></span>
+<span class="out">**Suggested fixes**</span>
+<span class="out"></span>
+<span class="out">- In `parse.py`, clean the SKU the same way as the other fields: `sku=row["sku"].strip().upper()`.</span>
+<span class="out">- In `job.py`, stop reporting OK when orders were skipped. Count the rejected orders, log them at</span>
+<span class="out">ERROR level (cron mails those), and exit non-zero if any were rejected. Also consider keeping</span>
+<span class="out">rejected orders somewhere they can be replayed, since the API can't resend them.</span>
+<span class="out"></span>
+<span class="out">I haven't changed any code or data yet. I can make the two code fixes if you want, but the stock</span>
+<span class="out">correction needs the real order lines from the sales system.</span>
+<span class="out"></span>
+<span class="out">-- end of the run: 6 tool calls, 42 s --</span></code></pre>
+</figure>
+</details>
+      <p class="caption">Real sessions, not edited; pauses are shortened during playback. Each step of the agent is printed as it arrives: what it runs, the first 12 lines of each result, and its answer.</p>
+    </div>
+  </section>
 
-  <h2>A second job, two nights compared</h2>
-  <div class="text">
+  <section class="band" id="two-nights" aria-labelledby="two-nights-title">
+    <p class="kicker">Test 2</p>
+    <h2 id="two-nights-title">A second job, two nights compared</h2>
     <p>Another job, <a href="https://github.com/ormaos/ormaos-examples/tree/main/freight-quote"><code>freight-quote</code></a>, asks a carrier's API for the freight of tomorrow's shipments and writes the quotes to a database. Last night it printed <code>quotes finished: OK</code>, and this morning 17 of its 26 quotes are lower than what the carrier charged. The night before was fine, and its quotes are gone: each run replaces them. Both nights were recorded, and <code>ormaos diff</code> says what the second one did that the first did not.</p>
-  </div>
-  <div class="cast" id="cast-diff" data-cast="casts/diff.cast" data-poster="npt:0:07" data-rows="37"></div>
-  <p class="caption">A real terminal session, not edited. In the second night, 17 of the 26 calls to the carrier were answered with 429, 17 <code>urllib.error.HTTPError</code> were caught at <code>job.py:43</code>, and <code>rate</code> in <code>ratecard.py</code> ran 17 times. In the first night, none of the three.</p>
-  <div class="text">
-    <p>The same comparison as above, on this job: a coding agent gets the folder and one sentence, that the run said OK and some quotes are lower than what the carrier charged. On one side the folder has the recordings of the two nights, on the other it has not.</p>
-  </div>
-  <dl class="facts text">
-    <div><dt>runs with the recordings gave the carrier's 429 as what happened</dt><dd>5 of 5</dd></div>
-    <div><dt>runs without the recordings gave the carrier's 429 as what happened</dt><dd>0 of 5</dd></div>
-  </dl>
-  <div class="text">
+    <div class="wide">
+      <div class="term player">
+<div class="code-bar"><span class="code-label">freight-quote</span></div>
+<div class="cast" id="cast-diff" data-cast="casts/diff.cast" data-poster="npt:0:07" data-rows="30"></div>
+</div>
+      <p class="caption" data-numbers="casts/diff.cast">A real terminal session, not edited. In the second night, 17 of the 26 calls to the carrier were answered with 429, 17 <code>urllib.error.HTTPError</code> were caught at <code>job.py:43</code>, and <code>rate</code> in <code>ratecard.py</code> ran 17 times. In the first night, none of the three.</p>
+      <details class="text">
+<summary>The same session as text</summary>
+<figure class="code term tall" data-copy="all" data-source="casts/diff.cast" data-whole="1">
+<figcaption class="code-bar"><span class="code-label">Terminal</span></figcaption>
+<pre tabindex="0" role="region" aria-label="Terminal"><code><span class="prompt">$ </span><span class="cmd">cat data/cron.log</span>
+<span class="out">2026-11-26T23:55:06 freight-quote exit=0 quotes finished: OK</span>
+<span class="out">2026-11-26T23:55:06 freight-quote exit=0 quotes finished: OK</span>
+<span class="prompt">$ </span><span class="cmd">.venv/bin/ormaos list</span>
+<span class="out">2 recordings in .ormaos, newest first</span>
+<span class="out">r2  2026-11-26 23:55:06  exit 0  633.0ms  1 process, 430 calls, 20 exceptions (17 swallowed), 103 io  .venv/bin/python job.py</span>
+<span class="out">r1  2026-11-26 23:55:05  exit 0  647.8ms  1 process, 362 calls, 3 exceptions (0 swallowed), 137 io  .venv/bin/python job.py</span>
+<span class="out next">next: ormaos show r2 | ormaos show r1 | ormaos diff r1 r2</span>
+<span class="prompt">$ </span><span class="cmd">.venv/bin/ormaos diff r1 r2</span>
+<span class="out">r1 -&gt; r2, matched by place in the code and order, not by address</span>
+<span class="out">  r1: exit 0, 362 calls, 3 exceptions, 137 io events</span>
+<span class="out">  r2: exit 0, 430 calls, 20 exceptions, 103 io events</span>
+<span class="out">calls: 6 of 33 places differ</span>
+<span class="out">  rate at carrier.py:27: 26 calls in both; none in r1, 17 in r2; call 10 returned in r1 and raised in r2  [r1:c176 r2:c176]</span>
+<span class="out">  Shipment.lane at shipments.py:25: 52 calls in r1, 86 in r2  [r1:c78 r2:c78]</span>
+<span class="out">  Shipment.chargeable_kg at shipments.py:30: 52 calls in r1, 69 in r2  [r1:c79 r2:c79]</span>
+<span class="out">  tariff_price at carrier.py:42: 26 calls in r1, 9 in r2  [r1:c81 r2:c81]</span>
+<span class="out">  _handler_for.&lt;locals&gt;.RatesHandler.log_message at carrier.py:84: 26 calls in r1, 43 in r2  [r1:c82 r2:c82]</span>
+<span class="out">  rate at ratecard.py:25: none in r1, 17 in r2  [r2:c182]</span>
+<span class="out">exceptions: 1 of 3 groups differ</span>
+<span class="out">  swallowed urllib.error.HTTPError, raised at /usr/lib/python3.14/urllib/request.py:611, handled at job.py:43: none in r1, 17 in r2  [r2:e3]</span>
+<span class="out">io: 4 of 13 groups differ</span>
+<span class="out">  http GET http://127.0.0.1/v1/rates?(not recorded) -&gt; 200  at carrier.py:37 in rate: 26 in r1, 9 in r2  [r1:i4 r2:i4]</span>
+<span class="out">  file open data/carrier.json (write)  at carrier.py:69 in _handler_for.&lt;locals&gt;.RatesHandler.do_GET: 26 in r1, 9 in r2  [r1:i7 r2:i7]</span>
+<span class="out">  file write data/carrier.json  at carrier.py:70 in _handler_for.&lt;locals&gt;.RatesHandler.do_GET: 26 in r1, 9 in r2  [r1:i8 r2:i8]</span>
+<span class="out">  http GET http://127.0.0.1/v1/rates?(not recorded) -&gt; 429  at carrier.py:37 in rate: none in r1, 17 in r2  [r2:i41]</span>
+<span class="out">not compared: values, shapes of arguments and results, durations, cpu and memory, the lines of `path`, which process or thread an event was in</span>
+<span class="out next">next: ormaos exceptions r2:e3 | ormaos tree r1:c176 | ormaos io r1:i4 | ormaos tree r2:c176 | ormaos io r2:i4</span></code></pre>
+</figure>
+</details>
+    </div>
+    <p style="margin-top:32px">The same comparison as in the first test, on this job: on one side the folder has the recordings of the two nights, on the other it has not.</p>
+    <dl class="facts two">
+      <div><dt>runs with the recordings gave the carrier's 429 as what happened</dt><dd>5 of 5</dd></div>
+      <div><dt>runs without the recordings gave the carrier's 429 as what happened</dt><dd>0 of 5</dd></div>
+    </dl>
     <p class="caption">Measured: N = 5 runs per side, model <code>claude-opus-5-5</code>, each run started with only the prompt, in a sandbox that holds only its own folder.</p>
     <p>On both sides, every run named the <code>except</code> that prices a shipment from an older rate card when the call to the carrier fails, and the 17 quotes that are equal to that rate card. Without the recordings, all five runs produced a 429 themselves on a copy, named a used-up daily allowance of calls as the most likely reason, and said they could not confirm which error it was last night. With the recordings, all five gave it as what happened: 9 calls answered with 200, 17 with 429, and 17 exceptions caught at <code>job.py:43</code>.</p>
-  </div>
+  </section>
 
-  <h2>Eight bugs, three ways in</h2>
-  <div class="text">
+  <section class="band" id="bench" aria-labelledby="bench-title">
+    <p class="kicker">Test 3</p>
+    <h2 id="bench-title">Eight bugs, three ways in</h2>
     <p>A larger measurement, <a href="https://github.com/ormaos/ormaos-examples/tree/main/agent-bench"><code>agent-bench</code></a>: eight small scheduled jobs, each with one bug of a different kind, each printing its OK line on the bad night. A coding agent gets the code, the data that night left and the symptom, and is asked to find the cause and fix it: with nothing more (<code>none</code>), with a VizTracer trace of the bad night (<code>raw</code>), or with its Ormaos recording (<code>ormaos</code>). A hidden check then decides whether the code it left is fixed.</p>
-  </div>
-  <div class="text table-wrap">
-    <table class="results">
-      <thead>
-        <tr><th scope="col">Arm</th><th scope="col">Fixed</th><th scope="col">95% interval</th><th scope="col">Median time</th><th scope="col">Median tool calls</th><th scope="col">Median tokens</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>none</code></td><td>21/24</td><td>69% to 96%</td><td>50 s</td><td>7</td><td>94,458</td></tr>
-        <tr><td><code>raw</code></td><td>23/24</td><td>80% to 99%</td><td>56 s</td><td>8</td><td>140,558</td></tr>
-        <tr><td><code>ormaos</code></td><td>24/24</td><td>86% to 100%</td><td>44 s</td><td>7</td><td>112,676</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="text">
+    <div class="table-wrap">
+      <table class="results" data-source="agent-bench/results/20261126-220703/report.md">
+        <thead>
+          <tr><th scope="col">Arm</th><th scope="col">Fixed</th><th scope="col">95% interval</th><th scope="col">Median time</th><th scope="col">Median tool calls</th><th scope="col">Median tokens</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>none</code></td><td>21/24</td><td>69% to 96%</td><td>50 s</td><td>7</td><td>94,458</td></tr>
+          <tr><td><code>raw</code></td><td>23/24</td><td>80% to 99%</td><td>56 s</td><td>8</td><td>140,558</td></tr>
+          <tr><td><code>ormaos</code></td><td>24/24</td><td>86% to 100%</td><td>44 s</td><td>7</td><td>112,676</td></tr>
+        </tbody>
+      </table>
+    </div>
     <p class="caption">Measured: N = 24 runs per arm (8 bugs, 3 runs each), model <code>claude-opus-5-5</code>, the first attempt of every run counted. The interval is the 95% Wilson score interval; tokens include cache tokens, as the command line reports them.</p>
     <p>At this size the difference is within the margin. The four runs that were not fixed had found the cause, but changed the job's last line, which the check reads as cron does. Looked at after the results, not planned: counted as fixed, those four would make every arm 24/24, so this benchmark does not separate the arms. The bugs were written for this benchmark by the people who make Ormaos. The <a href="https://github.com/ormaos/ormaos-examples/blob/main/agent-bench/results/20261126-220703/report.md">report</a> has every run, per bug, with what the check said.</p>
-  </div>
+  </section>
 
-  <h2>Try it in 3 commands</h2>
-  <div class="text">
-<pre><code>git clone https://github.com/ormaos/ormaos-examples &amp;&amp; cd ormaos-examples/order-sync
-python3 -m venv .venv &amp;&amp; .venv/bin/pip install git+https://github.com/ormaos/ormaos-python
-./reset.sh &amp;&amp; .venv/bin/ormaos run -- .venv/bin/python job.py</code></pre>
-    <p>The job's own output comes first, unchanged. Then Ormaos prints a short summary on stderr, and its last line gives the next command to run. What is needed to install it, and everything else, is in the <a href="https://github.com/ormaos/ormaos-python#readme">README</a>.</p>
-  </div>
+  <section class="band" id="run-it" aria-labelledby="run-it-title">
+    <h2 id="run-it-title">Run it yourself</h2>
+    <p>Each block is the whole scenario. They need Python 3.12 or newer and git, on Linux; Ormaos is installed from GitHub into a virtual environment of the folder, nowhere else.</p>
+    <h3>Read a recording by hand</h3>
+    <p>The first session of this page. An exception stands for the call that handled it, so <code>r1:e1</code> works on every Python version.</p>
+    <figure class="code sh" data-copy="all">
+<figcaption class="code-bar"><span class="code-label">Shell</span></figcaption>
+<pre tabindex="0" role="region" aria-label="Shell"><code><span class="cmd">git clone https://github.com/ormaos/ormaos-examples &amp;&amp; cd ormaos-examples/order-sync</span>
+<span class="cmd">python3 -m venv .venv &amp;&amp; .venv/bin/pip install git+https://github.com/ormaos/ormaos-python</span>
+<span class="cmd">./reset.sh &amp;&amp; .venv/bin/ormaos run -- .venv/bin/python job.py</span>
+<span class="cmd">.venv/bin/ormaos exceptions r1:e1</span>
+<span class="cmd">.venv/bin/ormaos tree r1:e1 --depth 1 --limit 4</span>
+<span class="cmd">.venv/bin/ormaos io r1:e1</span></code></pre>
+</figure>
+    <h3>Test 1: the morning after</h3>
+    <p>Builds the folder as it is found in the morning, with last night's run recorded. Leave out <code>--record</code> for the side without a recording.</p>
+    <figure class="code sh" data-copy="all">
+<figcaption class="code-bar"><span class="code-label">Shell</span></figcaption>
+<pre tabindex="0" role="region" aria-label="Shell"><code><span class="cmd">git clone https://github.com/ormaos/ormaos-examples &amp;&amp; cd ormaos-examples</span>
+<span class="cmd">python3 scenarios/morning_after.py /tmp/order-sync-recorded --record</span>
+<span class="cmd">cd /tmp/order-sync-recorded &amp;&amp; .venv/bin/ormaos show last</span></code></pre>
+</figure>
+    <figure class="code wrap" data-copy="all" data-doc="scenarios/casts/agent.sh">
+<figcaption class="code-bar"><span class="code-label">The sentence for your agent</span></figcaption>
+<pre tabindex="0" role="region" aria-label="The sentence for your agent"><code>Last night's order sync run said OK, but this morning some products have wrong stock. Find out why. The job runs with .venv/bin/python. Last night's run was recorded; the ormaos CLI is at .venv/bin/ormaos; run ".venv/bin/ormaos guide" first.</code></pre>
+</figure>
+    <h3>Test 2: two nights</h3>
+    <p>Builds the morning after a good night and a bad night, both recorded as <code>r1</code> and <code>r2</code>.</p>
+    <figure class="code sh" data-copy="all">
+<figcaption class="code-bar"><span class="code-label">Shell</span></figcaption>
+<pre tabindex="0" role="region" aria-label="Shell"><code><span class="cmd">git clone https://github.com/ormaos/ormaos-examples &amp;&amp; cd ormaos-examples</span>
+<span class="cmd">python3 scenarios/two_nights.py /tmp/freight-quote-recorded --record</span>
+<span class="cmd">cd /tmp/freight-quote-recorded &amp;&amp; cat data/cron.log</span>
+<span class="cmd">.venv/bin/ormaos list</span>
+<span class="cmd">.venv/bin/ormaos diff r1 r2</span></code></pre>
+</figure>
+    <h3>Test 3: the benchmark</h3>
+    <p>72 agent runs. Needs bubblewrap, the <code>claude</code> command line signed in, and a checkout of <code>ormaos-python</code> next to this repository.</p>
+    <figure class="code sh" data-copy="all">
+<figcaption class="code-bar"><span class="code-label">Shell</span></figcaption>
+<pre tabindex="0" role="region" aria-label="Shell"><code><span class="cmd">git clone https://github.com/ormaos/ormaos-python</span>
+<span class="cmd">git clone https://github.com/ormaos/ormaos-examples &amp;&amp; cd ormaos-examples/agent-bench</span>
+<span class="cmd">python3 build.py            # task/ and arms/ of every bug</span>
+<span class="cmd">python3 run.py --runs 3     # 8 bugs x 3 arms x 3 runs</span></code></pre>
+</figure>
+  </section>
 
-  <h2>Not yet</h2>
-  <div class="text">
+  <section class="band" id="not-yet" aria-labelledby="not-yet-title">
+    <h2 id="not-yet-title">Not yet</h2>
+    <p>What Ormaos does not have today. What is needed to install it, and everything else, is in the <a href="https://ormaos.com/guide/">guide</a> and the <a href="https://github.com/ormaos/ormaos-python#readme">README</a>.</p>
     <ul class="rows">
       <li>A package on PyPI. Install from GitHub.</li>
       <li>A stable file format. Today's is provisional.</li>
@@ -659,13 +1739,13 @@ python3 -m venv .venv &amp;&amp; .venv/bin/pip install git+https://github.com/or
       <li>A way to know which signal ended a process that nothing waited for.</li>
       <li>Web servers that start worker processes (uvicorn, gunicorn) in the compatibility matrix.</li>
     </ul>
-  </div>
+    <p class="about">
+      <a href="https://github.com/ormaos/ormaos-python">ormaos-python</a> (the recorder and the command line) ·
+      <a href="https://github.com/ormaos/ormaos-examples">ormaos-examples</a> (the demo jobs and this page) ·
+      Apache License. This page loads one third-party script, the asciinema player, and nothing else.
+    </p>
+  </section>
 
-  <p class="about text">
-    <a href="https://github.com/ormaos/ormaos-python">ormaos-python</a> (the recorder and the command line) ·
-    <a href="https://github.com/ormaos/ormaos-examples">ormaos-examples</a> (the demo job and this page) ·
-    Apache License. This page loads one third-party script, the asciinema player, and nothing else.
-  </p>
 </main>
 
 <footer>
@@ -679,55 +1759,130 @@ python3 -m venv .venv &amp;&amp; .venv/bin/pip install git+https://github.com/or
   </ul>
 </footer>
 
+<p class="visually-hidden" id="copy-status" role="status" aria-live="polite"></p>
+<script>
+  // Copy buttons: every block with data-copy gets one. Without JavaScript
+  // there is no button and the text can still be selected.
+  //   data-copy="all"       the whole text of the block
+  //   data-copy="commands"  only the commands (the lines after "$ ")
+  //   data-copy="output"    only what was printed
+  (function () {
+    var status = document.getElementById("copy-status");
+
+    function textOf(block) {
+      var mode = block.getAttribute("data-copy");
+      var code = block.querySelector("code");
+      if (mode === "all") return code.textContent;
+      var parts = code.querySelectorAll(mode === "commands" ? ".cmd" : ".out");
+      return Array.prototype.map.call(parts, function (p) { return p.textContent; }).join("\n");
+    }
+
+    function write(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text);
+      }
+      // Older browsers, and pages not served over HTTPS.
+      return new Promise(function (resolve, reject) {
+        var area = document.createElement("textarea");
+        area.value = text;
+        area.setAttribute("readonly", "");
+        area.style.position = "fixed";
+        area.style.top = "-1000px";
+        document.body.appendChild(area);
+        area.select();
+        var done = false;
+        try { done = document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(area);
+        if (done) resolve(); else reject();
+      });
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-copy]"), function (block) {
+      var mode = block.getAttribute("data-copy");
+      var idle = mode === "commands" ? "Copy commands" : "Copy";
+      var label = block.querySelector(".code-label");
+      var what = label ? label.textContent : block.querySelector("code").textContent;
+      var button = document.createElement("button");
+      button.type = "button";
+      button.className = "copy";
+      button.textContent = idle;
+      button.setAttribute("aria-label", idle + ": " + what);
+      (block.querySelector(".code-bar") || block).appendChild(button);
+
+      var timer;
+      button.addEventListener("click", function () {
+        write(textOf(block)).then(function () {
+          button.textContent = "Copied";
+          status.textContent = "Copied: " + what;
+        }, function () {
+          button.textContent = "Not copied";
+          status.textContent = "Could not copy. Select the text and copy it by hand.";
+        }).then(function () {
+          clearTimeout(timer);
+          timer = setTimeout(function () {
+            button.textContent = idle;
+            status.textContent = "";
+          }, 2000);
+        });
+      });
+    });
+  })();
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/asciinema-player@3.19.0/dist/bundle/asciinema-player.min.js"
         integrity="sha384-qTBQdeRrowWuLIkBCroZZq9W/+FD0pN2NB9VTcRb+4N3PacAr77DxMj5acMuPtmQ"
         crossorigin="anonymous"></script>
 <script>
   (function () {
     var places = document.querySelectorAll("[data-cast]");
-    var players = [];
+    var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    function show() {
-      while (players.length) players.pop().dispose();
-      for (var i = 0; i < places.length; i++) {
-        var place = places[i];
-        var file = place.getAttribute("data-cast");
-        // A browser does not let a page opened from the file system read a
-        // file next to it, so the recordings play only when the page is served.
-        if (location.protocol === "file:" || typeof AsciinemaPlayer === "undefined") {
-          place.className = "cast-note";
-          place.textContent =
-            "The recording (" + file + ") plays when this page is served over HTTP: " +
-            "run \"python3 -m http.server -d docs\" in the repository and open the address it prints, " +
-            "or play the file in a terminal with \"asciinema play docs/" + file + "\".";
-          continue;
-        }
-        var options = {
-          fit: "width",
-          theme: "ormaos",
-          idleTimeLimit: 1.5,
-          poster: place.getAttribute("data-poster") || "npt:0:02",
-          preload: true,
-          controls: true
-        };
-        // A recording whose last screen is longer than the terminal it was
-        // recorded in gives the number of rows that shows it whole.
-        var rows = parseInt(place.getAttribute("data-rows"), 10);
-        if (rows) options.rows = rows;
-        players.push(AsciinemaPlayer.create(file, place, options));
+    Array.prototype.forEach.call(places, function (place) {
+      var file = place.getAttribute("data-cast");
+      // A browser does not let a page opened from the file system read a
+      // file next to it, so the recordings play only when the page is served.
+      if (location.protocol === "file:" || typeof AsciinemaPlayer === "undefined") {
+        place.className = "cast-note";
+        place.textContent =
+          "The recording (" + file + ") plays when this page is served over HTTP. " +
+          "The same session is below as text.";
+        return;
       }
-    }
+      var options = {
+        theme: "ormaos",
+        idleTimeLimit: 1.5,
+        poster: place.getAttribute("data-poster") || "npt:0:02",
+        preload: true,
+        controls: true,
+        loop: place.hasAttribute("data-loop")
+      };
+      // Where the window is wide enough the player fills it and the font
+      // follows: 80 columns in 56rem is an 18px font. On a phone the font
+      // stays at 12px and the player scrolls sideways.
+      if (place.clientWidth >= 520) {
+        options.fit = "width";
+      } else {
+        options.fit = false;
+        options.terminalFontSize = "12px";
+        place.classList.add("scroll");
+      }
+      var rows = parseInt(place.getAttribute("data-rows"), 10);
+      if (rows) options.rows = rows;
+      var player = AsciinemaPlayer.create(file, place, options);
 
-    show();
-    // The player reads its colours once, when it is created: after the theme
-    // switch, create it again.
-    if (players.length && typeof MutationObserver !== "undefined") {
-      new MutationObserver(show).observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ["data-theme"]
-      });
-    }
+      // It starts by itself the first time it is on screen, unless the
+      // reader asked for less motion. Until then it shows its last screen.
+      if (still || typeof IntersectionObserver === "undefined") return;
+      var seen = new IntersectionObserver(function (entries) {
+        if (!entries[0].isIntersecting) return;
+        seen.disconnect();
+        player.play();
+      }, { threshold: 0.6 });
+      seen.observe(place);
+    });
   })();
 </script>
+
+
 </body>
 </html>

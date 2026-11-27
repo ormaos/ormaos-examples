@@ -1,6 +1,6 @@
 # The demo page
 
-`index.html` is the whole page: static, no build step. `casts/` holds the terminal recordings it plays (asciinema, format v2). The page loads one third-party script, the asciinema player, from a pinned version on jsDelivr with an integrity hash, and nothing else.
+`index.html` is the whole page: static, no build step. `casts/` holds the terminal recordings it plays (asciinema, format v2). Under each player, closed until asked for, is the whole text of its recording, and every block has a copy button. [`check_docs.py`](../.github/scripts/check_docs.py) fails when that text is not the recording, or when a number of the results table is not in the report. The page loads one third-party script, the asciinema player, from a pinned version on jsDelivr with an integrity hash, and nothing else.
 
 It is published at <https://ormaos.com/demo>. `404.html` is what any other address below it answers.
 
@@ -38,7 +38,7 @@ All are real runs, recorded with `asciinema rec` and never edited. The scripts a
 
 ```bash
 cp -r order-sync /tmp/order-sync && cd /tmp/order-sync
-PIP_DISABLE_PIP_VERSION_CHECK=1 asciinema rec --cols 120 --rows 34 -c "/path/to/scenarios/casts/human.sh r1:c130" human.cast
+PIP_DISABLE_PIP_VERSION_CHECK=1 asciinema rec --cols 80 --rows 30 -c "/path/to/scenarios/casts/human.sh r1:c130" human.cast
 ```
 
 The variable keeps pip from ending its output with a notice about a newer pip.
@@ -50,8 +50,8 @@ The address after `human.sh` is the call that handled the exception: the one `or
 ```bash
 python3 scenarios/morning_after.py /tmp/morning-plain
 python3 scenarios/morning_after.py /tmp/morning-recorded --record
-asciinema rec --cols 120 --rows 34 -c "scenarios/casts/agent.sh /tmp/morning-plain without /tmp/without.jsonl" docs/casts/without.cast
-asciinema rec --cols 120 --rows 34 -c "scenarios/casts/agent.sh /tmp/morning-recorded with /tmp/with.jsonl" docs/casts/with.cast
+asciinema rec --cols 100 --rows 34 -c "scenarios/casts/agent.sh /tmp/morning-plain without /tmp/without.jsonl" docs/casts/without.cast
+asciinema rec --cols 100 --rows 34 -c "scenarios/casts/agent.sh /tmp/morning-recorded with /tmp/with.jsonl" docs/casts/with.cast
 ```
 
 `agent.sh` starts `claude -p` with only the prompt, inside `isolated.sh` (bubblewrap: the system read-only, the agent's own folder, nothing else of the machine). `render.py` prints each step of the agent's stream as it arrives; the whole stream is kept in the `.jsonl` file, outside the agent's folder. Before a recording is committed, read the stream for anything the agent reached outside its folder, and read the cast for anything that should not be public.
@@ -61,15 +61,24 @@ asciinema rec --cols 120 --rows 34 -c "scenarios/casts/agent.sh /tmp/morning-rec
 ```bash
 python3 scenarios/two_nights.py /tmp/freight-quote-recorded --record
 cd /tmp/freight-quote-recorded
-asciinema rec --cols 120 --rows 34 -c /path/to/scenarios/casts/diff.sh diff.cast
+asciinema rec --cols 80 --rows 30 -c /path/to/scenarios/casts/diff.sh diff.cast
 ```
 
-To show a recording on the page, add an element with its file name where it belongs in `index.html`:
+The short sessions are 80 columns wide, so that the font of the player is large; the agent runs are 100.
+
+The recording the home page of ormaos.com plays, `casts/home.cast` in the site's repository, is made the same way, in a fresh copy of `order-sync` with Ormaos installed in `.venv` and `./reset.sh` run:
+
+```bash
+asciinema rec --cols 80 --rows 24 -c /path/to/scenarios/casts/home.sh home.cast
+```
+
+A recording is shown in a terminal window: a bar with its title, then the element the player fills, then the text of the same session.
 
 ```html
-<div class="cast" data-cast="casts/without.cast"></div>
+<div class="term player">
+<div class="code-bar"><span class="code-label">order-sync</span></div>
+<div class="cast" data-cast="casts/human.cast" data-poster="npt:0:24" data-rows="30"></div>
+</div>
 ```
 
-Before it plays, `human.cast` shows the session two seconds in: the first command, typed, and nothing else. The moment is counted in playback time, where every pause is cut to 1.5 seconds; an element gives its own moment with `data-poster="npt:0:12"` (minutes:seconds).
-
-The agent recordings show their last screen before they play: the agent's whole answer. Their `data-poster` is the first whole second after the end of the recording in playback time (12 and 16), which the player shows as the last frame. The answers are longer than the 34 rows they were recorded in, so each element also carries `data-rows`, the number of rows that holds its answer (49 and 42): the player is then as tall as the answer, and nothing of it is scrolled away. Pressing play starts from the beginning. `diff.cast` shows its last screen too (`npt:0:07`, 37 rows).
+Before it plays, a recording shows its last screen: `data-poster` is the first whole second after its end in playback time, where every pause is cut to 1.5 seconds. `data-rows` is the number of rows it was recorded in. It starts by itself the first time it is on screen, unless the reader asked for less motion (`prefers-reduced-motion`); pressing play starts it from the beginning.
