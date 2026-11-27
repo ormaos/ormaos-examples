@@ -137,6 +137,12 @@ Runs that got the question right, out of the runs of the arm.
 | freight-quote | q6 | 3/3 | 3/3 | 3/3 |
 | freight-quote | q7 | 3/3 | 3/3 | 3/3 |
 
+## Limits
+
+- No expectation was written before this run: the rules of `rules.json` were, what each arm would score was not.
+- In 4 of 9 tasks every arm scored 1.00 (web-backend, ml-training, rl-env, freight-quote); those tasks do not separate the arms.
+- Of the gap of 0.06 between raw and ormaos in the mean score, 0.05 comes from data-pipeline: its questions ask the row counts of DataFrames, which Ormaos records and VizTracer with its default settings does not.
+
 ## Runs that ended otherwise
 
 Out of time, an error of the command line or the model, or no `answers.json` that reads as JSON. They count, with the score shown.

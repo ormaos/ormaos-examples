@@ -63,8 +63,11 @@ Every slot is run once and counts. Nothing is run again and nothing is left out:
 
 Options: `--tasks a,b`, `--arms none,raw`, `--timeout SECONDS`, `--jobs N` (agents at the same time, default 3), `--out DIR`, `--report DIR` (write the report of a finished run again).
 
-## What it does not show
+## Limits
 
+- No expectation was written before the run of 2026-11-27 ([`results/20261127-140018`](results/20261127-140018/report.md)): the rules of `rules.json` were, what each arm would score was not.
+- In that run, in 4 of the 9 tasks every arm scored 1.00 (`web-backend`, `ml-training`, `rl-env`, `freight-quote`); those tasks do not separate the arms.
+- The gap between `raw` and `ormaos` in that run (0.94 and 1.00) comes mostly from `data-pipeline` (0.05 of the 0.06): its questions ask the row counts of DataFrames, which Ormaos records and VizTracer with its default settings does not.
 - The programs, the executions and the questions were written by the people who make Ormaos. The questions are about calls, exceptions, shapes and I/O, which is what Ormaos records.
 - Four of the nine programs (`web-backend`, `ml-training`, `rl-env`, `agent-change`) read no input that can be taken away, so an agent can run them again and count for itself; the report says how many runs did.
 - One model, one prompt per arm, one tracer with its default settings.

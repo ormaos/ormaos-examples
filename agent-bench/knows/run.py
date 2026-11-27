@@ -171,6 +171,19 @@ def number(value, form="{:,.0f}"):
     return "-" if value is None else form.format(value)
 
 
+# What was said of a results folder after its run: whether an expectation was
+# written before it, and why the task with the largest gap between raw and
+# ormaos has it.
+AFTER_THE_RUN = {
+    "20261127-140018": {
+        "before": "No expectation was written before this run: the rules of `rules.json` were, what each "
+                  "arm would score was not.",
+        "why": {"data-pipeline": "its questions ask the row counts of DataFrames, which Ormaos records "
+                                 "and VizTracer with its default settings does not"},
+    },
+}
+
+
 def write_report(out):
     records = [json.loads(line) for line in (out / "results.jsonl").read_text().splitlines() if line]
     built = json.loads((out / "build.json").read_text())
@@ -227,6 +240,22 @@ def write_report(out):
         for qid in grade.RULES[name]:
             cells = [f"{sum(r['right'][qid] for r in of(arm, name))}/{len(of(arm, name))}" for arm in arms]
             lines.append(f"| {name} | {qid} | " + " | ".join(cells) + " |")
+
+    said = AFTER_THE_RUN.get(out.resolve().name, {})
+    perfect = [n for n in names if all(statistics.fmean(r["score"] for r in of(a, n)) == 1 for a in arms if of(a, n))]
+    lines += ["", "## Limits", ""]
+    lines += [f"- {said['before']}"] if "before" in said else []
+    lines.append(f"- In {len(perfect)} of {len(names)} tasks every arm scored 1.00 ({', '.join(perfect)}); "
+                 "those tasks do not separate the arms.")
+    if {"raw", "ormaos"} <= set(arms) and len(of("raw")) == len(of("ormaos")):
+        part = {n: (sum(r["score"] for r in of("ormaos", n)) - sum(r["score"] for r in of("raw", n)))
+                / len(of("raw")) for n in names}
+        gap = sum(part.values())
+        top = max(part, key=part.get)
+        if gap > 0 and part[top] > 0:
+            why = said.get("why", {}).get(top)
+            lines.append(f"- Of the gap of {gap:.2f} between raw and ormaos in the mean score, {part[top]:.2f} "
+                         f"comes from {top}" + (f": {why}." if why else "."))
 
     ended = [r for r in records if r["timed_out"] or r["error"] or r["answers_file"] != "read"]
     lines += ["", "## Runs that ended otherwise", "",
