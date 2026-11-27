@@ -1,0 +1,42 @@
+[
+  {
+    "id": "q1",
+    "question": "In r1, how many times in total was billing.line_price called (counting calls from both invoice_total and refund_amount)?",
+    "format": "A single integer, e.g. 42"
+  },
+  {
+    "id": "q2",
+    "question": "In r2, how many times was tiers.json opened during the execution?",
+    "format": "A single integer, e.g. 42"
+  },
+  {
+    "id": "q3",
+    "question": "In r1, what was the sum of the total_cents values over all 12 rows written to invoices.csv?",
+    "format": "A single integer number of cents, e.g. 123456"
+  },
+  {
+    "id": "q4",
+    "question": "In r2, what was the sum of the total_cents values over all 12 rows written to invoices.csv?",
+    "format": "A single integer number of cents, e.g. 123456"
+  },
+  {
+    "id": "q5",
+    "question": "Of the 12 orders, how many had a different total_cents in r2's invoices.csv than in r1's invoices.csv?",
+    "format": "A single integer from 0 to 12"
+  },
+  {
+    "id": "q6",
+    "question": "In r2, how many of the calls to billing.discount_percent returned 10 (i.e. the customer was looked up as a gold tier)?",
+    "format": "A single integer, e.g. 7"
+  },
+  {
+    "id": "q7",
+    "question": "In r2, in how many calls to billing.line_price was the integer division by 100 inexact, i.e. unit_cents * quantity * (100 - discount) was not a multiple of 100, so cents were truncated?",
+    "format": "A single integer, e.g. 3"
+  },
+  {
+    "id": "q8",
+    "question": "What were the three refund_cents values written to refunds.csv in r2, in the order the rows were written?",
+    "format": "Three integers separated by commas, in row order, e.g. 1200,450,9900"
+  }
+]

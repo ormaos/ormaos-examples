@@ -1,0 +1,42 @@
+[
+  {
+    "id": "q1",
+    "question": "Of the 40 batches counted in the printed \"trained 40 steps\", how many actually produced an Adam optimizer update (optimizer.step() called)?",
+    "format": "integer"
+  },
+  {
+    "id": "q2",
+    "question": "How many batches were skipped because their loss was not a finite number?",
+    "format": "integer"
+  },
+  {
+    "id": "q3",
+    "question": "Which batches were skipped because of a non-finite loss? Give their 0-based positions in the order the batches were processed.",
+    "format": "JSON list of integers in ascending order, e.g. [3, 17]"
+  },
+  {
+    "id": "q4",
+    "question": "Which input feature column caused the skipped batches' losses to be non-finite, because its standard deviation within the batch was zero?",
+    "format": "one of: distance, parcels, hour, weekend"
+  },
+  {
+    "id": "q5",
+    "question": "Across all 320 generated rows, how many rows have the weekend flag set to 1.0?",
+    "format": "integer"
+  },
+  {
+    "id": "q6",
+    "question": "The printed \"last loss 379.2\" is the loss of which batch? Give its 0-based position in the order the batches were processed.",
+    "format": "integer"
+  },
+  {
+    "id": "q7",
+    "question": "In the batches that were skipped, what single value did the weekend flag take for all 8 rows?",
+    "format": "number with one decimal, e.g. 0.0"
+  },
+  {
+    "id": "q8",
+    "question": "How many of the 40 batches had a weekend flag that varied across their 8 rows (i.e. contained both 0.0 and 1.0)?",
+    "format": "integer"
+  }
+]

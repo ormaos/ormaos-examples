@@ -1,0 +1,10 @@
+[
+  {"id": "q1", "question": "Of the 20 episodes, how many ended with the courier at the customer at (5, 5), as opposed to ending because the 30-step limit was reached?", "format": "An integer, e.g. 7"},
+  {"id": "q2", "question": "How many times during the whole execution did GridEnv._arrival_bonus() get called (that is, how many times was the 10.0 arrival reward actually given out)?", "format": "An integer, e.g. 7"},
+  {"id": "q3", "question": "What was the value of env.bumps (the counter of moves blocked by a wall or the grid edge) after all 20 episodes had finished?", "format": "An integer, e.g. 7"},
+  {"id": "q4", "question": "What was the total number of env.step() calls made over all 20 episodes combined?", "format": "An integer, e.g. 7"},
+  {"id": "q5", "question": "Which episode, counting from 1, ended because the 30-step limit was reached rather than at the customer?", "format": "An integer episode number from 1 to 20, e.g. 7"},
+  {"id": "q6", "question": "How many steps did the shortest episode of the run take?", "format": "An integer, e.g. 7"},
+  {"id": "q7", "question": "How many times in the whole run did the policy function choose() return the action \"right\"?", "format": "An integer, e.g. 7"},
+  {"id": "q8", "question": "What was the highest total return of any single episode in the run?", "format": "A decimal number rounded to one decimal place, e.g. -3.4"}
+]

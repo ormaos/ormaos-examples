@@ -1,0 +1,42 @@
+[
+  {
+    "id": "q1",
+    "question": "How many rows did load(\"sales.csv\") return in this execution, i.e. what was len(rows) right after the cell with id cell-2 ran?",
+    "format": "integer, e.g. 37"
+  },
+  {
+    "id": "q2",
+    "question": "Following the saved execution counts, which code cell (by cell id) was the third one executed in the kernel?",
+    "format": "a cell id string, e.g. cell-3"
+  },
+  {
+    "id": "q3",
+    "question": "When drop_key_accounts compared each row's price to LIMIT in this execution, was that price the original price from sales.csv or the price with 20% tax already added?",
+    "format": "one of: pre-tax, tax-inclusive"
+  },
+  {
+    "id": "q4",
+    "question": "How many rows were left in rows after drop_key_accounts(rows) returned in this execution?",
+    "format": "integer, e.g. 31"
+  },
+  {
+    "id": "q5",
+    "question": "How many rows had an original price of at most 1000 in sales.csv but were still removed by drop_key_accounts in this execution, because their price had been increased by the tax before the filter ran?",
+    "format": "integer, e.g. 4"
+  },
+  {
+    "id": "q6",
+    "question": "What value did the variable week hold at the end of the execution, rounded to two decimal places?",
+    "format": "decimal number with exactly two decimals, e.g. 12345.67"
+  },
+  {
+    "id": "q7",
+    "question": "What was the highest price among the rows that remained in rows at the end of the execution (the tax-inclusive price used in the final total)?",
+    "format": "decimal number with exactly two decimals, e.g. 999.60"
+  },
+  {
+    "id": "q8",
+    "question": "What was the sum of the quantity field over all rows that remained in rows at the end of the execution?",
+    "format": "integer, e.g. 120"
+  }
+]

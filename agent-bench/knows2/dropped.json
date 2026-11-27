@@ -1,0 +1,5 @@
+{
+ "ai-app": {
+  "q1": "the server listens on a free port the system picks (`(\"127.0.0.1\", 0)`): the oracle's execution and the execution of each arm got different ports"
+ }
+}

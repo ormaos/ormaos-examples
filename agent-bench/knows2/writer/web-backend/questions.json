@@ -1,0 +1,42 @@
+[
+  {
+    "id": "q1",
+    "question": "What customer name did the route put in the \"customer\" field of the response body it returned for this request?",
+    "format": "A single name exactly as stored in the database, e.g. \"Name\""
+  },
+  {
+    "id": "q2",
+    "question": "What discount percentage did discount_for return for the requested customer during this request, and was it reached through the except KeyError branch?",
+    "format": "An integer followed by yes or no, e.g. \"7, no\""
+  },
+  {
+    "id": "q3",
+    "question": "What was the id of the first order in the \"orders\" list of the response?",
+    "format": "An integer"
+  },
+  {
+    "id": "q4",
+    "question": "What was the sum of the \"total_cents\" values across all orders in the response?",
+    "format": "An integer number of cents"
+  },
+  {
+    "id": "q5",
+    "question": "Which order in the response had the largest \"total_cents\", and what was that value?",
+    "format": "Order id and total, as \"id, cents\" (two integers)"
+  },
+  {
+    "id": "q6",
+    "question": "How many times was price_of called while the request was handled?",
+    "format": "An integer"
+  },
+  {
+    "id": "q7",
+    "question": "In total, how many SQL statements were run with db.execute on the request's database connection while list_orders handled the request (counting find_customer, the orders query, items_of, price_of and product_names calls)?",
+    "format": "An integer"
+  },
+  {
+    "id": "q8",
+    "question": "How many rows did store.create() insert into the order_items table when it rebuilt orders.db before the request?",
+    "format": "An integer"
+  }
+]

@@ -1,0 +1,1 @@
+trained 40 steps, last loss 379.2, checkpoint model.pt

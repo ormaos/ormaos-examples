@@ -1,0 +1,42 @@
+[
+  {
+    "id": "q1",
+    "question": "How many rows did the orders DataFrame have right after load_orders read orders.csv, before any filtering?",
+    "format": "A non-negative integer, e.g. 200"
+  },
+  {
+    "id": "q2",
+    "question": "How many order rows did drop_unpriced remove because their amount was missing (NaN)?",
+    "format": "A non-negative integer, e.g. 3"
+  },
+  {
+    "id": "q3",
+    "question": "Was drop_repeats actually called during this run, i.e. did orders['order_id'].duplicated().any() evaluate to True after the unpriced orders were dropped?",
+    "format": "\"yes\" or \"no\""
+  },
+  {
+    "id": "q4",
+    "question": "How many rows did the orders DataFrame have immediately before being passed to join_customers (after drop_unpriced and, if it ran, drop_repeats)?",
+    "format": "A non-negative integer, e.g. 195"
+  },
+  {
+    "id": "q5",
+    "question": "How many rows did the joined DataFrame returned by join_customers (inner merge on customer_id) have?",
+    "format": "A non-negative integer, e.g. 190"
+  },
+  {
+    "id": "q6",
+    "question": "How many order rows that reached join_customers were lost in the inner merge because their customer_id had no match in customers.csv?",
+    "format": "A non-negative integer, e.g. 0"
+  },
+  {
+    "id": "q7",
+    "question": "Which region appears in the first data row of report.csv (the alphabetically first region after sorting), and what is its total amount as written?",
+    "format": "Region name and amount separated by a comma, e.g. \"North, 12345.67\""
+  },
+  {
+    "id": "q8",
+    "question": "What is the sum of the amount column over all 4 rows of the report written to report.csv?",
+    "format": "A decimal number rounded to 2 decimal places, e.g. 48210.55"
+  }
+]

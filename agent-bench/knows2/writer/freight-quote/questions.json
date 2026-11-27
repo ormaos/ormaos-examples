@@ -1,0 +1,42 @@
+[
+  {
+    "id": "q1",
+    "question": "How many quote rows did the run write to the quotes table (that is, how many shipments were on the dispatch list it read)?",
+    "format": "A non-negative integer, e.g. 42"
+  },
+  {
+    "id": "q2",
+    "question": "For how many shipments was the written amount_cents the carrier stand-in's answer (an HTTP 200 from /v1/rates), not a price from the contract rate card?",
+    "format": "A non-negative integer, e.g. 37"
+  },
+  {
+    "id": "q3",
+    "question": "For how many shipments did the carrier call fail, so that job.price silently fell back to ratecard.rate (the warning was not printed because the log level defaults to ERROR)?",
+    "format": "A non-negative integer, e.g. 5"
+  },
+  {
+    "id": "q4",
+    "question": "How many of the run's rate requests did the stand-in refuse with HTTP 429 because the account's calls_used_today had reached calls_per_day?",
+    "format": "A non-negative integer, e.g. 3"
+  },
+  {
+    "id": "q5",
+    "question": "What was the shipment_id of the first shipment, in dispatch-list order, whose quote came from the contract rate card instead of the carrier?",
+    "format": "A single shipment_id string exactly as written in the dispatch list, or the string \"none\" if every quote came from the carrier"
+  },
+  {
+    "id": "q6",
+    "question": "Which shipments were refused by the stand-in with HTTP 422 (chargeable weight above 1000 kg) and therefore quoted from the rate card?",
+    "format": "A JSON list of shipment_id strings in dispatch-list order, e.g. [\"S-104\", \"S-131\"]; [] if none"
+  },
+  {
+    "id": "q7",
+    "question": "By how much did the run increase calls_used_today in data/carrier.json (each request with the right account and quota left counts, including ones then refused with 404 or 422)?",
+    "format": "A non-negative integer, e.g. 40"
+  },
+  {
+    "id": "q8",
+    "question": "What was the sum of amount_cents over all quote rows the run wrote to the quotes table?",
+    "format": "A non-negative integer number of euro cents, e.g. 1234567"
+  }
+]

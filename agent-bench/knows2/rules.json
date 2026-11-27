@@ -1,0 +1,20 @@
+{
+ "web-backend": {"q1": "text", "q2": {"parts": ["number", "bool"]}, "q3": "number", "q4": "number",
+                 "q5": {"parts": ["number", "number"]}, "q6": "number", "q7": "number", "q8": "number"},
+ "data-pipeline": {"q1": "number", "q2": "number", "q3": "bool", "q4": "number", "q5": "number", "q6": "number",
+                   "q7": {"parts": ["text", {"round": 2}]}, "q8": {"round": 2}},
+ "notebook": {"q1": "number", "q2": "text", "q3": "word", "q4": "number", "q5": "number",
+              "q6": {"round": 2}, "q7": {"round": 2}, "q8": "number"},
+ "ml-training": {"q1": "number", "q2": "number", "q3": {"list": "number"}, "q4": "word", "q5": "number",
+                 "q6": "number", "q7": "number", "q8": "number"},
+ "rl-env": {"q1": "number", "q2": "number", "q3": "number", "q4": "number", "q5": "number", "q6": "number",
+            "q7": "number", "q8": {"round": 1}},
+ "ai-app": {"q1": "number", "q2": "number", "q3": "number", "q4": "number", "q5": {"list": "text"},
+            "q6": "number", "q7": "text", "q8": "number"},
+ "agent-change": {"q1": "number", "q2": "number", "q3": "number", "q4": "number", "q5": "number", "q6": "number",
+                  "q7": "number", "q8": {"parts": ["number", "number", "number"]}},
+ "order-sync": {"q1": "number", "q2": "number", "q3": "number", "q4": "number", "q5": {"list": "text"},
+                "q6": {"map": ["text", "name"]}, "q7": "number", "q8": {"parts": ["number", "number"]}},
+ "freight-quote": {"q1": "number", "q2": "number", "q3": "number", "q4": "number", "q5": "text",
+                   "q6": {"list": "text"}, "q7": "number", "q8": "number"}
+}
