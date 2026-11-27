@@ -1,5 +1,7 @@
 # agent-bench/knows2
 
+The run of 2026-11-27: N = 108 runs (9 tasks x 4 arms x 3 runs), model claude-opus-5-5. Mean score, with its 95% bootstrap interval: none 0.71 (0.59 to 0.83), raw 0.87 (0.79 to 0.95), ormaos 0.93 (0.88 to 0.97), ormaos-values 0.95 (0.90 to 0.99). Of the 213 answers of each arm, right, null and wrong: none 153, 60, 0; raw 186, 27, 0; ormaos 198, 14, 1; ormaos-values 202, 11, 0. The report, with its limits: [`results/20261127-165801/report.md`](results/20261127-165801/report.md).
+
 The benchmark of [`../knows`](../knows), with questions written by someone who was not told what Ormaos records: does an agent know what happened in an execution, with nothing but the folder it left, with a raw trace of it, with an Ormaos recording of it, or with an Ormaos recording that also has values?
 
 Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.
@@ -63,7 +65,7 @@ python3 build.py                              # the folders of every task and ar
 python3 run.py --runs 3 --replacements 0      # 9 tasks x 4 arms x 3 runs
 ```
 
-The runner and the report are those of [`../knows/run.py`](../knows/run.py): the first attempt of every slot counts, nothing is run again, nothing is left out. `--replacements` takes only 0. The report adds the dropped questions and the limits below. Other options as in `knows`; `python3 run.py --grade <task> <answers.json>` grades one file.
+The runner and the report are those of [`../knows/run.py`](../knows/run.py): the first attempt of every slot counts, nothing is run again, nothing is left out. `--replacements` takes only 0. The report adds the answers that were right, null and wrong, every wrong one, the cost, the dropped questions and the limits below. Other options as in `knows`; `python3 run.py --grade <task> <answers.json>` grades one file.
 
 The questions are written once: `writer.py` refuses a task that already has a `questions.json`.
 
