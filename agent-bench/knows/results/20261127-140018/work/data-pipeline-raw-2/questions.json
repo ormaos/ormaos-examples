@@ -1,0 +1,39 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "How many rows and how many nulls had the DataFrame that load_orders returned?",
+      "format": "an object with the keys \"rows\" (a number), \"nulls\" (a number)"
+    },
+    {
+      "id": "q2",
+      "question": "How many rows went into drop_unpriced and how many came out?",
+      "format": "an object with the keys \"in\" (a number), \"out\" (a number)"
+    },
+    {
+      "id": "q3",
+      "question": "How many rows of orders went into join_customers and how many rows came out?",
+      "format": "an object with the keys \"in\" (a number), \"out\" (a number)"
+    },
+    {
+      "id": "q4",
+      "question": "How many columns had the DataFrame that join_customers returned?",
+      "format": "a number"
+    },
+    {
+      "id": "q5",
+      "question": "Did drop_repeats run?",
+      "format": "true or false"
+    },
+    {
+      "id": "q6",
+      "question": "How many rows had the DataFrame passed to write_report?",
+      "format": "a number"
+    },
+    {
+      "id": "q7",
+      "question": "Which files of the folder did the program open for writing, and from which function?",
+      "format": "a list, in any order; each item: an object with the keys \"file\" (a file name, as a string), \"function\" (a name, as a string)"
+    }
+  ]
+}

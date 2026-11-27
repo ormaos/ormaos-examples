@@ -39,4 +39,5 @@ use-cases/agent-change/refunds.csv
 
 # agent-bench/knows: what build.py makes and what run.py writes
 agent-bench/knows/.build/
-agent-bench/knows/results/
+agent-bench/knows/results/*
+!agent-bench/knows/results/20261127-140018/

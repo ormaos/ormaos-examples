@@ -1,0 +1,26 @@
+{
+  "q1": 11,
+  "q2": {
+    "200": 8,
+    "503": 3
+  },
+  "q3": {
+    "large-1": 3,
+    "small-1": 8
+  },
+  "q4": {
+    "urllib.error.HTTPError": 3
+  },
+  "q5": [
+    3,
+    5,
+    8
+  ],
+  "q6": 11,
+  "q7": [
+    {
+      "file": "summaries.json",
+      "function": "save"
+    }
+  ]
+}

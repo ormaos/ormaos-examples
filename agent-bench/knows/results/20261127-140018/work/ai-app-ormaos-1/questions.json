@@ -1,0 +1,39 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "How many HTTP requests did the model server receive?",
+      "format": "a number"
+    },
+    {
+      "id": "q2",
+      "question": "How many requests were answered with each HTTP status?",
+      "format": "an object with one key per item (a string); under each key: a number"
+    },
+    {
+      "id": "q3",
+      "question": "How many requests went to each model?",
+      "format": "an object with one key per item (a string); under each key: a number"
+    },
+    {
+      "id": "q4",
+      "question": "Which exceptions were handled in summarize, and how many of each?",
+      "format": "an object with one key per item (a name, as a string); under each key: a number"
+    },
+    {
+      "id": "q5",
+      "question": "Which calls of summarize, counted from 1 in order, called ask more than once?",
+      "format": "a list, in any order; each item: a number"
+    },
+    {
+      "id": "q6",
+      "question": "How many times did ask run?",
+      "format": "a number"
+    },
+    {
+      "id": "q7",
+      "question": "Which files of the folder did the program open for writing, and from which function?",
+      "format": "a list, in any order; each item: an object with the keys \"file\" (a file name, as a string), \"function\" (a name, as a string)"
+    }
+  ]
+}

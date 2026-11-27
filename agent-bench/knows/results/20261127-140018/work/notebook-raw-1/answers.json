@@ -1,0 +1,8 @@
+{
+  "q1": [1, 2, 4, 3, 5],
+  "q2": ["load", "add_tax", "drop_key_accounts", "total"],
+  "q3": {"load": 1, "drop_key_accounts": 1, "add_tax": 1, "total": 1},
+  "q4": {"in": 40, "out": 40},
+  "q5": {"in": 40, "out": 22},
+  "q6": 22
+}

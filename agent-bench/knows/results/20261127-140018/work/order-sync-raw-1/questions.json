@@ -1,0 +1,39 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Which of the functions from_csv and from_api ran?",
+      "format": "a list, in any order; each item: a name, as a string"
+    },
+    {
+      "id": "q2",
+      "question": "How many orders did parse_rows return?",
+      "format": "a number"
+    },
+    {
+      "id": "q3",
+      "question": "How many times did check_order run, and how many times apply_order?",
+      "format": "an object with the keys \"check_order\" (a number), \"apply_order\" (a number)"
+    },
+    {
+      "id": "q4",
+      "question": "Which exceptions were handled in sync_orders, and how many of each?",
+      "format": "an object with one key per item (a name, as a string); under each key: a number"
+    },
+    {
+      "id": "q5",
+      "question": "In which functions were the exceptions raised that sync_orders handled?",
+      "format": "a list, in any order; each item: a name, as a string"
+    },
+    {
+      "id": "q6",
+      "question": "How many calls of apply_order returned True, and how many False?",
+      "format": "an object with the keys \"true\" (a number), \"false\" (a number)"
+    },
+    {
+      "id": "q7",
+      "question": "How many times did check_quantity run?",
+      "format": "a number"
+    }
+  ]
+}

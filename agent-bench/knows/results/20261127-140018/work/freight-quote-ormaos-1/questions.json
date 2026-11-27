@@ -1,0 +1,39 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "How many times did the function rate of carrier.py run, and how many times the function rate of ratecard.py?",
+      "format": "an object with the keys \"carrier.py\" (a number), \"ratecard.py\" (a number)"
+    },
+    {
+      "id": "q2",
+      "question": "Which exceptions were handled in price, and how many of each?",
+      "format": "an object with one key per item (a name, as a string); under each key: a number"
+    },
+    {
+      "id": "q3",
+      "question": "How many times did tariff_price run?",
+      "format": "a number"
+    },
+    {
+      "id": "q4",
+      "question": "Which calls of price, counted from 1 in order, called the function rate of ratecard.py?",
+      "format": "a list, in any order; each item: a number"
+    },
+    {
+      "id": "q5",
+      "question": "How many quotes did replace_all receive?",
+      "format": "a number"
+    },
+    {
+      "id": "q6",
+      "question": "How many times was data/carrier.json opened for writing?",
+      "format": "a number"
+    },
+    {
+      "id": "q7",
+      "question": "How many times did RatesHandler.do_GET run?",
+      "format": "a number"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "How many times did train_step run?",
+      "format": "a number"
+    },
+    {
+      "id": "q2",
+      "question": "In how many calls of loss_of was the returned loss NaN?",
+      "format": "a number"
+    },
+    {
+      "id": "q3",
+      "question": "Which function was the first to return a tensor with NaN in it?",
+      "format": "a name, as a string"
+    },
+    {
+      "id": "q4",
+      "question": "In which call of train_step, counted from 1, did a tensor with NaN first appear?",
+      "format": "a number"
+    },
+    {
+      "id": "q5",
+      "question": "How many times did apply_update run?",
+      "format": "a number"
+    },
+    {
+      "id": "q6",
+      "question": "What was the shape of the batch tensor passed to standardize?",
+      "format": "a list, in any order; each item: a list, in order; each item: a number"
+    },
+    {
+      "id": "q7",
+      "question": "How many times did save_checkpoint run?",
+      "format": "a number"
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "tasks": {
+    "rl-env": {
+      "questions": 6,
+      "removed": [],
+      "trace_attempts": 1,
+      "files": [
+        "README.md",
+        "env.py",
+        "questions.json",
+        "run.py"
+      ],
+      "trace_bytes": 710307,
+      "recordings": "1 recording in .ormaos, newest first",
+      "venvs": {
+        "none": null,
+        "raw": null,
+        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/rl-env/orm"
+      }
+    },
+    "ai-app": {
+      "questions": 7,
+      "removed": [
+        "tickets.json"
+      ],
+      "trace_attempts": 2,
+      "files": [
+        "README.md",
+        "app.py",
+        "model_server.py",
+        "questions.json",
+        "summaries.json"
+      ],
+      "trace_bytes": 7526920,
+      "recordings": "1 recording in .ormaos, newest first",
+      "venvs": {
+        "none": null,
+        "raw": null,
+        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/ai-app/orm"
+      }
+    },
+    "order-sync": {
+      "questions": 7,
+      "removed": [],
+      "trace_attempts": 1,
+      "files": [
+        "README.md",
+        "data",
+        "fetch.py",
+        "inventory.py",
+        "job.py",
+        "parse.py",
+        "questions.json",
+        "validate.py"
+      ],
+      "trace_bytes": 8065841,
+      "recordings": "1 recording in .ormaos, newest first",
+      "venvs": {
+        "none": null,
+        "raw": null,
+        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/order-sync/orm"
+      }
+    },
+    "freight-quote": {
+      "questions": 7,
+      "removed": [],
+      "trace_attempts": 1,
+      "files": [
+        "README.md",
+        "carrier.py",
+        "data",
+        "job.py",
+        "questions.json",
+        "quotes.py",
+        "ratecard.csv",
+        "ratecard.py",
+        "shipments.py"
+      ],
+      "trace_bytes": 12013620,
+      "recordings": "1 recording in .ormaos, newest first",
+      "venvs": {
+        "none": null,
+        "raw": null,
+        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/freight-quote/orm"
+      }
+    },
+    "agent-change": {
+      "questions": 8,
+      "removed": [],
+      "trace_attempts": 1,
+      "files": [
+        ".git",
+        ".gitignore",
+        "README.md",
+        "billing.py",
+        "invoices.csv",
+        "orders.json",
+        "questions.json",
+        "refunds.csv",
+        "returns.json",
+        "run.py",
+        "tiers.json"
+      ],
+      "trace_bytes": 2750960,
+      "recordings": "2 recordings in .ormaos, newest first",
+      "venvs": {
+        "none": null,
+        "raw": null,
+        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/agent-change/orm"
+      }
+    },
+    "web-backend": {
+      "questions": 7,
+      "removed": [],
+      "trace_attempts": 1,
+      "files": [
+        ".venv",
+        "README.md",
+        "app.py",
+        "main.py",
+        "orders.db",
+        "questions.json",
+        "requirements.txt",
+        "store.py"
+      ],
+      "trace_bytes": 75737588,
+      "recordings": "1 recording in .ormaos, newest first",
+      "venvs": {
+        "none": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/web-backend/base",
+        "raw": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/web-backend/base",
+        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/web-backend/orm"
+      }
+    },
+    "data-pipeline": {
+      "questions": 7,
+      "removed": [
+        "orders.csv",
+        "customers.csv"
+      ],
+      "trace_attempts": 1,
+      "files": [
+        ".venv",
+        "README.md",
+        "pipeline.py",
+        "questions.json",
+        "report.csv",
+        "requirements.txt"
+      ],
+      "trace_bytes": 51410546,
+      "recordings": "1 recording in .ormaos, newest first",
+      "venvs": {
+        "none": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/data-pipeline/base",
+        "raw": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/data-pipeline/base",
+        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/data-pipeline/orm"
+      }
+    },
+    "notebook": {
+      "questions": 6,
+      "removed": [
+        "sales.csv"
+      ],
+      "trace_attempts": 4,
+      "files": [
+        ".venv",
+        "README.md",
+        "questions.json",
+        "report.ipynb",
+        "requirements.txt",
+        "run_notebook.py"
+      ],
+      "trace_bytes": 123173760,
+      "recordings": "4 recordings in .ormaos, newest first",
+      "venvs": {
+        "none": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/notebook/base",
+        "raw": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/notebook/base",
+        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/notebook/orm"
+      }
+    },
+    "ml-training": {
+      "questions": 7,
+      "removed": [],
+      "trace_attempts": 1,
+      "files": [
+        ".venv",
+        "README.md",
+        "model.pt",
+        "questions.json",
+        "requirements.txt",
+        "train.py"
+      ],
+      "trace_bytes": 158787021,
+      "recordings": "1 recording in .ormaos, newest first",
+      "venvs": {
+        "none": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/ml-training/base",
+        "raw": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/ml-training/base",
+        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples/agent-bench/knows/.build/venvs/ml-training/orm"
+      }
+    }
+  },
+  "ormaos_commit": "968f697",
+  "viztracer": "1.1.1",
+  "python": "Python 3.14.4",
+  "built": "2026-11-27T13:58:55"
+}

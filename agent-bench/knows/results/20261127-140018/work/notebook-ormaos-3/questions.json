@@ -1,0 +1,34 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "In which order did the code cells run? Give each by its position among the code cells of the notebook, from 1.",
+      "format": "a list, in order; each item: a number"
+    },
+    {
+      "id": "q2",
+      "question": "In which order did load, drop_key_accounts, add_tax and total run?",
+      "format": "a list, in order; each item: a name, as a string"
+    },
+    {
+      "id": "q3",
+      "question": "How many times did each of load, drop_key_accounts, add_tax and total run?",
+      "format": "an object with the keys \"load\" (a number), \"drop_key_accounts\" (a number), \"add_tax\" (a number), \"total\" (a number)"
+    },
+    {
+      "id": "q4",
+      "question": "How many rows did add_tax receive, and how many did it return?",
+      "format": "an object with the keys \"in\" (a number), \"out\" (a number)"
+    },
+    {
+      "id": "q5",
+      "question": "How many rows did drop_key_accounts receive, and how many did it return?",
+      "format": "an object with the keys \"in\" (a number), \"out\" (a number)"
+    },
+    {
+      "id": "q6",
+      "question": "How many rows did total receive?",
+      "format": "a number"
+    }
+  ]
+}

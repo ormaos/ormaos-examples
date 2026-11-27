@@ -1,0 +1,39 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "How many SQL SELECT statements ran while the request GET /customers/3/orders was handled?",
+      "format": "a number"
+    },
+    {
+      "id": "q2",
+      "question": "How many times did the SELECT on the table order_items run, and in which function?",
+      "format": "an object with the keys \"times\" (a number), \"function\" (a list, in any order; each item: a name, as a string)"
+    },
+    {
+      "id": "q3",
+      "question": "Which function of the program ran the most SELECT statements during the request, and how many?",
+      "format": "an object with the keys \"function\" (a name, as a string), \"times\" (a number)"
+    },
+    {
+      "id": "q4",
+      "question": "How many times was order_total called?",
+      "format": "a number"
+    },
+    {
+      "id": "q5",
+      "question": "Did product_names run?",
+      "format": "true or false"
+    },
+    {
+      "id": "q6",
+      "question": "How many sqlite3 connections did the whole execution open?",
+      "format": "a number"
+    },
+    {
+      "id": "q7",
+      "question": "Which exceptions were raised and handled inside the program, and in which function was each handled?",
+      "format": "a list, in any order; each item: an object with the keys \"type\" (a name, as a string), \"handled_in\" (a name, as a string)"
+    }
+  ]
+}

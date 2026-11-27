@@ -1,0 +1,9 @@
+{
+  "q1": {"rows": null, "nulls": null},
+  "q2": {"in": null, "out": null},
+  "q3": {"in": null, "out": null},
+  "q4": null,
+  "q5": null,
+  "q6": 4,
+  "q7": [{"file": "report.csv", "function": "write_report"}]
+}

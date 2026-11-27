@@ -1,0 +1,7 @@
+{"q1": 38,
+ "q2": {"times": 12, "function": ["items_of"]},
+ "q3": {"function": "price_of", "times": 24},
+ "q4": 12,
+ "q5": false,
+ "q6": 2,
+ "q7": [{"type": "KeyError", "handled_in": "discount_for"}]}

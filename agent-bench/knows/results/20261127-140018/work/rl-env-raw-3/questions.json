@@ -1,0 +1,34 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "How many times did GridEnv.reset run, and how many times GridEnv.step?",
+      "format": "an object with the keys \"reset\" (a number), \"step\" (a number)"
+    },
+    {
+      "id": "q2",
+      "question": "In how many calls of GridEnv.step did _reward run before _move, and in how many after?",
+      "format": "an object with the keys \"before\" (a number), \"after\" (a number)"
+    },
+    {
+      "id": "q3",
+      "question": "How many episodes ended in ended_at_goal and how many in ended_at_limit?",
+      "format": "an object with the keys \"ended_at_goal\" (a number), \"ended_at_limit\" (a number)"
+    },
+    {
+      "id": "q4",
+      "question": "How many times did GridEnv._arrival_bonus run?",
+      "format": "a number"
+    },
+    {
+      "id": "q5",
+      "question": "How many times did GridEnv._bump run?",
+      "format": "a number"
+    },
+    {
+      "id": "q6",
+      "question": "How many calls of GridEnv.step did the shortest and the longest episode make?",
+      "format": "an object with the keys \"shortest\" (a number), \"longest\" (a number)"
+    }
+  ]
+}

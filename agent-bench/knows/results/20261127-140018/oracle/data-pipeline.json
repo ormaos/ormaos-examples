@@ -1,0 +1,23 @@
+{
+  "q1": {
+    "rows": 200,
+    "nulls": 5
+  },
+  "q2": {
+    "in": 200,
+    "out": 195
+  },
+  "q3": {
+    "in": 195,
+    "out": 178
+  },
+  "q4": 6,
+  "q5": false,
+  "q6": 4,
+  "q7": [
+    {
+      "file": "report.csv",
+      "function": "write_report"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "q1": [
+    "from_api",
+    "from_csv"
+  ],
+  "q2": 26,
+  "q3": {
+    "check_order": 26,
+    "apply_order": 21
+  },
+  "q4": {
+    "validate.SkuFormatError": 5
+  },
+  "q5": [
+    "check_sku"
+  ],
+  "q6": {
+    "true": 19,
+    "false": 2
+  },
+  "q7": 21
+}

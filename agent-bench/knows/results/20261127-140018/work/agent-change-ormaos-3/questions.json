@@ -1,0 +1,44 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "How many times did discount_percent run before the change (r1) and after it (r2)?",
+      "format": "an object with the keys \"r1\" (a number), \"r2\" (a number)"
+    },
+    {
+      "id": "q2",
+      "question": "After the change (r2), how many calls of discount_percent were made below invoice_total and how many below refund_amount?",
+      "format": "an object with the keys \"invoice_total\" (a number), \"refund_amount\" (a number)"
+    },
+    {
+      "id": "q3",
+      "question": "How many times did line_price run in r1 and in r2?",
+      "format": "an object with the keys \"r1\" (a number), \"r2\" (a number)"
+    },
+    {
+      "id": "q4",
+      "question": "Which functions ran in r2 and did not run in r1?",
+      "format": "a list, in any order; each item: a name, as a string"
+    },
+    {
+      "id": "q5",
+      "question": "How many times was tiers.json opened for reading in r1 and in r2?",
+      "format": "an object with the keys \"r1\" (a number), \"r2\" (a number)"
+    },
+    {
+      "id": "q6",
+      "question": "Which files did each execution open for writing?",
+      "format": "an object with the keys \"r1\" (a list, in any order; each item: a file name, as a string), \"r2\" (a list, in any order; each item: a file name, as a string)"
+    },
+    {
+      "id": "q7",
+      "question": "Did r1 and r2 run the same git commit?",
+      "format": "true or false"
+    },
+    {
+      "id": "q8",
+      "question": "Did the two executions print the same output?",
+      "format": "true or false"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "q1": {"r1": 0, "r2": 38},
+  "q2": {"invoice_total": 33, "refund_amount": 5},
+  "q3": {"r1": 38, "r2": 38},
+  "q4": ["discount_percent"],
+  "q5": {"r1": 0, "r2": 38},
+  "q6": {"r1": ["invoices.csv", "refunds.csv", "billing.cpython-314.pyc"], "r2": ["invoices.csv", "refunds.csv", "billing.cpython-314.pyc"]},
+  "q7": false,
+  "q8": true
+}
