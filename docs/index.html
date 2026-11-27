@@ -637,7 +637,7 @@ footer ul {
   </div>
   <div class="text">
     <p class="caption">Measured: N = 24 runs per arm (8 bugs, 3 runs each), model <code>claude-opus-5-5</code>, the first attempt of every run counted. The interval is the 95% Wilson score interval; tokens include cache tokens, as the command line reports them.</p>
-    <p>At this size the difference is within the margin. The four runs that were not fixed had found the cause, but changed the job's last line, which the check reads as cron does. The bugs were written for this benchmark by the people who make Ormaos. The <a href="https://github.com/ormaos/ormaos-examples/blob/main/agent-bench/results/20261126-220703/report.md">report</a> has every run, per bug, with what the check said.</p>
+    <p>At this size the difference is within the margin. The four runs that were not fixed had found the cause, but changed the job's last line, which the check reads as cron does. Looked at after the results, not planned: counted as fixed, those four would make every arm 24/24, so this benchmark does not separate the arms. The bugs were written for this benchmark by the people who make Ormaos. The <a href="https://github.com/ormaos/ormaos-examples/blob/main/agent-bench/results/20261126-220703/report.md">report</a> has every run, per bug, with what the check said.</p>
   </div>
 
   <h2>Try it in 3 commands</h2>

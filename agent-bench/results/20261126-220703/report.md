@@ -38,6 +38,12 @@ The first attempts that the check did not pass, with what the check said.
 
 In each of them, on a night that the check expects to end OK, the job the agent left did not end with exit code 0 and its OK line exactly as before. The check reads the end of a night as cron does, so it rejects a changed last line.
 
+## After the run
+
+This is an analysis made after seeing the results; it was not planned before the run and changes nothing in the tables above.
+
+In all 4 first attempts that were not fixed, the agent found the cause and fixed it (read by hand in the folders it left), but also changed the job's last line, which the check rejects. Counted as fixed, every arm would be 24/24 (none 24/24, raw 24/24, ormaos 24/24), so this benchmark does not separate the arms.
+
 ## Marked attempts
 
 Attempts in which the agent named a path outside its folder. The sandbox has nothing there to find: `/etc` is the host's, read-only, and holds nothing of these jobs; the home folder, `/var` and `/tmp` are empty; `/opt` does not exist and `/srv` holds only the agent's folder. The first attempts among them count in the tables above; each was run again, and the 45 later attempts are listed here and do not count.

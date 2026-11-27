@@ -235,6 +235,14 @@ def ended_otherwise(record):
     return any(ENDED.match(line) for line in record["check"])
 
 
+# Not-fixed first attempts whose folders were read by hand after the run, per
+# results folder: each fixed the cause and changed only the job's last line.
+READ_AFTER_THE_RUN = {
+    "20261126-220703": {("late-fees", "raw", 1), ("fx-rates", "none", 2),
+                        ("fx-rates", "none", 3), ("late-fees", "none", 3)},
+}
+
+
 def overlap(intervals):
     return max(low for low, _ in intervals) <= min(high for _, high in intervals)
 
@@ -301,6 +309,17 @@ def write_report(out):
         lines += ["", "In each of them, on a night that the check expects to end OK, the job the agent left "
                   "did not end with exit code 0 and its OK line exactly as before. The check reads the end "
                   "of a night as cron does, so it rejects a changed last line."]
+
+    read = READ_AFTER_THE_RUN.get(out.resolve().name)
+    if read and {(r["bug"], r["arm"], r["run"]) for r in not_fixed} == read and all(map(ended_otherwise, not_fixed)):
+        counts = ", ".join(f"{arm} {len(of(arm))}/{len(of(arm))}" for arm in arms)
+        lines += ["", "## After the run", "",
+                  "This is an analysis made after seeing the results; it was not planned before the run "
+                  "and changes nothing in the tables above.", "",
+                  f"In all {len(not_fixed)} first attempts that were not fixed, the agent found the cause and "
+                  "fixed it (read by hand in the folders it left), but also changed the job's last line, which "
+                  f"the check rejects. Counted as fixed, every arm would be {len(of(arms[0]))}/{len(of(arms[0]))} "
+                  f"({counts}), so this benchmark does not separate the arms."]
 
     lines += ["", "## Marked attempts", "",
               "Attempts in which the agent named a path outside its folder. The sandbox has nothing there "
