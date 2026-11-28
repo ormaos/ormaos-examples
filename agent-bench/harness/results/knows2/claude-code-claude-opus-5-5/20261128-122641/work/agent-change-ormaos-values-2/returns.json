@@ -1,0 +1,22 @@
+[
+  {
+    "order_id": 9002,
+    "skus": [
+      "PEN-01"
+    ]
+  },
+  {
+    "order_id": 9007,
+    "skus": [
+      "TAPE-04",
+      "CLIP-05"
+    ]
+  },
+  {
+    "order_id": 9011,
+    "skus": [
+      "TAPE-04",
+      "NOTE-02"
+    ]
+  }
+]

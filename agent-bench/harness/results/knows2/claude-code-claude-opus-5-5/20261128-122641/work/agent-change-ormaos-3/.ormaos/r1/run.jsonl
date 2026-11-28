@@ -1,0 +1,2 @@
+{"format":"provisional-0","kind":"run","core":{"ormaos":"0.0.1","mode":"run","pid":2,"command":[".venv/bin/python","run.py"],"cwd":"/srv/agent-change","env_names":["HOME","LANG","PATH","PWD","PYTHONHASHSEED"],"platform":"linux","git":{"commit":"4e69e80822392f6e244b51ec9430f9b2652a2b16","dirty":false,"changed_files":0,"changes":null,"not_read":null},"only":null,"values":false,"anchor":{"t":0,"unix":1795834060.407078,"clock":"monotonic, nanoseconds"}}}
+{"k":"end","exit_code":0,"signal":null,"command_pid":6,"dur":34490901,"cpu_user":0.02,"cpu_system":0.01,"max_rss_kb":22024}
