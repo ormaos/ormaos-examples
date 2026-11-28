@@ -83,8 +83,25 @@ jobs:
           python-version: "3.14"
       - name: Check the page and its recordings
         run: python3 .github/scripts/check_docs.py docs
-      - name: Check that the benchmark pages are a fresh build of the results files
+      - name: Check the harness's results folders, and that the benchmark pages are a fresh build of the results files
         run: python3 site/benchmarks/build.py --check
+
+  harness:
+    name: agent-bench harness
+    runs-on: ubuntu-latest
+    env:
+      HARNESS_NO_CONTAINERS: "1"  # the tests that build images and start containers run on a developer's machine
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # the tests build the benchmark pages, which name commits
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Check every results folder (expectations unchanged since its run started, events, report)
+        run: python3 agent-bench/harness/harness.py check
+      - name: Run the tests of the harness
+        run: python3 -m unittest discover -s agent-bench/harness/tests
 
   use-cases:
     name: use cases

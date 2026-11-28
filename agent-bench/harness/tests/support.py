@@ -3,6 +3,7 @@ are not real, so that the rules of the runner can be tested without a model
 and without containers."""
 
 import json
+import os
 import sys
 import tempfile
 import types
@@ -18,7 +19,8 @@ from core import runtime as runtimes  # noqa: E402
 AGENT = "zzagent"   # a name that must never reach the grader
 MODEL = "zzmodel-9"
 SECRET = "sk-zz-very-secret-token"
-HAVE_RUNTIME = runtimes.find() is not None
+# HARNESS_NO_CONTAINERS=1 leaves out the tests that build images and start containers (CI sets it).
+HAVE_RUNTIME = runtimes.find() is not None and not os.environ.get("HARNESS_NO_CONTAINERS")
 PASSING = "PASS blocked: everything\nPASS reached: the model"
 # What the agent that is not real does: it prints events, one per line, and
 # writes its answers. argv: the task text.
