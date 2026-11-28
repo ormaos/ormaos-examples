@@ -4,6 +4,8 @@ N = 108 runs: 9 tasks x 4 arms x 3 runs, model `claude-opus-5-5`, 2026-11-27. An
 
 Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.
 
+*The run of 2026-11-27, in the environment "earlier: bubblewrap, network open". [Every run of knows2](#runs).*
+
 - **0.71**: `none`, mean score, 95% interval 0.59 to 0.83
 - **0.87**: `raw`, mean score, 95% interval 0.79 to 0.95
 - **0.93**: `ormaos`, mean score, 95% interval 0.88 to 0.97
@@ -1615,9 +1617,20 @@ As the run's report lists them:
 - One model, one prompt per arm, one tracer with its default settings, N runs per task and arm as shown.
 - The dates in the data of the two jobs are relative to the day `build.py` ran: build on the day of the run.
 
+## The runs of knows2
+
+This page, and the headline and the charts of the [overview](https://ormaos.com/benchmarks/), describe the run of 2026-11-27: the most recent complete run made in the controlled environment when there is one, otherwise the first run. Every run in the table counts on the situation pages.
+
+| Results folder | Environment | Agent | Date | Runs | Mean score per arm |  |
+|---|---|---|---|---|---|---|
+| [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801) | earlier: bubblewrap, network open | `claude-code / claude-opus-5-5` | 2026-11-27 | 108 | `none` 0.71, `raw` 0.87, `ormaos` 0.93, `ormaos-values` 0.95 | this page |
+
+- **earlier: bubblewrap, network open.** Made by knows2's own runner: every run in bubblewrap, with the network of the machine.
+
 ## This run
 
 - Results folder: [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801)
+- Environment: earlier: bubblewrap, network open
 - ormaos-examples commit that added these results: [`091b688`](https://github.com/ormaos/ormaos-examples/commit/091b688f01b0b233631f0fe714935ebc52ab7fd9)
 - Ormaos commit: [`968f697`](https://github.com/ormaos/ormaos-python/commit/968f697); VizTracer 1.1.1; Python 3.14.4
 - Model: `claude-opus-5-5`, with the `claude` command line 2.1.322

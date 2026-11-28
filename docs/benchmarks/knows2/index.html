@@ -90,6 +90,7 @@
 <h1 id="top-title">knows2: what an agent knows about an execution</h1>
 <p class="lead">N = 108 runs: 9 tasks x 4 arms x 3 runs, model <code>claude-opus-5-5</code>, 2026-11-27. An agent gets the folder an execution left and questions about what happened in it, written by a model that was not told what Ormaos records; its answers are graded against an oracle that reads neither the trace nor the recording.</p>
 <p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<p class="caption">The run of 2026-11-27, in the environment &quot;earlier: bubblewrap, network open&quot;. <a href="#runs">Every run of knows2</a>.</p>
 <dl class="facts bench">
   <div><dt><code>none</code>, mean score, 95% interval 0.59 to 0.83</dt><dd>0.71</dd></div>
   <div><dt><code>raw</code>, mean score, 95% interval 0.79 to 0.95</dt><dd>0.87</dd></div>
@@ -112,6 +113,7 @@
   <li><a href="#freight-quote">For scheduled jobs: freight-quote</a></li>
   <li><a href="#null-reasons">What the agents said when they could not answer</a></li>
   <li><a href="#limits">Limits</a></li>
+  <li><a href="#runs">The runs of knows2</a></li>
   <li><a href="#this-run">This run</a></li>
 </ol>
 </nav>
@@ -2676,10 +2678,27 @@ The trace has three server-side `generate` calls stamped about 1.4 seconds befor
 </ul>
 </section>
 
+<section class="band" id="runs" aria-labelledby="runs-title">
+<h2 id="runs-title">The runs of knows2</h2>
+<p>This page, and the headline and the charts of the <a href="/benchmarks/">overview</a>, describe the run of 2026-11-27: the most recent complete run made in the controlled environment when there is one, otherwise the first run. Every run in the table counts on the situation pages.</p>
+<div class="table-wrap">
+<table class="plain">
+<thead><tr><th scope="col">Results folder</th><th scope="col">Environment</th><th scope="col">Agent</th><th scope="col">Date</th><th scope="col">Runs</th><th scope="col">Mean score per arm</th><th scope="col"></th></tr></thead>
+<tbody>
+<tr><td><a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801"><code>agent-bench/knows2/results/20261127-165801</code></a></td><td>earlier: bubblewrap, network open</td><td><code>claude-code / claude-opus-5-5</code></td><td>2026-11-27</td><td>108</td><td><code>none</code> 0.71, <code>raw</code> 0.87, <code>ormaos</code> 0.93, <code>ormaos-values</code> 0.95</td><td>this page</td></tr>
+</tbody>
+</table>
+</div>
+<ul class="rows">
+  <li><b>earlier: bubblewrap, network open.</b> Made by knows2&#x27;s own runner: every run in bubblewrap, with the network of the machine.</li>
+</ul>
+</section>
+
 <section class="band" id="this-run" aria-labelledby="this-run-title">
 <h2 id="this-run-title">This run</h2>
 <ul class="rows">
   <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801"><code>agent-bench/knows2/results/20261127-165801</code></a></li>
+  <li>Environment: earlier: bubblewrap, network open</li>
   <li>ormaos-examples commit that added these results: <a href="https://github.com/ormaos/ormaos-examples/commit/091b688f01b0b233631f0fe714935ebc52ab7fd9"><code>091b688</code></a></li>
   <li>Ormaos commit: <a href="https://github.com/ormaos/ormaos-python/commit/968f697"><code>968f697</code></a>; VizTracer 1.1.1; Python 3.14.4</li>
   <li>Model: <code>claude-opus-5-5</code>, with the <code>claude</code> command line 2.1.322</li>
