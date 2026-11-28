@@ -52,3 +52,9 @@ A static page, no build step, that shows without installing anything:
 - Describe Ormaos only with the public sentence: "Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you." No numbers that were not measured. No future plans.
 - Never `push --force`, never publish anywhere, never delete outside the repository.
 - Small commits in English, imperative mood.
+
+## Done means documented
+
+- A change is done only when every document it affects is updated in the same push: this repository's `README.md` and `AGENTS.md`, and the pages of https://docs.ormaos.com that describe it.
+- The docs live in `ormaos/docs` (`content/`). For a change here, the docs need `sources.json` bumped to the new commit and `python3 scripts/generate.py` run, then `python3 scripts/generate.py --check`.
+- When the doc to update is in another repository than the one being changed, the report of the session says which page needs which change.
