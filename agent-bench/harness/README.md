@@ -7,6 +7,7 @@ Today there is one adapter, for Claude Code, and one benchmark, [`../knows2`](..
 ```bash
 (cd ../knows2 && python3 build.py)             # the folders and the oracle's answers, on the day of the run
 python3 harness.py run specs/smoke.toml        # canary, every run of the spec, report
+python3 harness.py check                       # every results folder still fits its run; writes nothing
 python3 -m unittest discover -s tests          # the tests of every rule below
 ```
 
@@ -22,19 +23,32 @@ Needs Linux, Python 3.11 or newer, podman or docker (whichever is installed; onl
 
 **4. The tools.** A shell, and reading, searching and editing files. No MCP server, no plugin, no web search or fetch tool, no memory. What the command line says it started with is compared with the adapter's list in the canary and again in every run. Every run gets a new home folder that holds the agent's credential file, read-only, and nothing else; it is deleted after the run. **The agent can read its own credential there.** For Claude Code the copy holds the access token only: not the refresh token, and not the tokens of other services that the file on this machine also holds. If an agent prints the credential, the runner removes it from the streams and the work folder and says so in the result.
 
+The copy cannot be renewed inside a run, so the runner reads when it expires before every run. A run does not start with a credential that expires within 20 minutes: the batch stops before it, the runs under way end, and the runs that have not started stay "not started" (not failures, not dropped). The runner prints how to renew the credential on this machine (for Claude Code, `claude -p ok`) and the command that continues the batch, `python3 harness.py run <spec> --continue <results folder>`. Continuing checks that it is the same batch (spec, expectations, adapter, images, task folders, oracle), runs the canary again, and starts only the runs that never started.
+
 **5. The grading.** Outside the container, after it has ended, by the benchmark's own oracle and rules. The grader is a separate process ([`core/grading.py`](core/grading.py)) that gets a copy of the work folder in a place whose name says nothing, the task, and the oracle's answers. It is not told the agent, the model or where the results go.
 
 **6. The record.** An adapter turns what its command line prints into one schema of events ([`EVENTS.md`](EVENTS.md)): assistant text, tool call, tool result, final, and usage (input, output and cache tokens, the cost if the command line reports one, the wall time on the runner's clock). The numbers of a result come from the events, and the report checks that they still agree. What the command line printed is kept in `streams/` for people; reports and pages do not read it.
 
-**7. The rules.** A run is described by a spec ([`specs/`](specs)): benchmark, tasks, arms, agent, model, effort, n, time limit. The runner refuses to start unless `expectations/<spec name>.md` exists: what is expected of the run, written before it. Its sha256 goes into `run.json`, and the report and `harness.py check` fail for a results folder whose expectations file has changed since. The first attempt of every task, arm and run counts. Nothing is run again; a results folder is written once; a run that ended with an error or ran out of time counts with what it left; a planned run without a result fails the report.
+**7. The rules.** A run is described by a spec ([`specs/`](specs)): benchmark, tasks, arms, agent, model, effort, n, time limit. The runner refuses to start unless `expectations/<spec name>.md` exists: what is expected of the run, written before it. Its sha256 goes into `run.json`, and the report and `harness.py check` fail for a results folder whose expectations file has changed since. The first attempt of every task, arm and run counts. Nothing is run again: a batch that stopped is continued with the runs that never started, and a run that started is never started again. A run that ended with an error or ran out of time counts with what it left; in a finished batch, a planned run without a result fails the report.
+
+`python3 harness.py check` fails for a results folder that no longer fits its run (expectations changed, a result dropped or doubled, events that do not fit, a `report.md` that is not what the files say). The build of the benchmark pages ([`site/benchmarks/build.py`](../../site/benchmarks/build.py)) runs the same check on every committed results folder, and CI runs both.
 
 ## The results
 
 `results/<benchmark>/<agent>-<model>/<time>/` has what a results folder of `knows2` has (`build.json`, `oracle/`, `results.jsonl`, `report.md`, `streams/`, `work/`) and:
 
 - `events/`: the event stream of every run;
-- `run.json`: the spec, the sha256 of the expectations, the images, the agent's hosts, tools and home folder, the canary, the plan;
+- `run.json`: the spec, the sha256 of the expectations, the images, the agent's hosts, tools and home folder, the canary, the plan, and every time the batch stopped and was continued;
 - `canary.txt`, `expectations.md` (a copy, as it was), `proxy.jsonl`.
+
+Results folders are committed whole, the way `knows2` commits its own: the streams, the events, the answers and the work folder each agent left, with the `.ormaos/` recording an Ormaos arm read (the repository's `.gitignore` leaves `.ormaos/` out everywhere else; [`.gitignore`](.gitignore) here takes it back in). Left out of a work folder:
+
+- `.venv/`: inside the container it is the `ormaos` command line, mounted read-only from `knows2/.build/`; in the copy it is an empty folder. `build.json` names the Ormaos commit it was built from.
+- `result.json`, the trace of the `raw` arm: the same file in every run of the arm, taken out after grading, as `knows2` does. `build.json` has its size.
+- `.ormaos/.gitignore`: `ormaos run` writes it so that recordings stay on the machine; it is taken out after grading, or git would leave the recording out.
+- Folders whose name starts with `_` under `results/`: scratch.
+
+A spec with `test = true` is a test of the harness: its results folder gets `TEST.md`, its report says so, and the benchmark pages do not show it. `results/knows2/claude-code-claude-opus-5-5/20261127-192608` is one (the smoke test).
 
 A line of `results.jsonl` has the keys of a `knows2` line, without `ran_again` and `named_outside` (they are read from Claude Code's own output there), with `cli_version` in the place of `claude`, and with `agent`, `effort`, `final`, `violations`, `exit_code`, `images` and `events`.
 
@@ -47,7 +61,7 @@ Two files in [`adapters/`](adapters), and nothing else:
    - `name`, `cli_version`, `build_args`;
    - `hosts`: the hosts it needs to reach the model, found by running it behind the proxy and reading `proxy.jsonl`; and `probe`, a URL on the model's host for the canary;
    - `tools`: its own name of every tool it is given, each a `shell` or a `file` tool; `efforts`; `env`;
-   - `home_files`: its credential file, cut down to what a run needs; `secrets`; `credential_seconds`;
+   - `home_files`: its credential file, cut down to what a run needs; `secrets`; `credential_seconds`, read from that copy; `renew`, the command that renews it on this machine;
    - `argv`: the command line for one task text, with every other tool, MCP, memory and customization turned off;
    - `parser`: its output, line by line, into the events of `EVENTS.md`.
 
