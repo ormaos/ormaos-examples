@@ -46,9 +46,14 @@ Results folders are committed whole, the way `knows2` commits its own: the strea
 - `.venv/`: inside the container it is the `ormaos` command line, mounted read-only from `knows2/.build/`; in the copy it is an empty folder. `build.json` names the Ormaos commit it was built from.
 - `result.json`, the trace of the `raw` arm: the same file in every run of the arm, taken out after grading, as `knows2` does. `build.json` has its size.
 - `.ormaos/.gitignore`: `ormaos run` writes it so that recordings stay on the machine; it is taken out after grading, or git would leave the recording out.
+- `.git/`, the history an `agent-change` folder comes with: git takes a folder that holds its own `.git` for a link to another repository and leaves its files out, so they are committed without it, as `knows2` commits them.
 - Folders whose name starts with `_` under `results/`: scratch.
 
 A spec with `test = true` is a test of the harness: its results folder gets `TEST.md`, its report says so, and the benchmark pages do not show it. `results/knows2/claude-code-claude-opus-5-5/20261127-192608` is one (the smoke test).
+
+`results/knows2/claude-code-claude-opus-5-5/20261128-122641` is the first full run (spec [`knows2-opus`](specs/knows2-opus.toml), expectations [`knows2-opus.md`](expectations/knows2-opus.md)): 108 of 108 runs, Claude Code 2.1.322 with `claude-opus-5-5`, 2026-11-28. Mean score, with its 95% interval: none 0.68 (0.54 to 0.82), raw 0.87 (0.79 to 0.95), ormaos 0.95 (0.90 to 0.99), ormaos-values 0.95 (0.90 to 0.99); right, null and wrong answers: none 147, 66, 0; raw 186, 27, 0; ormaos 202, 10, 1; ormaos-values 202, 11, 0. The proxy refused only the canary's three requests. Its [`report.md`](results/knows2/claude-code-claude-opus-5-5/20261128-122641/report.md) has every run.
+
+The benchmark pages take their headline and their charts from the most recent complete run of the harness, and show every results folder on its own, labelled with its environment and agent: a run of the harness and a run of `knows2`'s own runner are never added up. The knows2 page also has the run's expectations, verbatim, with each line checked where it is a number.
 
 A line of `results.jsonl` has the keys of a `knows2` line, without `ran_again` and `named_outside` (they are read from Claude Code's own output there), with `cli_version` in the place of `claude`, and with `agent`, `effort`, `final`, `violations`, `exit_code`, `images` and `events`.
 

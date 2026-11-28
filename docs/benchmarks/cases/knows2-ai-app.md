@@ -2,17 +2,20 @@
 
 *Situation · knows2*
 
-A AI app. An app that sends each support ticket to a model API, a local stand-in with a small and a large model, and keeps a one-sentence summary of each ticket. Source: [`use-cases/ai-app`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/ai-app).
+A AI app. An app that sends each support ticket to a model API, a local stand-in with a small and a large model, and keeps a one-sentence summary of each ticket. Source: [`use-cases/ai-app`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/use-cases/ai-app).
 
 Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.
 
-Mean score over every run: `none` 0.29, `raw` 0.86, `ormaos` 1.00, `ormaos-values` 1.00 (3 runs per arm). Agent: `claude-code / claude-opus-5-5`.
+Mean score, per results folder and agent; no number here adds up two of them:
+
+- 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host: `none` 0.29, `raw` 0.86, `ormaos` 1.00, `ormaos-values` 1.00 (3 runs per arm)
+- 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open: `none` 0.29, `raw` 0.86, `ormaos` 1.00, `ormaos-values` 1.00 (3 runs per arm)
 
 ## What happened
 
 5 tickets got a summary from `small-1`, and 3 tickets (403, 405 and 408) from `large-1`. The model server answered 3 of the 11 POST requests with HTTP 503, and `summaries.json` was 703 bytes.
 
-The numbers are the oracle's answers to the questions below: [`oracle/ai-app.json`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/oracle/ai-app.json).
+The numbers are the oracle's answers to the questions below: [`oracle/ai-app.json`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/oracle/ai-app.json).
 
 ## What the agent was given
 
@@ -57,6 +60,264 @@ The folder the execution left, with what the arm adds, and 7 questions in `quest
 ## Run 1 of each arm, side by side
 
 Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent's tool calls in order; under each `ormaos` command, the lines of its output that hold a value the agent wrote in `answers.json`, or its first 15 lines, with a link to the full output in the stream.
+
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+#### `none`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-none-1.jsonl)
+- Score 0.29: 2 right, 5 null, 0 wrong
+- 3 tool calls, 33,589 tokens, 16 s
+
+Commands, in order (3):
+
+1. ```text
+   cd /srv/ai-app; ls -la; cat questions.json; cat app.py
+   ```
+2. ```text
+   cd /srv/ai-app; cat model_server.py; cat README.md; cat summaries.json; wc -c summaries.json
+   ```
+3. ```text
+   cd /srv/ai-app; cat > answers.json <<'EOF'
+   {
+     "q2": null,
+     "q3": null,
+     "q4": null,
+     "q5": null,
+     "q6": null,
+     "q7": "The invoice of October shows the old address.",
+     "q8": 703
+   }
+   EOF
+   python3 -m json.tool answers.json >/dev/null && echo ok
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q2 | null |  |
+| q3 | null |  |
+| q4 | null |  |
+| q5 | null |  |
+| q6 | null |  |
+| q7 | right | `"The invoice of October shows the old address."` |
+| q8 | right | `703` |
+
+Its own words on q2, q3, q4, q5 and q6: the paragraphs of its last message that name them
+
+```text
+- **q7:** "The invoice of October shows the old address." `app.py` writes summaries in the same order as the tickets, so the first entry in `summaries.json` (id 401) is the first ticket.
+- **q8:** 703 bytes, the current size of `summaries.json`. Nothing suggests it was changed after the run.
+- **q2–q6: `null`.** `summaries.json` stores only the id and summary text. The model's reply says which model answered, but the app throws that away. The model server's logging is switched off, so there is no record of requests or 503 errors. Without `tickets.json` I can't measure the prompts, and the server only sends a 503 when small-1 gets a prompt over 600 characters. Both models also produce exactly the same summary text, so the summaries don't show which model wrote them. All I can say is that there were at least 8 POST requests, one per ticket, but the exact count (q4) is unknown.
+```
+
+#### `raw`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-raw-1.jsonl)
+- Score 0.86: 6 right, 1 null, 0 wrong
+- 4 tool calls, 49,251 tokens, 24 s
+
+Commands, in order (4):
+
+1. ```text
+   cd /srv/ai-app; ls -la; cat questions.json; cat app.py; python3 -c "
+   import json;d=json.load(open('result.json'));e=d['traceEvents'];print(len(e));print(e[:3])"
+   ```
+2. ```text
+   cd /srv/ai-app; cat model_server.py README.md; cat summaries.json; wc -c summaries.json; python3 -c "
+   import json,collections;d=json.load(open('result.json'));e=d['traceEvents']
+   c=collections.Counter(x['name'] for x in e);
+   for k,v in c.items():
+     if 'app.py' in k or 'model_server' in k or 'send_error' in k or 'send_response' in k: print(v,k)
+   print(e[-1].keys() if e else 0)
+   print([x for x in e if 'args' in x and x['ph']!='M'][:3])"
+   ```
+3. ```text
+   cd /srv/ai-app; python3 -c "
+   import json;d=json.load(open('result.json'));e=[x for x in d['traceEvents'] if x['ph']=='X']
+   S=sorted([x for x in e if x['name'].startswith('summarize ')],key=lambda x:x['ts'])
+   A=[x for x in e if x['name'].startswith('ask ')]
+   G=sorted([x for x in e if x['name'].startswith('generate ')],key=lambda x:x['ts'])
+   for i,s in enumerate(S): print(i,sum(1 for a in A if s['ts']<=a['ts']<=s['ts']+s['dur']))
+   print([g['dur'] for g in G])
+   import collections;print(collections.Counter(x['name'] for x in e if 'len' in x['name'] or 'dumps' in x['name'] or 'encode' in x['name']).most_common(20))
+   "
+   ```
+4. ```text
+   cd /srv/ai-app; cat > answers.json <<'E'
+   {"q2": 5, "q3": 3, "q4": 11, "q5": [403, 405, 408], "q6": null, "q7": "The invoice of October shows the old address.", "q8": 703}
+   E
+   cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q2 | right | `5` |
+| q3 | right | `3` |
+| q4 | right | `11` |
+| q5 | right | `[403, 405, 408]` |
+| q6 | null |  |
+| q7 | right | `"The invoice of October shows the old address."` |
+| q8 | right | `703` |
+
+Its own words on q6: the paragraphs of its last message that name it
+
+```text
+| Question | Answer | How I got it |
+|---|---|---|
+| q2: tickets summarized by small-1 alone | **5** | There were 8 `summarize` calls and 11 `ask` calls. Five tickets needed one call; three needed two. |
+| q3: HTTP 503 responses | **3** | Each second call happens only after a 503 from small-1, because large-1 never refuses. |
+| q4: POST requests in total | **11** | There were 11 `ask` calls, and the server's `do_POST` and `generate` also each ran 11 times. |
+| q5: tickets summarized by large-1 | **[403, 405, 408]** | The 3rd, 5th and 8th tickets made two `ask` calls. I matched them to ids using the order in `summaries.json`, which keeps the input order. |
+| q6: longest prompt length | **null** | The trace records only function names and timings, not arguments or values. All it shows is that those three prompts were over 600 characters, the small-1 limit. |
+| q7: summary of the first ticket | **"The invoice of October shows the old address."** | Taken from `summaries.json`, which is still as this run left it. |
+| q8: size of `summaries.json` | **703** | Measured from the file on disk. |
+```
+
+#### `ormaos`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-ormaos-1.jsonl)
+- Score 1.00: 7 right, 0 null, 0 wrong
+- 4 tool calls, 69,416 tokens, 24 s
+
+Commands, in order (4):
+
+1. ```text
+   ls -la && cat questions.json && .venv/bin/ormaos guide
+   ```
+
+   Output, the 1 line of 174 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-ormaos-1.jsonl?plain=1#L3)):
+
+   ```text
+   -rw-rw-r-- 1 ubuntu ubuntu  703 Nov 28 02:47 summaries.json
+   ```
+2. ```text
+   cat app.py model_server.py README.md summaries.json; wc -c summaries.json; .venv/bin/ormaos list; .venv/bin/ormaos show last --full
+   ```
+
+   Output, the 5 lines of 200 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-ormaos-1.jsonl?plain=1#L5)):
+
+   ```text
+       "summary": "The invoice of October shows the old address."
+   ]703 summaries.json
+   r1  2026-11-28 02:47:35  complete  exit 0  587.9ms  1 process, 70 calls, 3 exceptions (3 swallowed), 112 io  .venv/bin/python app.py
+   header: format provisional-0, ormaos 0.0.1, mode run, started 2026-11-28 02:47:35, platform linux, in .ormaos/r1
+   io: 112 events (file 101, http 11)
+   ```
+3. ```text
+   .venv/bin/ormaos tree r1 --limit 200; .venv/bin/ormaos io r1 --kind http
+   ```
+
+   Output, the 8 lines of 65 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-ormaos-1.jsonl?plain=1#L7)):
+
+   ```text
+     r1:c4 main() -> NoneType  app.py:41  521.6ms  io 112  calls below: 11
+     r1:c22 generate(model: str[7], prompt: str[665]) -> tuple[2]  model_server.py:17  36us  thread 4
+     r1:c27 generate(model: str[7], prompt: str[665]) -> tuple[2]  model_server.py:17  14us  thread 5
+   r1:c61 Handler.do_POST(self: model_server.Handler) -> NoneType  model_server.py:28  567us  thread 11  calls below: 2
+     r1:c62 generate(model: str[7], prompt: str[624]) -> tuple[2]  model_server.py:17  19us  thread 11
+     r1:c63 Handler.reply(self: model_server.Handler, code: int, answer: dict[1]) -> NoneType  model_server.py:37  385us  thread 11  calls below: 1
+       r1:c64 Handler.log_message(self: model_server.Handler, args: tuple[4 str]) -> NoneType  model_server.py:45  18us  thread 11
+   r1: 112 io events (file 101, http 11), showing http
+   ```
+4. ```text
+   cat > answers.json <<'EOF'
+   {
+     "q2": 5,
+     "q3": 3,
+     "q4": 11,
+     "q5": [403, 405, 408],
+     "q6": 665,
+     "q7": "The invoice of October shows the old address.",
+     "q8": 703
+   }
+   EOF
+   python3 -m json.tool answers.json >/dev/null && echo ok
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q2 | right | `5` |
+| q3 | right | `3` |
+| q4 | right | `11` |
+| q5 | right | `[403, 405, 408]` |
+| q6 | right | `665` |
+| q7 | right | `"The invoice of October shows the old address."` |
+| q8 | right | `703` |
+
+#### `ormaos-values`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-ormaos-values-1.jsonl)
+- Score 1.00: 7 right, 0 null, 0 wrong
+- 5 tool calls, 87,726 tokens, 26 s
+
+Commands, in order (5):
+
+1. ```text
+   cd /srv/ai-app; ls -la; cat questions.json; .venv/bin/ormaos guide
+   ```
+
+   Output, the 1 line of 174 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-ormaos-values-1.jsonl?plain=1#L3)):
+
+   ```text
+   -rw-rw-r-- 1 ubuntu ubuntu  703 Nov 28 02:47 summaries.json
+   ```
+2. ```text
+   cd /srv/ai-app; cat app.py model_server.py README.md; cat summaries.json; wc -c summaries.json; .venv/bin/ormaos show last --full
+   ```
+
+   Output, the 4 lines of 198 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-ormaos-values-1.jsonl?plain=1#L5)):
+
+   ```text
+       "summary": "The invoice of October shows the old address."
+   ]703 summaries.json
+   header: format provisional-0, ormaos 0.0.1, mode run, started 2026-11-28 02:47:35, platform linux, in .ormaos/r1
+   io: 112 events (file 101, http 11)
+   ```
+3. ```text
+   cd /srv/ai-app; .venv/bin/ormaos tree r1 --function summarize --json | head -c 6000; echo; .venv/bin/ormaos tree r1 --function ask | head -60
+   ```
+
+   Output, the 4 lines of 270 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-ormaos-values-1.jsonl?plain=1#L7)):
+
+   ```text
+               "text": "The invoice of October shows the old address. It worked until the last update. I cleared the cache and signed in again."
+           "value": "The invoice of October shows the old address."
+   r1: 11 of the 70 calls match --function ask (11 ask; 3 raised)
+   r1:c8 ask(base: str[22]="http://127.0.0.1:41845", model: str[7]="small-1", ...) -> str[45]="The invoice of October shows the old address."  app.py:14  8.8ms  io 1
+   ```
+4. ```text
+   cd /srv/ai-app; .venv/bin/ormaos tree r1 --function ask --json | grep -A3 '"prompt"' | grep len; .venv/bin/python -c 'print(len("Summarize this support ticket in one sentence.\n\n"))'
+   ```
+
+   Output, the 2 lines of 12 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-ormaos-values-1.jsonl?plain=1#L9)):
+
+   ```text
+             "len": 665,
+             "len": 665,
+   ```
+5. ```text
+   Write answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q2 | right | `5` |
+| q3 | right | `3` |
+| q4 | right | `11` |
+| q5 | right | `[403, 405, 408]` |
+| q6 | right | `665` |
+| q7 | right | `"The invoice of October shows the old address."` |
+| q8 | right | `703` |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
 
 #### `none`
 
@@ -341,6 +602,20 @@ Its answers
 
 Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its commands up to its last write of `answers.json`. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them.
 
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+| Question | `ormaos`: verbs (runs) | answered | right | `ormaos-values`: verbs (runs) | answered | right |
+|---|---|---|---|---|---|---|
+| q2 | show 3, tree 3, io 3, guide 3, list 2 | 3/3 | 3/3 | show 3, tree 3, guide 3, list 1 | 3/3 | 3/3 |
+| q3 | show 3, tree 3, io 3, guide 3, list 2 | 3/3 | 3/3 | show 3, tree 3, guide 3, list 1 | 3/3 | 3/3 |
+| q4 | show 3, tree 3, io 3, guide 3, list 2 | 3/3 | 3/3 | show 3, tree 3, guide 3, list 1 | 3/3 | 3/3 |
+| q5 | show 3, tree 3, io 3, guide 3, list 2 | 3/3 | 3/3 | show 3, tree 3, guide 3, list 1 | 3/3 | 3/3 |
+| q6 | show 3, tree 3, io 3, guide 3, list 2 | 3/3 | 3/3 | show 3, tree 3, guide 3, list 1 | 3/3 | 3/3 |
+| q7 | show 3, tree 3, io 3, guide 3, list 2 | 3/3 | 3/3 | show 3, tree 3, guide 3, list 1 | 3/3 | 3/3 |
+| q8 | show 3, tree 3, io 3, guide 3, list 2 | 3/3 | 3/3 | show 3, tree 3, guide 3, list 1 | 3/3 | 3/3 |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
+
 | Question | `ormaos`: verbs (runs) | answered | right | `ormaos-values`: verbs (runs) | answered | right |
 |---|---|---|---|---|---|---|
 | q2 | show 3, tree 3, list 3, guide 3, io 2 | 3/3 | 3/3 | show 3, tree 3, guide 3, io 2, list 2 | 3/3 | 3/3 |
@@ -353,7 +628,26 @@ Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its c
 
 ## Every run
 
-Every run of every arm.
+Every run of every arm, one table per results folder and agent.
+
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+| Arm | Run | Score | Right | Null | Wrong | `ormaos` verbs before answers.json | Tool calls | Tokens | Wall time | Stream |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `none` | 1 | 0.29 | 2 | 5 | 0 | – | 3 | 33,589 | 16 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-none-1.jsonl) |
+| `none` | 2 | 0.29 | 2 | 5 | 0 | – | 3 | 33,702 | 19 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-none-2.jsonl) |
+| `none` | 3 | 0.29 | 2 | 5 | 0 | – | 3 | 33,651 | 20 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-none-3.jsonl) |
+| `raw` | 1 | 0.86 | 6 | 1 | 0 | – | 4 | 49,251 | 24 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-raw-1.jsonl) |
+| `raw` | 2 | 0.86 | 6 | 1 | 0 | – | 4 | 48,353 | 24 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-raw-2.jsonl) |
+| `raw` | 3 | 0.86 | 6 | 1 | 0 | – | 4 | 54,766 | 31 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-raw-3.jsonl) |
+| `ormaos` | 1 | 1.00 | 7 | 0 | 0 | guide, list, show, tree, io | 4 | 69,416 | 24 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-ormaos-1.jsonl) |
+| `ormaos` | 2 | 1.00 | 7 | 0 | 0 | guide, show, tree, io | 5 | 83,523 | 28 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-ormaos-2.jsonl) |
+| `ormaos` | 3 | 1.00 | 7 | 0 | 0 | guide, list, show, tree, io | 5 | 91,495 | 39 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-ormaos-3.jsonl) |
+| `ormaos-values` | 1 | 1.00 | 7 | 0 | 0 | guide, show, tree | 5 | 87,726 | 26 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-ormaos-values-1.jsonl) |
+| `ormaos-values` | 2 | 1.00 | 7 | 0 | 0 | guide, show, tree | 6 | 108,912 | 36 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-ormaos-values-2.jsonl) |
+| `ormaos-values` | 3 | 1.00 | 7 | 0 | 0 | guide, list, show, tree | 5 | 88,109 | 33 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ai-app-ormaos-values-3.jsonl) |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
 
 | Arm | Run | Score | Right | Null | Wrong | `ormaos` verbs before answers.json | Tool calls | Tokens | Wall time | Stream |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -373,4 +667,5 @@ Every run of every arm.
 ## The results files
 
 - The benchmark: [knows2](https://ormaos.com/benchmarks/knows2/#ai-app)
-- Results folder: [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801), earlier: bubblewrap, network open
+- Results folder: [`agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641): 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+- Results folder: [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801): 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open

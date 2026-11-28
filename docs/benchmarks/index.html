@@ -90,13 +90,13 @@
 <h1 id="top-title">Benchmarks</h1>
 <p class="lead">What Ormaos does, measured. Every number on these pages is read from a results file by a script, never typed by hand.</p>
 <p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
-<p class="headline">In knows2, with an Ormaos recording (<code>ormaos</code>) the agent answered 198 of 213 questions right, over its 27 runs; with only the folder (<code>none</code>), 153 of 213. Null answers: 14 and 60. Wrong answers: 1 and 0.</p>
+<p class="headline">In knows2, with an Ormaos recording (<code>ormaos</code>) the agent answered 202 of 213 questions right, over its 27 runs; with only the folder (<code>none</code>), 147 of 213. Null answers: 10 and 66. Wrong answers: 1 and 0.</p>
 <div class="pair">
 <div>
 <figure class="chart">
 <svg viewBox="0 0 540 206" role="img" aria-labelledby="o-score-t o-score-d" xmlns="http://www.w3.org/2000/svg">
 <title id="o-score-t">Mean score per arm, knows2</title>
-<desc id="o-score-d">The mean score of the runs of each arm, with its 95% bootstrap interval. none 0.71 (0.59 to 0.83); raw 0.87 (0.79 to 0.95); ormaos 0.93 (0.88 to 0.97); ormaos-values 0.95 (0.90 to 0.99).</desc>
+<desc id="o-score-d">The mean score of the runs of each arm, with its 95% bootstrap interval. none 0.68 (0.54 to 0.82); raw 0.87 (0.79 to 0.95); ormaos 0.95 (0.90 to 0.99); ormaos-values 0.95 (0.90 to 0.99).</desc>
 <line class="grid" x1="110" y1="12" x2="110" y2="172"/>
 <text x="110" y="192" text-anchor="middle">0.00</text>
 <line class="grid" x1="175" y1="12" x2="175" y2="172"/>
@@ -107,13 +107,13 @@
 <text x="305" y="192" text-anchor="middle">0.75</text>
 <line class="grid" x1="370" y1="12" x2="370" y2="172"/>
 <text x="370" y="192" text-anchor="middle">1.00</text>
-<g><title>none: mean score 0.71, 95% interval 0.59 to 0.83, 27 runs</title>
+<g><title>none: mean score 0.68, 95% interval 0.54 to 0.82, 27 runs</title>
 <text class="label" x="96" y="36.5" text-anchor="end">none</text>
-<line class="s1 whisker" x1="262.2" y1="32" x2="327" y2="32"/>
-<line class="s1 whisker" x1="262.2" y1="26" x2="262.2" y2="38"/>
-<line class="s1 whisker" x1="327" y1="26" x2="327" y2="38"/>
-<circle class="s1 dot" cx="295.2" cy="32" r="6"/>
-<text class="value" x="384" y="36.5">0.71 (0.59 to 0.83)</text></g>
+<line class="s1 whisker" x1="250.3" y1="32" x2="322.9" y2="32"/>
+<line class="s1 whisker" x1="250.3" y1="26" x2="250.3" y2="38"/>
+<line class="s1 whisker" x1="322.9" y1="26" x2="322.9" y2="38"/>
+<circle class="s1 dot" cx="288" cy="32" r="6"/>
+<text class="value" x="384" y="36.5">0.68 (0.54 to 0.82)</text></g>
 <g><title>raw: mean score 0.87, 95% interval 0.79 to 0.95, 27 runs</title>
 <text class="label" x="96" y="76.5" text-anchor="end">raw</text>
 <line class="s2 whisker" x1="315.1" y1="72" x2="356.4" y2="72"/>
@@ -121,13 +121,13 @@
 <line class="s2 whisker" x1="356.4" y1="66" x2="356.4" y2="78"/>
 <circle class="s2 dot" cx="337" cy="72" r="6"/>
 <text class="value" x="384" y="76.5">0.87 (0.79 to 0.95)</text></g>
-<g><title>ormaos: mean score 0.93, 95% interval 0.88 to 0.97, 27 runs</title>
+<g><title>ormaos: mean score 0.95, 95% interval 0.90 to 0.99, 27 runs</title>
 <text class="label" x="96" y="116.5" text-anchor="end">ormaos</text>
-<line class="s3 whisker" x1="338.7" y1="112" x2="362.8" y2="112"/>
-<line class="s3 whisker" x1="338.7" y1="106" x2="338.7" y2="118"/>
-<line class="s3 whisker" x1="362.8" y1="106" x2="362.8" y2="118"/>
-<circle class="s3 dot" cx="351.9" cy="112" r="6"/>
-<text class="value" x="384" y="116.5">0.93 (0.88 to 0.97)</text></g>
+<line class="s3 whisker" x1="343.5" y1="112" x2="366.4" y2="112"/>
+<line class="s3 whisker" x1="343.5" y1="106" x2="343.5" y2="118"/>
+<line class="s3 whisker" x1="366.4" y1="106" x2="366.4" y2="118"/>
+<circle class="s3 dot" cx="356.8" cy="112" r="6"/>
+<text class="value" x="384" y="116.5">0.95 (0.90 to 0.99)</text></g>
 <g><title>ormaos-values: mean score 0.95, 95% interval 0.90 to 0.99, 27 runs</title>
 <text class="label" x="96" y="156.5" text-anchor="end">ormaos-values</text>
 <line class="s4 whisker" x1="343.5" y1="152" x2="366.4" y2="152"/>
@@ -141,9 +141,9 @@
 <table class="results">
 <thead><tr><th scope="col">Arm</th><th scope="col">Runs</th><th scope="col">Mean score</th><th scope="col">95% interval</th></tr></thead>
 <tbody>
-<tr><td><code>none</code></td><td>27</td><td>0.71</td><td>0.59 to 0.83</td></tr>
+<tr><td><code>none</code></td><td>27</td><td>0.68</td><td>0.54 to 0.82</td></tr>
 <tr><td><code>raw</code></td><td>27</td><td>0.87</td><td>0.79 to 0.95</td></tr>
-<tr><td><code>ormaos</code></td><td>27</td><td>0.93</td><td>0.88 to 0.97</td></tr>
+<tr><td><code>ormaos</code></td><td>27</td><td>0.95</td><td>0.90 to 0.99</td></tr>
 <tr><td><code>ormaos-values</code></td><td>27</td><td>0.95</td><td>0.90 to 0.99</td></tr>
 </tbody>
 </table>
@@ -153,7 +153,7 @@
 <figure class="chart">
 <svg viewBox="0 0 540 208" role="img" aria-labelledby="o-rnw-t o-rnw-d" xmlns="http://www.w3.org/2000/svg">
 <title id="o-rnw-t">Right, null and wrong answers per arm</title>
-<desc id="o-rnw-d">Every answer of every run of each arm, stacked: right, null, wrong. none: 153 right, 60 null, 0 wrong; raw: 186 right, 27 null, 0 wrong; ormaos: 198 right, 14 null, 1 wrong; ormaos-values: 202 right, 11 null, 0 wrong.</desc>
+<desc id="o-rnw-d">Every answer of every run of each arm, stacked: right, null, wrong. none: 147 right, 66 null, 0 wrong; raw: 186 right, 27 null, 0 wrong; ormaos: 202 right, 10 null, 1 wrong; ormaos-values: 202 right, 11 null, 0 wrong.</desc>
 <rect class="s1" x="110" y="10" width="12" height="12" rx="2"/>
 <text x="128" y="20.5">right</text>
 <rect class="neutral" x="196" y="10" width="12" height="12" rx="2"/>
@@ -161,18 +161,18 @@
 <rect class="s2" x="274" y="10" width="12" height="12" rx="2"/>
 <text x="292" y="20.5">wrong</text>
 <text class="label" x="96" y="64.5" text-anchor="end">none</text>
-<rect class="s1" x="110" y="50" width="220.7" height="20" rx="2"><title>none: 153 right of 213</title></rect>
-<rect class="neutral" x="332.7" y="50" width="85.3" height="20" rx="2"><title>none: 60 null of 213</title></rect>
-<text class="value" x="432" y="64.5">153 / 60 / 0</text>
+<rect class="s1" x="110" y="50" width="211.9" height="20" rx="2"><title>none: 147 right of 213</title></rect>
+<rect class="neutral" x="323.9" y="50" width="94.1" height="20" rx="2"><title>none: 66 null of 213</title></rect>
+<text class="value" x="432" y="64.5">147 / 66 / 0</text>
 <text class="label" x="96" y="104.5" text-anchor="end">raw</text>
 <rect class="s1" x="110" y="90" width="268.7" height="20" rx="2"><title>raw: 186 right of 213</title></rect>
 <rect class="neutral" x="380.7" y="90" width="37.3" height="20" rx="2"><title>raw: 27 null of 213</title></rect>
 <text class="value" x="432" y="104.5">186 / 27 / 0</text>
 <text class="label" x="96" y="144.5" text-anchor="end">ormaos</text>
-<rect class="s1" x="110" y="130" width="286.2" height="20" rx="2"><title>ormaos: 198 right of 213</title></rect>
-<rect class="neutral" x="398.2" y="130" width="18.4" height="20" rx="2"><title>ormaos: 14 null of 213</title></rect>
+<rect class="s1" x="110" y="130" width="292" height="20" rx="2"><title>ormaos: 202 right of 213</title></rect>
+<rect class="neutral" x="404" y="130" width="12.6" height="20" rx="2"><title>ormaos: 10 null of 213</title></rect>
 <rect class="s2" x="418.5" y="130" width="1.5" height="20" rx="2"><title>ormaos: 1 wrong of 213</title></rect>
-<text class="value" x="432" y="144.5">198 / 14 / 1</text>
+<text class="value" x="432" y="144.5">202 / 10 / 1</text>
 <text class="label" x="96" y="184.5" text-anchor="end">ormaos-values</text>
 <rect class="s1" x="110" y="170" width="292" height="20" rx="2"><title>ormaos-values: 202 right of 213</title></rect>
 <rect class="neutral" x="404" y="170" width="14" height="20" rx="2"><title>ormaos-values: 11 null of 213</title></rect>
@@ -183,38 +183,33 @@
 <table class="results">
 <thead><tr><th scope="col">Arm</th><th scope="col">Answers</th><th scope="col">Right</th><th scope="col">Null</th><th scope="col">Wrong</th></tr></thead>
 <tbody>
-<tr><td><code>none</code></td><td>213</td><td>153</td><td>60</td><td>0</td></tr>
+<tr><td><code>none</code></td><td>213</td><td>147</td><td>66</td><td>0</td></tr>
 <tr><td><code>raw</code></td><td>213</td><td>186</td><td>27</td><td>0</td></tr>
-<tr><td><code>ormaos</code></td><td>213</td><td>198</td><td>14</td><td>1</td></tr>
+<tr><td><code>ormaos</code></td><td>213</td><td>202</td><td>10</td><td>1</td></tr>
 <tr><td><code>ormaos-values</code></td><td>213</td><td>202</td><td>11</td><td>0</td></tr>
 </tbody>
 </table>
 </div>
 </div>
 </div>
-<p class="caption">From the knows2 run of 2026-11-27, in the environment &quot;earlier: bubblewrap, network open&quot;, agent <code>claude-code / claude-opus-5-5</code>: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801"><code>agent-bench/knows2/results/20261127-165801</code></a>.</p>
+<p class="caption">From the knows2 run of 2026-11-28, in the environment &quot;controlled: container, network limited to the model host&quot;, agent <code>claude-code / claude-opus-5-5</code>: <a href="https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641"><code>agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641</code></a>. The other run of knows2 is on <a href="/benchmarks/knows2/#runs">its page</a>, each on its own: 2026-11-27, in the environment &quot;earlier: bubblewrap, network open&quot;.</p>
+<p>These 95% intervals overlap: <code>none</code> and <code>raw</code>; <code>raw</code> and <code>ormaos</code>; <code>raw</code> and <code>ormaos-values</code>; <code>ormaos</code> and <code>ormaos-values</code>. Where two intervals overlap, these runs do not show that one of the two arms scores above the other.</p>
 </section>
 
 <section class="band" id="situations" aria-labelledby="situations-title">
 <h2 id="situations-title">Where Ormaos changed the result and where it did not</h2>
-<p>All 17 situations: the 9 executions of knows2, with the mean score of their runs (0 to 1), and the 8 programs of fix, with the first attempts that passed the check. Sorted by the mean of <code>ormaos</code> minus the mean of <code>none</code>, over every run of every agent; in 7 of them the two differ. Each name links to the situation&#x27;s page: what happened, what the agent was given, and run 1 of each arm side by side.</p>
+<p>The 9 executions of knows2, with the mean score of their runs (0 to 1), and the 8 programs of fix, with the first attempts that passed the check: one table per results folder and agent, each labelled with its environment, and none adds up the runs of two. In each table the situations are sorted by the mean of <code>ormaos</code> minus the mean of <code>none</code>. Each name links to the situation&#x27;s page: what happened, what the agent was given, and run 1 of each arm side by side.</p>
+<h3>knows2, 2026-11-28, <code>claude-code / claude-opus-5-5</code>, controlled: container, network limited to the model host (the run above)</h3>
+<p>9 situations; <code>ormaos</code> and <code>none</code> differ in 5.</p>
 <p class="legend"><span class="key"><i class="sw s1"></i><code>none</code></span><span class="key"><i class="sw s2"></i><code>raw</code></span><span class="key"><i class="sw s3"></i><code>ormaos</code></span><span class="key"><i class="sw s4"></i><code>ormaos-values</code></span></p>
 <div class="table-wrap">
 <table class="situations">
 <thead><tr><th scope="col">Situation</th><th scope="col">Per arm</th><th scope="col" class="num"><code>ormaos</code>&nbsp;−&nbsp;<code>none</code></th></tr></thead>
 <tbody>
+<tr><td><a href="/benchmarks/cases/knows2-order-sync/"><b>order-sync</b></a> <span class="bench">knows2</span><br><span class="line">a night run of a job that applies orders to an inventory</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 0.12, raw 1.00, ormaos 1.00, ormaos-values 1.00"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="16.2" height="8" rx="1.5"><title>none: 0.12</title></rect><text x="138" y="11">0.12</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 1.00</title></rect><text x="138" y="26">1.00</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 1.00</title></rect><text x="138" y="41">1.00</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="130" height="8" rx="1.5"><title>ormaos-values: 1.00</title></rect><text x="138" y="56">1.00</text></svg></td><td class="num">+0.88</td></tr>
 <tr><td><a href="/benchmarks/cases/knows2-ai-app/"><b>ai-app</b></a> <span class="bench">knows2</span><br><span class="line">support tickets summarized through a model API with a small and a large model</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 0.29, raw 0.86, ormaos 1.00, ormaos-values 1.00"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="37.1" height="8" rx="1.5"><title>none: 0.29</title></rect><text x="138" y="11">0.29</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="111.4" height="8" rx="1.5"><title>raw: 0.86</title></rect><text x="138" y="26">0.86</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 1.00</title></rect><text x="138" y="41">1.00</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="130" height="8" rx="1.5"><title>ormaos-values: 1.00</title></rect><text x="138" y="56">1.00</text></svg></td><td class="num">+0.71</td></tr>
-<tr><td><a href="/benchmarks/cases/fix-fx-rates/"><b>fx-rates</b></a> <span class="bench">fix</span><br><span class="line">a scheduled job that takes over exchange rates from a feed; where it behaved otherwise than its README: a retry that makes its call once</span></td><td><svg class="mini" viewBox="0 0 200 45" width="200" height="45" role="img" aria-label="none 1/3, raw 3/3, ormaos 3/3"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="43.3" height="8" rx="1.5"><title>none: 1/3</title></rect><text x="138" y="11">1/3</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 3/3</title></rect><text x="138" y="26">3/3</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 3/3</title></rect><text x="138" y="41">3/3</text></svg></td><td class="num">+0.67</td></tr>
-<tr><td><a href="/benchmarks/cases/knows2-data-pipeline/"><b>data-pipeline</b></a> <span class="bench">knows2</span><br><span class="line">a pandas report that joins two exports and sums them by region</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 0.25, raw 0.38, ormaos 0.88, ormaos-values 0.92"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="32.5" height="8" rx="1.5"><title>none: 0.25</title></rect><text x="138" y="11">0.25</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="48.8" height="8" rx="1.5"><title>raw: 0.38</title></rect><text x="138" y="26">0.38</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="113.8" height="8" rx="1.5"><title>ormaos: 0.88</title></rect><text x="138" y="41">0.88</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="119.2" height="8" rx="1.5"><title>ormaos-values: 0.92</title></rect><text x="138" y="56">0.92</text></svg></td><td class="num">+0.62</td></tr>
-<tr><td><a href="/benchmarks/cases/knows2-order-sync/"><b>order-sync</b></a> <span class="bench">knows2</span><br><span class="line">a night run of a job that applies orders to an inventory</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 0.38, raw 1.00, ormaos 0.92, ormaos-values 1.00"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="48.8" height="8" rx="1.5"><title>none: 0.38</title></rect><text x="138" y="11">0.38</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 1.00</title></rect><text x="138" y="26">1.00</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="119.2" height="8" rx="1.5"><title>ormaos: 0.92</title></rect><text x="138" y="41">0.92</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="130" height="8" rx="1.5"><title>ormaos-values: 1.00</title></rect><text x="138" y="56">1.00</text></svg></td><td class="num">+0.54</td></tr>
-<tr><td><a href="/benchmarks/cases/fix-late-fees/"><b>late-fees</b></a> <span class="bench">fix</span><br><span class="line">a scheduled job that charges late fees on overdue invoices; where it behaved otherwise than its README: a branch taken because of a value in the environment</span></td><td><svg class="mini" viewBox="0 0 200 45" width="200" height="45" role="img" aria-label="none 2/3, raw 2/3, ormaos 3/3"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="86.7" height="8" rx="1.5"><title>none: 2/3</title></rect><text x="138" y="11">2/3</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="86.7" height="8" rx="1.5"><title>raw: 2/3</title></rect><text x="138" y="26">2/3</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 3/3</title></rect><text x="138" y="41">3/3</text></svg></td><td class="num">+0.33</td></tr>
+<tr><td><a href="/benchmarks/cases/knows2-data-pipeline/"><b>data-pipeline</b></a> <span class="bench">knows2</span><br><span class="line">a pandas report that joins two exports and sums them by region</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 0.25, raw 0.38, ormaos 0.96, ormaos-values 0.92"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="32.5" height="8" rx="1.5"><title>none: 0.25</title></rect><text x="138" y="11">0.25</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="48.8" height="8" rx="1.5"><title>raw: 0.38</title></rect><text x="138" y="26">0.38</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="124.6" height="8" rx="1.5"><title>ormaos: 0.96</title></rect><text x="138" y="41">0.96</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="119.2" height="8" rx="1.5"><title>ormaos-values: 0.92</title></rect><text x="138" y="56">0.92</text></svg></td><td class="num">+0.71</td></tr>
 <tr><td><a href="/benchmarks/cases/knows2-notebook/"><b>notebook</b></a> <span class="bench">knows2</span><br><span class="line">a Jupyter notebook that sums a week of sales, with tax</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 0.50, raw 0.62, ormaos 0.62, ormaos-values 0.62"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="65" height="8" rx="1.5"><title>none: 0.50</title></rect><text x="138" y="11">0.50</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="81.2" height="8" rx="1.5"><title>raw: 0.62</title></rect><text x="138" y="26">0.62</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="81.2" height="8" rx="1.5"><title>ormaos: 0.62</title></rect><text x="138" y="41">0.62</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="81.2" height="8" rx="1.5"><title>ormaos-values: 0.62</title></rect><text x="138" y="56">0.62</text></svg></td><td class="num">+0.12</td></tr>
-<tr><td><a href="/benchmarks/cases/fix-commission-run/"><b>commission-run</b></a> <span class="bench">fix</span><br><span class="line">a scheduled job that works out sales commissions; where it behaved otherwise than its README: a value kept from one item to the next</span></td><td><svg class="mini" viewBox="0 0 200 45" width="200" height="45" role="img" aria-label="none 3/3, raw 3/3, ormaos 3/3"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 3/3</title></rect><text x="138" y="11">3/3</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 3/3</title></rect><text x="138" y="26">3/3</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 3/3</title></rect><text x="138" y="41">3/3</text></svg></td><td class="num">+0.00</td></tr>
-<tr><td><a href="/benchmarks/cases/fix-freight-quote/"><b>freight-quote</b></a> <span class="bench">fix</span><br><span class="line">a scheduled job that quotes freight from a carrier&#x27;s API; where it behaved otherwise than its README: a fallback, with nothing printed, after HTTP calls that returned an error</span></td><td><svg class="mini" viewBox="0 0 200 45" width="200" height="45" role="img" aria-label="none 3/3, raw 3/3, ormaos 3/3"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 3/3</title></rect><text x="138" y="11">3/3</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 3/3</title></rect><text x="138" y="26">3/3</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 3/3</title></rect><text x="138" y="41">3/3</text></svg></td><td class="num">+0.00</td></tr>
-<tr><td><a href="/benchmarks/cases/fix-order-sync/"><b>order-sync</b></a> <span class="bench">fix</span><br><span class="line">a scheduled job that applies orders to an inventory; where it behaved otherwise than its README: an exception that is caught and not shown</span></td><td><svg class="mini" viewBox="0 0 200 45" width="200" height="45" role="img" aria-label="none 3/3, raw 3/3, ormaos 3/3"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 3/3</title></rect><text x="138" y="11">3/3</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 3/3</title></rect><text x="138" y="26">3/3</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 3/3</title></rect><text x="138" y="41">3/3</text></svg></td><td class="num">+0.00</td></tr>
-<tr><td><a href="/benchmarks/cases/fix-points-grant/"><b>points-grant</b></a> <span class="bench">fix</span><br><span class="line">a scheduled job that grants loyalty points for purchases; where it behaved otherwise than its README: an SQL statement that also writes other rows</span></td><td><svg class="mini" viewBox="0 0 200 45" width="200" height="45" role="img" aria-label="none 3/3, raw 3/3, ormaos 3/3"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 3/3</title></rect><text x="138" y="11">3/3</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 3/3</title></rect><text x="138" y="26">3/3</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 3/3</title></rect><text x="138" y="41">3/3</text></svg></td><td class="num">+0.00</td></tr>
-<tr><td><a href="/benchmarks/cases/fix-price-import/"><b>price-import</b></a> <span class="bench">fix</span><br><span class="line">a scheduled job that takes over a supplier&#x27;s price list; where it behaved otherwise than its README: a subprocess whose exit code is not read</span></td><td><svg class="mini" viewBox="0 0 200 45" width="200" height="45" role="img" aria-label="none 3/3, raw 3/3, ormaos 3/3"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 3/3</title></rect><text x="138" y="11">3/3</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 3/3</title></rect><text x="138" y="26">3/3</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 3/3</title></rect><text x="138" y="41">3/3</text></svg></td><td class="num">+0.00</td></tr>
-<tr><td><a href="/benchmarks/cases/fix-statement-import/"><b>statement-import</b></a> <span class="bench">fix</span><br><span class="line">a scheduled job that books a bank statement into a ledger; where it behaved otherwise than its README: a loop that stops before the end of its input</span></td><td><svg class="mini" viewBox="0 0 200 45" width="200" height="45" role="img" aria-label="none 3/3, raw 3/3, ormaos 3/3"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 3/3</title></rect><text x="138" y="11">3/3</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 3/3</title></rect><text x="138" y="26">3/3</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 3/3</title></rect><text x="138" y="41">3/3</text></svg></td><td class="num">+0.00</td></tr>
 <tr><td><a href="/benchmarks/cases/knows2-agent-change/"><b>agent-change</b></a> <span class="bench">knows2</span><br><span class="line">a billing tool run before and after a change an agent made</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 1.00, raw 1.00, ormaos 1.00, ormaos-values 1.00"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 1.00</title></rect><text x="138" y="11">1.00</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 1.00</title></rect><text x="138" y="26">1.00</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 1.00</title></rect><text x="138" y="41">1.00</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="130" height="8" rx="1.5"><title>ormaos-values: 1.00</title></rect><text x="138" y="56">1.00</text></svg></td><td class="num">+0.00</td></tr>
 <tr><td><a href="/benchmarks/cases/knows2-freight-quote/"><b>freight-quote</b></a> <span class="bench">knows2</span><br><span class="line">a night run of a job that quotes freight from a carrier&#x27;s API</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 1.00, raw 1.00, ormaos 1.00, ormaos-values 1.00"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 1.00</title></rect><text x="138" y="11">1.00</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 1.00</title></rect><text x="138" y="26">1.00</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 1.00</title></rect><text x="138" y="41">1.00</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="130" height="8" rx="1.5"><title>ormaos-values: 1.00</title></rect><text x="138" y="56">1.00</text></svg></td><td class="num">+0.00</td></tr>
 <tr><td><a href="/benchmarks/cases/knows2-ml-training/"><b>ml-training</b></a> <span class="bench">knows2</span><br><span class="line">a PyTorch training run that leaves out batches whose loss is not finite</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 1.00, raw 1.00, ormaos 1.00, ormaos-values 1.00"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 1.00</title></rect><text x="138" y="11">1.00</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 1.00</title></rect><text x="138" y="26">1.00</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 1.00</title></rect><text x="138" y="41">1.00</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="130" height="8" rx="1.5"><title>ormaos-values: 1.00</title></rect><text x="138" y="56">1.00</text></svg></td><td class="num">+0.00</td></tr>
@@ -223,11 +218,67 @@
 </tbody>
 </table>
 </div>
+<h3>knows2, 2026-11-27, <code>claude-code / claude-opus-5-5</code>, earlier: bubblewrap, network open</h3>
+<p>9 situations; <code>ormaos</code> and <code>none</code> differ in 5.</p>
+<p class="legend"><span class="key"><i class="sw s1"></i><code>none</code></span><span class="key"><i class="sw s2"></i><code>raw</code></span><span class="key"><i class="sw s3"></i><code>ormaos</code></span><span class="key"><i class="sw s4"></i><code>ormaos-values</code></span></p>
+<div class="table-wrap">
+<table class="situations">
+<thead><tr><th scope="col">Situation</th><th scope="col">Per arm</th><th scope="col" class="num"><code>ormaos</code>&nbsp;−&nbsp;<code>none</code></th></tr></thead>
+<tbody>
+<tr><td><a href="/benchmarks/cases/knows2-ai-app/"><b>ai-app</b></a> <span class="bench">knows2</span><br><span class="line">support tickets summarized through a model API with a small and a large model</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 0.29, raw 0.86, ormaos 1.00, ormaos-values 1.00"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="37.1" height="8" rx="1.5"><title>none: 0.29</title></rect><text x="138" y="11">0.29</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="111.4" height="8" rx="1.5"><title>raw: 0.86</title></rect><text x="138" y="26">0.86</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 1.00</title></rect><text x="138" y="41">1.00</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="130" height="8" rx="1.5"><title>ormaos-values: 1.00</title></rect><text x="138" y="56">1.00</text></svg></td><td class="num">+0.71</td></tr>
+<tr><td><a href="/benchmarks/cases/knows2-data-pipeline/"><b>data-pipeline</b></a> <span class="bench">knows2</span><br><span class="line">a pandas report that joins two exports and sums them by region</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 0.25, raw 0.38, ormaos 0.88, ormaos-values 0.92"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="32.5" height="8" rx="1.5"><title>none: 0.25</title></rect><text x="138" y="11">0.25</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="48.8" height="8" rx="1.5"><title>raw: 0.38</title></rect><text x="138" y="26">0.38</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="113.8" height="8" rx="1.5"><title>ormaos: 0.88</title></rect><text x="138" y="41">0.88</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="119.2" height="8" rx="1.5"><title>ormaos-values: 0.92</title></rect><text x="138" y="56">0.92</text></svg></td><td class="num">+0.62</td></tr>
+<tr><td><a href="/benchmarks/cases/knows2-order-sync/"><b>order-sync</b></a> <span class="bench">knows2</span><br><span class="line">a night run of a job that applies orders to an inventory</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 0.38, raw 1.00, ormaos 0.92, ormaos-values 1.00"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="48.8" height="8" rx="1.5"><title>none: 0.38</title></rect><text x="138" y="11">0.38</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 1.00</title></rect><text x="138" y="26">1.00</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="119.2" height="8" rx="1.5"><title>ormaos: 0.92</title></rect><text x="138" y="41">0.92</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="130" height="8" rx="1.5"><title>ormaos-values: 1.00</title></rect><text x="138" y="56">1.00</text></svg></td><td class="num">+0.54</td></tr>
+<tr><td><a href="/benchmarks/cases/knows2-notebook/"><b>notebook</b></a> <span class="bench">knows2</span><br><span class="line">a Jupyter notebook that sums a week of sales, with tax</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 0.50, raw 0.62, ormaos 0.62, ormaos-values 0.62"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="65" height="8" rx="1.5"><title>none: 0.50</title></rect><text x="138" y="11">0.50</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="81.2" height="8" rx="1.5"><title>raw: 0.62</title></rect><text x="138" y="26">0.62</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="81.2" height="8" rx="1.5"><title>ormaos: 0.62</title></rect><text x="138" y="41">0.62</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="81.2" height="8" rx="1.5"><title>ormaos-values: 0.62</title></rect><text x="138" y="56">0.62</text></svg></td><td class="num">+0.12</td></tr>
+<tr><td><a href="/benchmarks/cases/knows2-agent-change/"><b>agent-change</b></a> <span class="bench">knows2</span><br><span class="line">a billing tool run before and after a change an agent made</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 1.00, raw 1.00, ormaos 1.00, ormaos-values 1.00"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 1.00</title></rect><text x="138" y="11">1.00</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 1.00</title></rect><text x="138" y="26">1.00</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 1.00</title></rect><text x="138" y="41">1.00</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="130" height="8" rx="1.5"><title>ormaos-values: 1.00</title></rect><text x="138" y="56">1.00</text></svg></td><td class="num">+0.00</td></tr>
+<tr><td><a href="/benchmarks/cases/knows2-freight-quote/"><b>freight-quote</b></a> <span class="bench">knows2</span><br><span class="line">a night run of a job that quotes freight from a carrier&#x27;s API</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 1.00, raw 1.00, ormaos 1.00, ormaos-values 1.00"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 1.00</title></rect><text x="138" y="11">1.00</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 1.00</title></rect><text x="138" y="26">1.00</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 1.00</title></rect><text x="138" y="41">1.00</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="130" height="8" rx="1.5"><title>ormaos-values: 1.00</title></rect><text x="138" y="56">1.00</text></svg></td><td class="num">+0.00</td></tr>
+<tr><td><a href="/benchmarks/cases/knows2-ml-training/"><b>ml-training</b></a> <span class="bench">knows2</span><br><span class="line">a PyTorch training run that leaves out batches whose loss is not finite</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 1.00, raw 1.00, ormaos 1.00, ormaos-values 1.00"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 1.00</title></rect><text x="138" y="11">1.00</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 1.00</title></rect><text x="138" y="26">1.00</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 1.00</title></rect><text x="138" y="41">1.00</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="130" height="8" rx="1.5"><title>ormaos-values: 1.00</title></rect><text x="138" y="56">1.00</text></svg></td><td class="num">+0.00</td></tr>
+<tr><td><a href="/benchmarks/cases/knows2-rl-env/"><b>rl-env</b></a> <span class="bench">knows2</span><br><span class="line">episodes of a grid world, a courier walking to a customer</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 1.00, raw 1.00, ormaos 1.00, ormaos-values 1.00"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 1.00</title></rect><text x="138" y="11">1.00</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 1.00</title></rect><text x="138" y="26">1.00</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 1.00</title></rect><text x="138" y="41">1.00</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="130" height="8" rx="1.5"><title>ormaos-values: 1.00</title></rect><text x="138" y="56">1.00</text></svg></td><td class="num">+0.00</td></tr>
+<tr><td><a href="/benchmarks/cases/knows2-web-backend/"><b>web-backend</b></a> <span class="bench">knows2</span><br><span class="line">a FastAPI route that lists a customer&#x27;s orders with their totals</span></td><td><svg class="mini" viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="none 1.00, raw 1.00, ormaos 0.96, ormaos-values 1.00"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 1.00</title></rect><text x="138" y="11">1.00</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 1.00</title></rect><text x="138" y="26">1.00</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="124.6" height="8" rx="1.5"><title>ormaos: 0.96</title></rect><text x="138" y="41">0.96</text><rect class="track" x="0" y="48" width="130" height="8" rx="1.5"/><rect class="s4" x="0" y="48" width="130" height="8" rx="1.5"><title>ormaos-values: 1.00</title></rect><text x="138" y="56">1.00</text></svg></td><td class="num">-0.04</td></tr>
+</tbody>
+</table>
+</div>
+<h3>fix, 2026-11-26, <code>claude-code / claude-opus-5-5</code>, bubblewrap, network open</h3>
+<p>8 situations; <code>ormaos</code> and <code>none</code> differ in 2.</p>
+<p class="legend"><span class="key"><i class="sw s1"></i><code>none</code></span><span class="key"><i class="sw s2"></i><code>raw</code></span><span class="key"><i class="sw s3"></i><code>ormaos</code></span><span class="key"><i class="sw s4"></i><code>ormaos-values</code></span></p>
+<div class="table-wrap">
+<table class="situations">
+<thead><tr><th scope="col">Situation</th><th scope="col">Per arm</th><th scope="col" class="num"><code>ormaos</code>&nbsp;−&nbsp;<code>none</code></th></tr></thead>
+<tbody>
+<tr><td><a href="/benchmarks/cases/fix-fx-rates/"><b>fx-rates</b></a> <span class="bench">fix</span><br><span class="line">a scheduled job that takes over exchange rates from a feed; where it behaved otherwise than its README: a retry that makes its call once</span></td><td><svg class="mini" viewBox="0 0 200 45" width="200" height="45" role="img" aria-label="none 1/3, raw 3/3, ormaos 3/3"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="43.3" height="8" rx="1.5"><title>none: 1/3</title></rect><text x="138" y="11">1/3</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 3/3</title></rect><text x="138" y="26">3/3</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 3/3</title></rect><text x="138" y="41">3/3</text></svg></td><td class="num">+0.67</td></tr>
+<tr><td><a href="/benchmarks/cases/fix-late-fees/"><b>late-fees</b></a> <span class="bench">fix</span><br><span class="line">a scheduled job that charges late fees on overdue invoices; where it behaved otherwise than its README: a branch taken because of a value in the environment</span></td><td><svg class="mini" viewBox="0 0 200 45" width="200" height="45" role="img" aria-label="none 2/3, raw 2/3, ormaos 3/3"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="86.7" height="8" rx="1.5"><title>none: 2/3</title></rect><text x="138" y="11">2/3</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="86.7" height="8" rx="1.5"><title>raw: 2/3</title></rect><text x="138" y="26">2/3</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 3/3</title></rect><text x="138" y="41">3/3</text></svg></td><td class="num">+0.33</td></tr>
+<tr><td><a href="/benchmarks/cases/fix-commission-run/"><b>commission-run</b></a> <span class="bench">fix</span><br><span class="line">a scheduled job that works out sales commissions; where it behaved otherwise than its README: a value kept from one item to the next</span></td><td><svg class="mini" viewBox="0 0 200 45" width="200" height="45" role="img" aria-label="none 3/3, raw 3/3, ormaos 3/3"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 3/3</title></rect><text x="138" y="11">3/3</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 3/3</title></rect><text x="138" y="26">3/3</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 3/3</title></rect><text x="138" y="41">3/3</text></svg></td><td class="num">+0.00</td></tr>
+<tr><td><a href="/benchmarks/cases/fix-freight-quote/"><b>freight-quote</b></a> <span class="bench">fix</span><br><span class="line">a scheduled job that quotes freight from a carrier&#x27;s API; where it behaved otherwise than its README: a fallback, with nothing printed, after HTTP calls that returned an error</span></td><td><svg class="mini" viewBox="0 0 200 45" width="200" height="45" role="img" aria-label="none 3/3, raw 3/3, ormaos 3/3"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 3/3</title></rect><text x="138" y="11">3/3</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 3/3</title></rect><text x="138" y="26">3/3</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 3/3</title></rect><text x="138" y="41">3/3</text></svg></td><td class="num">+0.00</td></tr>
+<tr><td><a href="/benchmarks/cases/fix-order-sync/"><b>order-sync</b></a> <span class="bench">fix</span><br><span class="line">a scheduled job that applies orders to an inventory; where it behaved otherwise than its README: an exception that is caught and not shown</span></td><td><svg class="mini" viewBox="0 0 200 45" width="200" height="45" role="img" aria-label="none 3/3, raw 3/3, ormaos 3/3"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 3/3</title></rect><text x="138" y="11">3/3</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 3/3</title></rect><text x="138" y="26">3/3</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 3/3</title></rect><text x="138" y="41">3/3</text></svg></td><td class="num">+0.00</td></tr>
+<tr><td><a href="/benchmarks/cases/fix-points-grant/"><b>points-grant</b></a> <span class="bench">fix</span><br><span class="line">a scheduled job that grants loyalty points for purchases; where it behaved otherwise than its README: an SQL statement that also writes other rows</span></td><td><svg class="mini" viewBox="0 0 200 45" width="200" height="45" role="img" aria-label="none 3/3, raw 3/3, ormaos 3/3"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 3/3</title></rect><text x="138" y="11">3/3</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 3/3</title></rect><text x="138" y="26">3/3</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 3/3</title></rect><text x="138" y="41">3/3</text></svg></td><td class="num">+0.00</td></tr>
+<tr><td><a href="/benchmarks/cases/fix-price-import/"><b>price-import</b></a> <span class="bench">fix</span><br><span class="line">a scheduled job that takes over a supplier&#x27;s price list; where it behaved otherwise than its README: a subprocess whose exit code is not read</span></td><td><svg class="mini" viewBox="0 0 200 45" width="200" height="45" role="img" aria-label="none 3/3, raw 3/3, ormaos 3/3"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 3/3</title></rect><text x="138" y="11">3/3</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 3/3</title></rect><text x="138" y="26">3/3</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 3/3</title></rect><text x="138" y="41">3/3</text></svg></td><td class="num">+0.00</td></tr>
+<tr><td><a href="/benchmarks/cases/fix-statement-import/"><b>statement-import</b></a> <span class="bench">fix</span><br><span class="line">a scheduled job that books a bank statement into a ledger; where it behaved otherwise than its README: a loop that stops before the end of its input</span></td><td><svg class="mini" viewBox="0 0 200 45" width="200" height="45" role="img" aria-label="none 3/3, raw 3/3, ormaos 3/3"><rect class="track" x="0" y="3" width="130" height="8" rx="1.5"/><rect class="s1" x="0" y="3" width="130" height="8" rx="1.5"><title>none: 3/3</title></rect><text x="138" y="11">3/3</text><rect class="track" x="0" y="18" width="130" height="8" rx="1.5"/><rect class="s2" x="0" y="18" width="130" height="8" rx="1.5"><title>raw: 3/3</title></rect><text x="138" y="26">3/3</text><rect class="track" x="0" y="33" width="130" height="8" rx="1.5"/><rect class="s3" x="0" y="33" width="130" height="8" rx="1.5"><title>ormaos: 3/3</title></rect><text x="138" y="41">3/3</text></svg></td><td class="num">+0.00</td></tr>
+</tbody>
+</table>
+</div>
 </section>
 
 <section class="band" id="answered" aria-labelledby="answered-title">
 <h2 id="answered-title">What Ormaos data answered</h2>
-<p>Read from the streams: in each run of an Ormaos arm, the <code>ormaos</code> verbs in its commands up to its last write of <code>answers.json</code>. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them. Over the 27 runs of <code>ormaos</code> and 27 runs of <code>ormaos-values</code> in knows2; each situation&#x27;s page has it per question.</p>
+<p>Read from the streams: in each run of an Ormaos arm, the <code>ormaos</code> verbs in its commands up to its last write of <code>answers.json</code>. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them. One table per results folder of knows2; each situation&#x27;s page has it per question.</p>
+<h3>knows2, 2026-11-28, <code>claude-code / claude-opus-5-5</code>, controlled: container, network limited to the model host (the run above)</h3>
+<p>Over the 27 runs of <code>ormaos</code> and 27 runs of <code>ormaos-values</code>.</p>
+<div class="table-wrap">
+<table class="results">
+<thead><tr><th scope="col">Verb</th><th scope="col"><code>ormaos</code>: runs</th><th scope="col">answered after it</th><th scope="col">right</th><th scope="col"><code>ormaos-values</code>: runs</th><th scope="col">answered after it</th><th scope="col">right</th></tr></thead>
+<tbody>
+<tr><td><code>guide</code></td><td>27</td><td>203</td><td>202</td><td>27</td><td>202</td><td>202</td></tr>
+<tr><td><code>show</code></td><td>27</td><td>203</td><td>202</td><td>27</td><td>202</td><td>202</td></tr>
+<tr><td><code>tree</code></td><td>26</td><td>195</td><td>194</td><td>27</td><td>202</td><td>202</td></tr>
+<tr><td><code>list</code></td><td>18</td><td>132</td><td>132</td><td>20</td><td>148</td><td>148</td></tr>
+<tr><td><code>io</code></td><td>19</td><td>140</td><td>139</td><td>12</td><td>94</td><td>94</td></tr>
+<tr><td><code>exceptions</code></td><td>9</td><td>63</td><td>63</td><td>7</td><td>50</td><td>50</td></tr>
+<tr><td><code>logs</code></td><td>2</td><td>16</td><td>16</td><td>2</td><td>16</td><td>16</td></tr>
+<tr><td><code>diff</code></td><td>2</td><td>16</td><td>16</td><td>0</td><td>0</td><td>0</td></tr>
+</tbody>
+</table>
+</div>
+<h3>knows2, 2026-11-27, <code>claude-code / claude-opus-5-5</code>, earlier: bubblewrap, network open</h3>
+<p>Over the 27 runs of <code>ormaos</code> and 27 runs of <code>ormaos-values</code>.</p>
 <div class="table-wrap">
 <table class="results">
 <thead><tr><th scope="col">Verb</th><th scope="col"><code>ormaos</code>: runs</th><th scope="col">answered after it</th><th scope="col">right</th><th scope="col"><code>ormaos-values</code>: runs</th><th scope="col">answered after it</th><th scope="col">right</th></tr></thead>
@@ -250,13 +301,13 @@
 <h2 id="benchmarks-title">The benchmarks</h2>
 <ul class="cards grid">
 <li class="card">
-<p class="kicker">knows2 · 2026-11-27 · claude-opus-5-5 · N = 108 runs, 27 per arm · earlier</p>
+<p class="kicker">knows2 · 2026-11-28 · claude-opus-5-5 · N = 108 runs, 27 per arm · controlled</p>
 <h3>What an agent knows about an execution</h3>
 <p>9 executions, questions by a model that was not told what Ormaos records, graded against an oracle. Mean score per arm, from 0 to 1.</p>
 <figure class="chart">
 <svg viewBox="0 0 500 206" role="img" aria-labelledby="c-knows2-t c-knows2-d" xmlns="http://www.w3.org/2000/svg">
 <title id="c-knows2-t">Mean score per arm, knows2</title>
-<desc id="c-knows2-d">The mean score of the runs of each arm, with its 95% bootstrap interval. none 0.71 (0.59 to 0.83); raw 0.87 (0.79 to 0.95); ormaos 0.93 (0.88 to 0.97); ormaos-values 0.95 (0.90 to 0.99).</desc>
+<desc id="c-knows2-d">The mean score of the runs of each arm, with its 95% bootstrap interval. none 0.68 (0.54 to 0.82); raw 0.87 (0.79 to 0.95); ormaos 0.95 (0.90 to 0.99); ormaos-values 0.95 (0.90 to 0.99).</desc>
 <line class="grid" x1="110" y1="12" x2="110" y2="172"/>
 <text x="110" y="192" text-anchor="middle">0.00</text>
 <line class="grid" x1="167.5" y1="12" x2="167.5" y2="172"/>
@@ -267,13 +318,13 @@
 <text x="282.5" y="192" text-anchor="middle">0.75</text>
 <line class="grid" x1="340" y1="12" x2="340" y2="172"/>
 <text x="340" y="192" text-anchor="middle">1.00</text>
-<g><title>none: mean score 0.71, 95% interval 0.59 to 0.83, 27 runs</title>
+<g><title>none: mean score 0.68, 95% interval 0.54 to 0.82, 27 runs</title>
 <text class="label" x="96" y="36.5" text-anchor="end">none</text>
-<line class="s1 whisker" x1="244.6" y1="32" x2="302" y2="32"/>
-<line class="s1 whisker" x1="244.6" y1="26" x2="244.6" y2="38"/>
-<line class="s1 whisker" x1="302" y1="26" x2="302" y2="38"/>
-<circle class="s1 dot" cx="273.8" cy="32" r="6"/>
-<text class="value" x="354" y="36.5">0.71 (0.59 to 0.83)</text></g>
+<line class="s1 whisker" x1="234.1" y1="32" x2="298.3" y2="32"/>
+<line class="s1 whisker" x1="234.1" y1="26" x2="234.1" y2="38"/>
+<line class="s1 whisker" x1="298.3" y1="26" x2="298.3" y2="38"/>
+<circle class="s1 dot" cx="267.4" cy="32" r="6"/>
+<text class="value" x="354" y="36.5">0.68 (0.54 to 0.82)</text></g>
 <g><title>raw: mean score 0.87, 95% interval 0.79 to 0.95, 27 runs</title>
 <text class="label" x="96" y="76.5" text-anchor="end">raw</text>
 <line class="s2 whisker" x1="291.5" y1="72" x2="328" y2="72"/>
@@ -281,13 +332,13 @@
 <line class="s2 whisker" x1="328" y1="66" x2="328" y2="78"/>
 <circle class="s2 dot" cx="310.8" cy="72" r="6"/>
 <text class="value" x="354" y="76.5">0.87 (0.79 to 0.95)</text></g>
-<g><title>ormaos: mean score 0.93, 95% interval 0.88 to 0.97, 27 runs</title>
+<g><title>ormaos: mean score 0.95, 95% interval 0.90 to 0.99, 27 runs</title>
 <text class="label" x="96" y="116.5" text-anchor="end">ormaos</text>
-<line class="s3 whisker" x1="312.3" y1="112" x2="333.6" y2="112"/>
-<line class="s3 whisker" x1="312.3" y1="106" x2="312.3" y2="118"/>
-<line class="s3 whisker" x1="333.6" y1="106" x2="333.6" y2="118"/>
-<circle class="s3 dot" cx="324" cy="112" r="6"/>
-<text class="value" x="354" y="116.5">0.93 (0.88 to 0.97)</text></g>
+<line class="s3 whisker" x1="316.6" y1="112" x2="336.8" y2="112"/>
+<line class="s3 whisker" x1="316.6" y1="106" x2="316.6" y2="118"/>
+<line class="s3 whisker" x1="336.8" y1="106" x2="336.8" y2="118"/>
+<circle class="s3 dot" cx="328.3" cy="112" r="6"/>
+<text class="value" x="354" y="116.5">0.95 (0.90 to 0.99)</text></g>
 <g><title>ormaos-values: mean score 0.95, 95% interval 0.90 to 0.99, 27 runs</title>
 <text class="label" x="96" y="156.5" text-anchor="end">ormaos-values</text>
 <line class="s4 whisker" x1="316.6" y1="152" x2="336.8" y2="152"/>
@@ -301,9 +352,9 @@
 <table class="results">
 <thead><tr><th scope="col">Arm</th><th scope="col">Runs</th><th scope="col">Mean score</th><th scope="col">95% interval</th></tr></thead>
 <tbody>
-<tr><td><code>none</code></td><td>27</td><td>0.71</td><td>0.59 to 0.83</td></tr>
+<tr><td><code>none</code></td><td>27</td><td>0.68</td><td>0.54 to 0.82</td></tr>
 <tr><td><code>raw</code></td><td>27</td><td>0.87</td><td>0.79 to 0.95</td></tr>
-<tr><td><code>ormaos</code></td><td>27</td><td>0.93</td><td>0.88 to 0.97</td></tr>
+<tr><td><code>ormaos</code></td><td>27</td><td>0.95</td><td>0.90 to 0.99</td></tr>
 <tr><td><code>ormaos-values</code></td><td>27</td><td>0.95</td><td>0.90 to 0.99</td></tr>
 </tbody>
 </table>
@@ -490,14 +541,14 @@
   <li>In knows2 the question writer and the agents are the same model, and in 4 of 9 tasks every arm scored 1.00.</li>
   <li>The overhead was timed on 2 workloads on one machine; another program has another cost.</li>
   <li>Whether what happened is what should have happened: the benchmarks ask what happened, and the reader decides.</li>
-  <li>The knows2 questions and the oracle&#x27;s answers are public since 2026-11-27, the day they were committed: a later run must not let the agent reach the network, other than the model&#x27;s API.</li>
+  <li>The knows2 questions and the oracle&#x27;s answers are public since 2026-11-28, the day they were committed: in the run of 2026-11-28 the agent could reach the model&#x27;s host and no other.</li>
 </ul>
 </section>
 
 <section class="band" id="files" aria-labelledby="files-title">
 <h2 id="files-title">The pages as files</h2>
 <ul class="rows">
-  <li>Each page is also Markdown, at its address with <code>.md</code> in place of the last slash: <a href="/benchmarks.md"><code>/benchmarks.md</code></a>, <a href="/benchmarks/knows2.md"><code>/benchmarks/knows2.md</code></a>, <a href="/benchmarks/cases/knows2-ai-app.md"><code>/benchmarks/cases/knows2-ai-app.md</code></a>, and so on.</li>
+  <li>Each page is also Markdown, at its address with <code>.md</code> in place of the last slash: <a href="/benchmarks.md"><code>/benchmarks.md</code></a>, <a href="/benchmarks/knows2.md"><code>/benchmarks/knows2.md</code></a>, <a href="/benchmarks/cases/knows2-web-backend.md"><code>/benchmarks/cases/knows2-web-backend.md</code></a>, and so on.</li>
   <li><a href="/benchmarks/llms.txt"><code>/benchmarks/llms.txt</code></a> lists them for agents.</li>
   <li>The pages are written by <a href="https://github.com/ormaos/ormaos-examples/blob/main/site/benchmarks/build.py"><code>site/benchmarks/build.py</code></a> from the results files.</li>
 </ul>

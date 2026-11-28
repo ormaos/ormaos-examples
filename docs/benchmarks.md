@@ -4,55 +4,103 @@ What Ormaos does, measured. Every number on these pages is read from a results f
 
 Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.
 
-In knows2, with an Ormaos recording (`ormaos`) the agent answered 198 of 213 questions right, over its 27 runs; with only the folder (`none`), 153 of 213. Null answers: 14 and 60. Wrong answers: 1 and 0.
+In knows2, with an Ormaos recording (`ormaos`) the agent answered 202 of 213 questions right, over its 27 runs; with only the folder (`none`), 147 of 213. Null answers: 10 and 66. Wrong answers: 1 and 0.
 
-**Mean score per arm, knows2.** The mean score of the runs of each arm, with its 95% bootstrap interval. none 0.71 (0.59 to 0.83); raw 0.87 (0.79 to 0.95); ormaos 0.93 (0.88 to 0.97); ormaos-values 0.95 (0.90 to 0.99).
+**Mean score per arm, knows2.** The mean score of the runs of each arm, with its 95% bootstrap interval. none 0.68 (0.54 to 0.82); raw 0.87 (0.79 to 0.95); ormaos 0.95 (0.90 to 0.99); ormaos-values 0.95 (0.90 to 0.99).
 
 | Arm | Runs | Mean score | 95% interval |
 |---|---:|---:|---:|
-| `none` | 27 | 0.71 | 0.59 to 0.83 |
+| `none` | 27 | 0.68 | 0.54 to 0.82 |
 | `raw` | 27 | 0.87 | 0.79 to 0.95 |
-| `ormaos` | 27 | 0.93 | 0.88 to 0.97 |
+| `ormaos` | 27 | 0.95 | 0.90 to 0.99 |
 | `ormaos-values` | 27 | 0.95 | 0.90 to 0.99 |
 
-**Right, null and wrong answers per arm.** Every answer of every run of each arm, stacked: right, null, wrong. none: 153 right, 60 null, 0 wrong; raw: 186 right, 27 null, 0 wrong; ormaos: 198 right, 14 null, 1 wrong; ormaos-values: 202 right, 11 null, 0 wrong.
+**Right, null and wrong answers per arm.** Every answer of every run of each arm, stacked: right, null, wrong. none: 147 right, 66 null, 0 wrong; raw: 186 right, 27 null, 0 wrong; ormaos: 202 right, 10 null, 1 wrong; ormaos-values: 202 right, 11 null, 0 wrong.
 
 | Arm | Answers | Right | Null | Wrong |
 |---|---:|---:|---:|---:|
-| `none` | 213 | 153 | 60 | 0 |
+| `none` | 213 | 147 | 66 | 0 |
 | `raw` | 213 | 186 | 27 | 0 |
-| `ormaos` | 213 | 198 | 14 | 1 |
+| `ormaos` | 213 | 202 | 10 | 1 |
 | `ormaos-values` | 213 | 202 | 11 | 0 |
 
-*From the knows2 run of 2026-11-27, in the environment "earlier: bubblewrap, network open", agent `claude-code / claude-opus-5-5`: [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801).*
+*From the knows2 run of 2026-11-28, in the environment "controlled: container, network limited to the model host", agent `claude-code / claude-opus-5-5`: [`agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641). The other run of knows2 is on [its page](https://ormaos.com/benchmarks/knows2/#runs), each on its own: 2026-11-27, in the environment "earlier: bubblewrap, network open".*
+
+These 95% intervals overlap: `none` and `raw`; `raw` and `ormaos`; `raw` and `ormaos-values`; `ormaos` and `ormaos-values`. Where two intervals overlap, these runs do not show that one of the two arms scores above the other.
 
 ## Where Ormaos changed the result and where it did not
 
-All 17 situations: the 9 executions of knows2, with the mean score of their runs (0 to 1), and the 8 programs of fix, with the first attempts that passed the check. Sorted by the mean of `ormaos` minus the mean of `none`, over every run of every agent; in 7 of them the two differ. Each name links to the situation's page: what happened, what the agent was given, and run 1 of each arm side by side.
+The 9 executions of knows2, with the mean score of their runs (0 to 1), and the 8 programs of fix, with the first attempts that passed the check: one table per results folder and agent, each labelled with its environment, and none adds up the runs of two. In each table the situations are sorted by the mean of `ormaos` minus the mean of `none`. Each name links to the situation's page: what happened, what the agent was given, and run 1 of each arm side by side.
+
+### knows2, 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host (the run above)
+
+9 situations; `ormaos` and `none` differ in 5.
 
 | Situation | `none` | `raw` | `ormaos` | `ormaos-values` | `ormaos` − `none` |
 |---|---:|---:|---:|---:|---:|
+| [order-sync](https://ormaos.com/benchmarks/cases/knows2-order-sync/) (knows2): a night run of a job that applies orders to an inventory | 0.12 | 1.00 | 1.00 | 1.00 | +0.88 |
 | [ai-app](https://ormaos.com/benchmarks/cases/knows2-ai-app/) (knows2): support tickets summarized through a model API with a small and a large model | 0.29 | 0.86 | 1.00 | 1.00 | +0.71 |
-| [fx-rates](https://ormaos.com/benchmarks/cases/fix-fx-rates/) (fix): a scheduled job that takes over exchange rates from a feed; where it behaved otherwise than its README: a retry that makes its call once | 1/3 | 3/3 | 3/3 |  | +0.67 |
-| [data-pipeline](https://ormaos.com/benchmarks/cases/knows2-data-pipeline/) (knows2): a pandas report that joins two exports and sums them by region | 0.25 | 0.38 | 0.88 | 0.92 | +0.62 |
-| [order-sync](https://ormaos.com/benchmarks/cases/knows2-order-sync/) (knows2): a night run of a job that applies orders to an inventory | 0.38 | 1.00 | 0.92 | 1.00 | +0.54 |
-| [late-fees](https://ormaos.com/benchmarks/cases/fix-late-fees/) (fix): a scheduled job that charges late fees on overdue invoices; where it behaved otherwise than its README: a branch taken because of a value in the environment | 2/3 | 2/3 | 3/3 |  | +0.33 |
+| [data-pipeline](https://ormaos.com/benchmarks/cases/knows2-data-pipeline/) (knows2): a pandas report that joins two exports and sums them by region | 0.25 | 0.38 | 0.96 | 0.92 | +0.71 |
 | [notebook](https://ormaos.com/benchmarks/cases/knows2-notebook/) (knows2): a Jupyter notebook that sums a week of sales, with tax | 0.50 | 0.62 | 0.62 | 0.62 | +0.12 |
-| [commission-run](https://ormaos.com/benchmarks/cases/fix-commission-run/) (fix): a scheduled job that works out sales commissions; where it behaved otherwise than its README: a value kept from one item to the next | 3/3 | 3/3 | 3/3 |  | +0.00 |
-| [freight-quote](https://ormaos.com/benchmarks/cases/fix-freight-quote/) (fix): a scheduled job that quotes freight from a carrier's API; where it behaved otherwise than its README: a fallback, with nothing printed, after HTTP calls that returned an error | 3/3 | 3/3 | 3/3 |  | +0.00 |
-| [order-sync](https://ormaos.com/benchmarks/cases/fix-order-sync/) (fix): a scheduled job that applies orders to an inventory; where it behaved otherwise than its README: an exception that is caught and not shown | 3/3 | 3/3 | 3/3 |  | +0.00 |
-| [points-grant](https://ormaos.com/benchmarks/cases/fix-points-grant/) (fix): a scheduled job that grants loyalty points for purchases; where it behaved otherwise than its README: an SQL statement that also writes other rows | 3/3 | 3/3 | 3/3 |  | +0.00 |
-| [price-import](https://ormaos.com/benchmarks/cases/fix-price-import/) (fix): a scheduled job that takes over a supplier's price list; where it behaved otherwise than its README: a subprocess whose exit code is not read | 3/3 | 3/3 | 3/3 |  | +0.00 |
-| [statement-import](https://ormaos.com/benchmarks/cases/fix-statement-import/) (fix): a scheduled job that books a bank statement into a ledger; where it behaved otherwise than its README: a loop that stops before the end of its input | 3/3 | 3/3 | 3/3 |  | +0.00 |
 | [agent-change](https://ormaos.com/benchmarks/cases/knows2-agent-change/) (knows2): a billing tool run before and after a change an agent made | 1.00 | 1.00 | 1.00 | 1.00 | +0.00 |
 | [freight-quote](https://ormaos.com/benchmarks/cases/knows2-freight-quote/) (knows2): a night run of a job that quotes freight from a carrier's API | 1.00 | 1.00 | 1.00 | 1.00 | +0.00 |
 | [ml-training](https://ormaos.com/benchmarks/cases/knows2-ml-training/) (knows2): a PyTorch training run that leaves out batches whose loss is not finite | 1.00 | 1.00 | 1.00 | 1.00 | +0.00 |
 | [rl-env](https://ormaos.com/benchmarks/cases/knows2-rl-env/) (knows2): episodes of a grid world, a courier walking to a customer | 1.00 | 1.00 | 1.00 | 1.00 | +0.00 |
 | [web-backend](https://ormaos.com/benchmarks/cases/knows2-web-backend/) (knows2): a FastAPI route that lists a customer's orders with their totals | 1.00 | 1.00 | 0.96 | 1.00 | -0.04 |
 
+### knows2, 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
+
+9 situations; `ormaos` and `none` differ in 5.
+
+| Situation | `none` | `raw` | `ormaos` | `ormaos-values` | `ormaos` − `none` |
+|---|---:|---:|---:|---:|---:|
+| [ai-app](https://ormaos.com/benchmarks/cases/knows2-ai-app/) (knows2): support tickets summarized through a model API with a small and a large model | 0.29 | 0.86 | 1.00 | 1.00 | +0.71 |
+| [data-pipeline](https://ormaos.com/benchmarks/cases/knows2-data-pipeline/) (knows2): a pandas report that joins two exports and sums them by region | 0.25 | 0.38 | 0.88 | 0.92 | +0.62 |
+| [order-sync](https://ormaos.com/benchmarks/cases/knows2-order-sync/) (knows2): a night run of a job that applies orders to an inventory | 0.38 | 1.00 | 0.92 | 1.00 | +0.54 |
+| [notebook](https://ormaos.com/benchmarks/cases/knows2-notebook/) (knows2): a Jupyter notebook that sums a week of sales, with tax | 0.50 | 0.62 | 0.62 | 0.62 | +0.12 |
+| [agent-change](https://ormaos.com/benchmarks/cases/knows2-agent-change/) (knows2): a billing tool run before and after a change an agent made | 1.00 | 1.00 | 1.00 | 1.00 | +0.00 |
+| [freight-quote](https://ormaos.com/benchmarks/cases/knows2-freight-quote/) (knows2): a night run of a job that quotes freight from a carrier's API | 1.00 | 1.00 | 1.00 | 1.00 | +0.00 |
+| [ml-training](https://ormaos.com/benchmarks/cases/knows2-ml-training/) (knows2): a PyTorch training run that leaves out batches whose loss is not finite | 1.00 | 1.00 | 1.00 | 1.00 | +0.00 |
+| [rl-env](https://ormaos.com/benchmarks/cases/knows2-rl-env/) (knows2): episodes of a grid world, a courier walking to a customer | 1.00 | 1.00 | 1.00 | 1.00 | +0.00 |
+| [web-backend](https://ormaos.com/benchmarks/cases/knows2-web-backend/) (knows2): a FastAPI route that lists a customer's orders with their totals | 1.00 | 1.00 | 0.96 | 1.00 | -0.04 |
+
+### fix, 2026-11-26, `claude-code / claude-opus-5-5`, bubblewrap, network open
+
+8 situations; `ormaos` and `none` differ in 2.
+
+| Situation | `none` | `raw` | `ormaos` | `ormaos-values` | `ormaos` − `none` |
+|---|---:|---:|---:|---:|---:|
+| [fx-rates](https://ormaos.com/benchmarks/cases/fix-fx-rates/) (fix): a scheduled job that takes over exchange rates from a feed; where it behaved otherwise than its README: a retry that makes its call once | 1/3 | 3/3 | 3/3 |  | +0.67 |
+| [late-fees](https://ormaos.com/benchmarks/cases/fix-late-fees/) (fix): a scheduled job that charges late fees on overdue invoices; where it behaved otherwise than its README: a branch taken because of a value in the environment | 2/3 | 2/3 | 3/3 |  | +0.33 |
+| [commission-run](https://ormaos.com/benchmarks/cases/fix-commission-run/) (fix): a scheduled job that works out sales commissions; where it behaved otherwise than its README: a value kept from one item to the next | 3/3 | 3/3 | 3/3 |  | +0.00 |
+| [freight-quote](https://ormaos.com/benchmarks/cases/fix-freight-quote/) (fix): a scheduled job that quotes freight from a carrier's API; where it behaved otherwise than its README: a fallback, with nothing printed, after HTTP calls that returned an error | 3/3 | 3/3 | 3/3 |  | +0.00 |
+| [order-sync](https://ormaos.com/benchmarks/cases/fix-order-sync/) (fix): a scheduled job that applies orders to an inventory; where it behaved otherwise than its README: an exception that is caught and not shown | 3/3 | 3/3 | 3/3 |  | +0.00 |
+| [points-grant](https://ormaos.com/benchmarks/cases/fix-points-grant/) (fix): a scheduled job that grants loyalty points for purchases; where it behaved otherwise than its README: an SQL statement that also writes other rows | 3/3 | 3/3 | 3/3 |  | +0.00 |
+| [price-import](https://ormaos.com/benchmarks/cases/fix-price-import/) (fix): a scheduled job that takes over a supplier's price list; where it behaved otherwise than its README: a subprocess whose exit code is not read | 3/3 | 3/3 | 3/3 |  | +0.00 |
+| [statement-import](https://ormaos.com/benchmarks/cases/fix-statement-import/) (fix): a scheduled job that books a bank statement into a ledger; where it behaved otherwise than its README: a loop that stops before the end of its input | 3/3 | 3/3 | 3/3 |  | +0.00 |
+
 ## What Ormaos data answered
 
-Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its commands up to its last write of `answers.json`. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them. Over the 27 runs of `ormaos` and 27 runs of `ormaos-values` in knows2; each situation's page has it per question.
+Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its commands up to its last write of `answers.json`. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them. One table per results folder of knows2; each situation's page has it per question.
+
+### knows2, 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host (the run above)
+
+Over the 27 runs of `ormaos` and 27 runs of `ormaos-values`.
+
+| Verb | `ormaos`: runs | answered after it | right | `ormaos-values`: runs | answered after it | right |
+|---|---:|---:|---:|---:|---:|---:|
+| `guide` | 27 | 203 | 202 | 27 | 202 | 202 |
+| `show` | 27 | 203 | 202 | 27 | 202 | 202 |
+| `tree` | 26 | 195 | 194 | 27 | 202 | 202 |
+| `list` | 18 | 132 | 132 | 20 | 148 | 148 |
+| `io` | 19 | 140 | 139 | 12 | 94 | 94 |
+| `exceptions` | 9 | 63 | 63 | 7 | 50 | 50 |
+| `logs` | 2 | 16 | 16 | 2 | 16 | 16 |
+| `diff` | 2 | 16 | 16 | 0 | 0 | 0 |
+
+### knows2, 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
+
+Over the 27 runs of `ormaos` and 27 runs of `ormaos-values`.
 
 | Verb | `ormaos`: runs | answered after it | right | `ormaos-values`: runs | answered after it | right |
 |---|---:|---:|---:|---:|---:|---:|
@@ -70,17 +118,17 @@ Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its c
 
 ### What an agent knows about an execution
 
-*knows2 · 2026-11-27 · claude-opus-5-5 · N = 108 runs, 27 per arm · earlier*
+*knows2 · 2026-11-28 · claude-opus-5-5 · N = 108 runs, 27 per arm · controlled*
 
 9 executions, questions by a model that was not told what Ormaos records, graded against an oracle. Mean score per arm, from 0 to 1.
 
-**Mean score per arm, knows2.** The mean score of the runs of each arm, with its 95% bootstrap interval. none 0.71 (0.59 to 0.83); raw 0.87 (0.79 to 0.95); ormaos 0.93 (0.88 to 0.97); ormaos-values 0.95 (0.90 to 0.99).
+**Mean score per arm, knows2.** The mean score of the runs of each arm, with its 95% bootstrap interval. none 0.68 (0.54 to 0.82); raw 0.87 (0.79 to 0.95); ormaos 0.95 (0.90 to 0.99); ormaos-values 0.95 (0.90 to 0.99).
 
 | Arm | Runs | Mean score | 95% interval |
 |---|---:|---:|---:|
-| `none` | 27 | 0.71 | 0.59 to 0.83 |
+| `none` | 27 | 0.68 | 0.54 to 0.82 |
 | `raw` | 27 | 0.87 | 0.79 to 0.95 |
-| `ormaos` | 27 | 0.93 | 0.88 to 0.97 |
+| `ormaos` | 27 | 0.95 | 0.90 to 0.99 |
 | `ormaos-values` | 27 | 0.95 | 0.90 to 0.99 |
 
 [The method, every question and every answer](https://ormaos.com/benchmarks/knows2/)
@@ -148,10 +196,10 @@ The median time of a recorded run, as a multiple of the same run without Ormaos,
 - In knows2 the question writer and the agents are the same model, and in 4 of 9 tasks every arm scored 1.00.
 - The overhead was timed on 2 workloads on one machine; another program has another cost.
 - Whether what happened is what should have happened: the benchmarks ask what happened, and the reader decides.
-- The knows2 questions and the oracle's answers are public since 2026-11-27, the day they were committed: a later run must not let the agent reach the network, other than the model's API.
+- The knows2 questions and the oracle's answers are public since 2026-11-28, the day they were committed: in the run of 2026-11-28 the agent could reach the model's host and no other.
 
 ## The pages as files
 
-- Each page is also Markdown, at its address with `.md` in place of the last slash: [`/benchmarks.md`](https://ormaos.com/benchmarks.md), [`/benchmarks/knows2.md`](https://ormaos.com/benchmarks/knows2.md), [`/benchmarks/cases/knows2-ai-app.md`](https://ormaos.com/benchmarks/cases/knows2-ai-app.md), and so on.
+- Each page is also Markdown, at its address with `.md` in place of the last slash: [`/benchmarks.md`](https://ormaos.com/benchmarks.md), [`/benchmarks/knows2.md`](https://ormaos.com/benchmarks/knows2.md), [`/benchmarks/cases/knows2-web-backend.md`](https://ormaos.com/benchmarks/cases/knows2-web-backend.md), and so on.
 - [`/benchmarks/llms.txt`](https://ormaos.com/benchmarks/llms.txt) lists them for agents.
 - The pages are written by [`site/benchmarks/build.py`](https://github.com/ormaos/ormaos-examples/blob/main/site/benchmarks/build.py) from the results files.

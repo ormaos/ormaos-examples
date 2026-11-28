@@ -1,0 +1,11 @@
+shipment_id,origin,destination,weight_kg,length_cm,width_cm,height_cm,service
+FR-8153,NTH,MID,9,120,80,60,express
+FR-8154,MID,MID,40,30,20,10,express
+FR-8155,MID,EST,120,30,20,10,standard
+FR-8156,NTH,WST,25,40,30,20,express
+FR-8157,MID,STH,75,35,25,15,standard
+FR-8158,WST,NTH,6.5,35,25,15,express
+FR-8159,STH,STH,12,80,60,40,express
+FR-8160,STH,EST,18,50,40,40,standard
+FR-8161,STH,WST,2.4,120,80,60,standard
+FR-8162,MID,STH,12,120,80,60,express

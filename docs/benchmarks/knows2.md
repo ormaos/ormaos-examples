@@ -1,14 +1,14 @@
 # knows2: what an agent knows about an execution
 
-N = 108 runs: 9 tasks x 4 arms x 3 runs, model `claude-opus-5-5`, 2026-11-27. An agent gets the folder an execution left and questions about what happened in it, written by a model that was not told what Ormaos records; its answers are graded against an oracle that reads neither the trace nor the recording.
+N = 108 runs: 9 tasks x 4 arms x 3 runs, model `claude-opus-5-5`, 2026-11-28. An agent gets the folder an execution left and questions about what happened in it, written by a model that was not told what Ormaos records; its answers are graded against an oracle that reads neither the trace nor the recording.
 
 Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.
 
-*The run of 2026-11-27, in the environment "earlier: bubblewrap, network open". [Every run of knows2](#runs).*
+*The run of 2026-11-28, in the environment "controlled: container, network limited to the model host". [Every run of knows2](#runs).*
 
-- **0.71**: `none`, mean score, 95% interval 0.59 to 0.83
+- **0.68**: `none`, mean score, 95% interval 0.54 to 0.82
 - **0.87**: `raw`, mean score, 95% interval 0.79 to 0.95
-- **0.93**: `ormaos`, mean score, 95% interval 0.88 to 0.97
+- **0.95**: `ormaos`, mean score, 95% interval 0.90 to 0.99
 - **0.95**: `ormaos-values`, mean score, 95% interval 0.90 to 0.99
 
 ## Method
@@ -23,15 +23,15 @@ The writer's prompt:
 Write 8 factual questions about what happened inside this execution that the output alone does not answer, each with one unambiguous answer and its expected format. Write them to questions.json in this folder: a JSON list of 8 objects, each with the keys "id" ("q1" to "q8"), "question" and "format".
 ```
 
-The writers wrote 72 questions; 71 are kept. An agent gets each question with the writer's words and the writer's format. The writer's folder, prompt, transcript and questions are in [`agent-bench/knows2/writer/`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/writer).
+The writers wrote 72 questions; 71 are kept. An agent gets each question with the writer's words and the writer's format. The writer's folder, prompt, transcript and questions are in [`agent-bench/knows2/writer/`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/knows2/writer).
 
 ### The oracle: one more execution, under sys.settrace
 
-The answers come from one more execution of the same program, independent of the arms, under `sys.settrace`, with wrappers around `open` and `sqlite3.connect`. [`oracle.py`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/oracle.py) computes every answer from that trace and from the files that execution left. It never reads an Ormaos recording or a VizTracer trace.
+The answers come from one more execution of the same program, independent of the arms, under `sys.settrace`, with wrappers around `open` and `sqlite3.connect`. [`oracle.py`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/knows2/oracle.py) computes every answer from that trace and from the files that execution left. It never reads an Ormaos recording or a VizTracer trace.
 
 ### Rules written before any agent ran
 
-Each question has a rule in [`rules.json`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/rules.json), written, with the oracle, before any agent ran: numbers equal in value, names compared by their last dotted part, lists in order or as sets, a word out of a few without regard to capitals, a number rounded to the decimals its format names. An answer is right or wrong as a whole. The score of a run is the share of the task's kept questions it got right. Every answer is counted as **right** (by the rule of its question), **null** (the agent wrote null) or **wrong** (not null, and the rule marks it wrong).
+Each question has a rule in [`rules.json`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/knows2/rules.json), written, with the oracle, before any agent ran: numbers equal in value, names compared by their last dotted part, lists in order or as sets, a word out of a few without regard to capitals, a number rounded to the decimals its format names. An answer is right or wrong as a whole. The score of a run is the share of the task's kept questions it got right. Every answer is counted as **right** (by the rule of its question), **null** (the agent wrote null) or **wrong** (not null, and the rule marks it wrong).
 
 ### The drop rule
 
@@ -39,9 +39,9 @@ A question is dropped only when the oracle cannot give one unambiguous answer to
 
 - `ai-app`, q1, "On which TCP port on 127.0.0.1 did the model_server stand-in listen during this run?": the server listens on a free port the system picks (`("127.0.0.1", 0)`): the oracle's execution and the execution of each arm got different ports
 
-### The sandbox
+### The container
 
-Each run copies the task's folder and mounts it at `/srv/<task>` inside bubblewrap, with nothing else of the machine but the system (`/usr` and `/etc`, read-only), the `claude` program and its login. `claude -p --model claude-opus-5-5 --safe-mode --strict-mcp-config` gets the prompt, with the tools Bash, Read, Grep, Glob, Edit and Write, and the runner's time limit. The network is not cut: the agent needs it to reach the model. The execution was played once per arm and once more for the oracle, in separate copies mounted at the same path, and the build stopped if the copies did not leave the same files.
+Each run copies the task's folder and mounts it at `/srv/<task>` in a new container of one image: Ubuntu, Python 3.14.4 and uv, with the agent's command line (`claude-code` 2.1.322) added as one layer. The containers are on a network without a route out; the only way out is a proxy that answers for `api.anthropic.com` and refuses every other host. Before the first run a canary on that network checked that `https://github.com` and `https://raw.githubusercontent.com` do not answer and that the model's host does. Each run gets a new home folder that holds the agent's credential and nothing else, the prompt, the tools `Bash`, `Read`, `Grep`, `Glob`, `Edit` and `Write`, and a time limit of 900 s. The folder a run leaves is graded outside the container, by a process that is not told which agent ran. The harness: [`agent-bench/harness`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness). The execution was played once per arm and once more for the oracle, in separate copies mounted at the same path, and the build stopped if the copies did not leave the same files.
 
 ### The first attempt counts
 
@@ -88,83 +88,147 @@ The prompts of `data-pipeline`. The first sentence and the files taken out are t
 
 The score of a run is the share of the task's questions its `answers.json` got right. The interval is a 95% bootstrap interval of the mean over the runs of the arm (10,000 resamples), computed with the runner's own function.
 
-**Mean score per arm, knows2.** The mean score of the runs of each arm, with its 95% bootstrap interval. none 0.71 (0.59 to 0.83); raw 0.87 (0.79 to 0.95); ormaos 0.93 (0.88 to 0.97); ormaos-values 0.95 (0.90 to 0.99).
+**Mean score per arm, knows2.** The mean score of the runs of each arm, with its 95% bootstrap interval. none 0.68 (0.54 to 0.82); raw 0.87 (0.79 to 0.95); ormaos 0.95 (0.90 to 0.99); ormaos-values 0.95 (0.90 to 0.99).
 
-| Arm | Runs | Mean score | 95% interval | Median wall time | Median tool calls | Median tokens | Ran the program again | Timed out |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| `none` | 27 | 0.71 | 0.59 to 0.83 | 26 s | 4 | 52,196 | 7/27 | 0 |
-| `raw` | 27 | 0.87 | 0.79 to 0.95 | 39 s | 5 | 75,290 | 3/27 | 0 |
-| `ormaos` | 27 | 0.93 | 0.88 to 0.97 | 32 s | 5 | 101,359 | 4/27 | 0 |
-| `ormaos-values` | 27 | 0.95 | 0.90 to 0.99 | 34 s | 6 | 126,028 | 0/27 | 0 |
+| Arm | Runs | Mean score | 95% interval | Median wall time | Median tool calls | Median tokens | Timed out |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `none` | 27 | 0.68 | 0.54 to 0.82 | 26 s | 4 | 45,984 | 0 |
+| `raw` | 27 | 0.87 | 0.79 to 0.95 | 32 s | 5 | 65,839 | 0 |
+| `ormaos` | 27 | 0.95 | 0.90 to 0.99 | 33 s | 5 | 91,495 | 0 |
+| `ormaos-values` | 27 | 0.95 | 0.90 to 0.99 | 36 s | 6 | 108,912 | 0 |
 
-**Right, null and wrong answers per arm.** Every answer of every run of each arm, stacked: right, null, wrong. none: 153 right, 60 null, 0 wrong; raw: 186 right, 27 null, 0 wrong; ormaos: 198 right, 14 null, 1 wrong; ormaos-values: 202 right, 11 null, 0 wrong.
+These 95% intervals overlap: `none` and `raw`; `raw` and `ormaos`; `raw` and `ormaos-values`; `ormaos` and `ormaos-values`. Where two intervals overlap, these runs do not show that one of the two arms scores above the other.
+
+### Tokens and cost per arm
+
+Tokens are input, output and cache tokens added up, and the cost is in US dollars, both as the agent's command line reports them. Median tokens per run of `ormaos` and `ormaos-values`, as a multiple of `none` and `raw`: `ormaos` 2.0x `none`, 1.4x `raw`; `ormaos-values` 2.4x `none`, 1.7x `raw`.
+
+| Arm | Median tokens | Median tool calls | Cost, all runs | Mean cost per run |
+|---|---:|---:|---:|---:|
+| `none` | 45,984 | 4 | $2.59 | $0.096 |
+| `raw` | 65,839 | 5 | $4.20 | $0.155 |
+| `ormaos` | 91,495 | 5 | $4.68 | $0.173 |
+| `ormaos-values` | 108,912 | 6 | $5.46 | $0.202 |
+
+**Right, null and wrong answers per arm.** Every answer of every run of each arm, stacked: right, null, wrong. none: 147 right, 66 null, 0 wrong; raw: 186 right, 27 null, 0 wrong; ormaos: 202 right, 10 null, 1 wrong; ormaos-values: 202 right, 11 null, 0 wrong.
 
 | Arm | Answers | Right | Null | Wrong |
 |---|---:|---:|---:|---:|
-| `none` | 213 | 153 | 60 | 0 |
+| `none` | 213 | 147 | 66 | 0 |
 | `raw` | 213 | 186 | 27 | 0 |
-| `ormaos` | 213 | 198 | 14 | 1 |
+| `ormaos` | 213 | 202 | 10 | 1 |
 | `ormaos-values` | 213 | 202 | 11 | 0 |
 
 Every wrong answer:
 
 | Task | Arm | Run | Question | Answer | Oracle |
 |---|---|---|---|---|---|
-| web-backend | `ormaos` | 3 | q5 | `"17, 2880"` | `[8, 3660]` |
+| web-backend | `ormaos` | 1 | q5 | `"17, 2880"` | `[8, 3660]` |
 
-**Mean score per task and arm, knows2.** The mean score of the runs of each task and arm, from 0 (no question right) to 1 (all right). web-backend: none 1.00, raw 1.00, ormaos 0.96, ormaos-values 1.00. data-pipeline: none 0.25, raw 0.38, ormaos 0.88, ormaos-values 0.92. notebook: none 0.50, raw 0.62, ormaos 0.62, ormaos-values 0.62. ml-training: none 1.00, raw 1.00, ormaos 1.00, ormaos-values 1.00. rl-env: none 1.00, raw 1.00, ormaos 1.00, ormaos-values 1.00. ai-app: none 0.29, raw 0.86, ormaos 1.00, ormaos-values 1.00. agent-change: none 1.00, raw 1.00, ormaos 1.00, ormaos-values 1.00. order-sync: none 0.38, raw 1.00, ormaos 0.92, ormaos-values 1.00. freight-quote: none 1.00, raw 1.00, ormaos 1.00, ormaos-values 1.00.
+**Mean score per task and arm, knows2.** The mean score of the runs of each task and arm, from 0 (no question right) to 1 (all right). web-backend: none 1.00, raw 1.00, ormaos 0.96, ormaos-values 1.00. data-pipeline: none 0.25, raw 0.38, ormaos 0.96, ormaos-values 0.92. notebook: none 0.50, raw 0.62, ormaos 0.62, ormaos-values 0.62. ml-training: none 1.00, raw 1.00, ormaos 1.00, ormaos-values 1.00. rl-env: none 1.00, raw 1.00, ormaos 1.00, ormaos-values 1.00. ai-app: none 0.29, raw 0.86, ormaos 1.00, ormaos-values 1.00. agent-change: none 1.00, raw 1.00, ormaos 1.00, ormaos-values 1.00. order-sync: none 0.12, raw 1.00, ormaos 1.00, ormaos-values 1.00. freight-quote: none 1.00, raw 1.00, ormaos 1.00, ormaos-values 1.00.
 
 | Task | Questions | `none` | `raw` | `ormaos` | `ormaos-values` |
 |---|---:|---:|---:|---:|---:|
 | web-backend | 8 | 1.00 | 1.00 | 0.96 | 1.00 |
-| data-pipeline | 8 | 0.25 | 0.38 | 0.88 | 0.92 |
+| data-pipeline | 8 | 0.25 | 0.38 | 0.96 | 0.92 |
 | notebook | 8 | 0.50 | 0.62 | 0.62 | 0.62 |
 | ml-training | 8 | 1.00 | 1.00 | 1.00 | 1.00 |
 | rl-env | 8 | 1.00 | 1.00 | 1.00 | 1.00 |
 | ai-app | 7 | 0.29 | 0.86 | 1.00 | 1.00 |
 | agent-change | 8 | 1.00 | 1.00 | 1.00 | 1.00 |
-| order-sync | 8 | 0.38 | 1.00 | 0.92 | 1.00 |
+| order-sync | 8 | 0.12 | 1.00 | 1.00 | 1.00 |
 | freight-quote | 8 | 1.00 | 1.00 | 1.00 | 1.00 |
 
 In 4 of 9 tasks every arm scored 1.00: `ml-training`, `rl-env`, `agent-change` and `freight-quote`.
 
-**Median tokens per run, per arm.** Input, output and cache tokens added up, as the claude command line reports them; the median over the runs of each arm. none 52,196; raw 75,290; ormaos 101,359; ormaos-values 126,028.
+**Median tokens per run, per arm.** Input, output and cache tokens added up, as the agent's command line reports them; the median over the runs of each arm. none 45,984; raw 65,839; ormaos 91,495; ormaos-values 108,912.
 
 | Arm | Median tokens |
 |---|---:|
-| `none` | 52,196 |
-| `raw` | 75,290 |
-| `ormaos` | 101,359 |
-| `ormaos-values` | 126,028 |
+| `none` | 45,984 |
+| `raw` | 65,839 |
+| `ormaos` | 91,495 |
+| `ormaos-values` | 108,912 |
 
-**Median wall time per run, per arm.** From the start of the agent to its end, the median over the runs of each arm, in seconds. none 26.2 s; raw 39.2 s; ormaos 32.0 s; ormaos-values 33.6 s.
+**Median wall time per run, per arm.** From the start of the agent to its end, the median over the runs of each arm, in seconds. none 26.2 s; raw 32.5 s; ormaos 33.4 s; ormaos-values 36.2 s.
 
 | Arm | Median wall time (s) |
 |---|---:|
 | `none` | 26.2 |
-| `raw` | 39.2 |
-| `ormaos` | 32.0 |
-| `ormaos-values` | 33.6 |
+| `raw` | 32.5 |
+| `ormaos` | 33.4 |
+| `ormaos-values` | 36.2 |
 
-Cost, as the claude command line reports it (`total_cost_usd`): $17.72 for 108 runs; mean per run, `none` $0.100, `raw` $0.170, `ormaos` $0.181, `ormaos-values` $0.205.
+Cost, as the agent's command line reports it: $16.92 for 108 runs; mean per run, `none` $0.096, `raw` $0.155, `ormaos` $0.173, `ormaos-values` $0.202.
 
-**Size of the trace and of the recording, per task.** What the raw arm and the two Ormaos arms add to the folder, in bytes, on a log scale: the VizTracer trace (`result.json`) and the `.ormaos/` folder. web-backend: raw 75.7 MB, ormaos 49.7 kB, ormaos-values 52.0 kB; data-pipeline: raw 51.4 MB, ormaos 13.5 kB, ormaos-values 14.4 kB; notebook: raw 123 MB, ormaos 34.1 kB, ormaos-values 41.6 kB; ml-training: raw 159 MB, ormaos 114 kB, ormaos-values 116 kB; rl-env: raw 710 kB, ormaos 516 kB, ormaos-values 582 kB; ai-app: raw 7.5 MB, ormaos 40.0 kB, ormaos-values 59.4 kB; agent-change: raw 2.8 MB, ormaos 80.4 kB, ormaos-values 94.5 kB; order-sync: raw 8.1 MB, ormaos 110 kB, ormaos-values 125 kB; freight-quote: raw 12.0 MB, ormaos 195 kB, ormaos-values 240 kB.
+**Size of the trace and of the recording, per task.** What the raw arm and the two Ormaos arms add to the folder, in bytes, on a log scale: the VizTracer trace (`result.json`) and the `.ormaos/` folder. web-backend: raw 75.7 MB, ormaos 49.7 kB, ormaos-values 52.0 kB; data-pipeline: raw 51.4 MB, ormaos 13.5 kB, ormaos-values 14.4 kB; notebook: raw 123 MB, ormaos 34.1 kB, ormaos-values 41.6 kB; ml-training: raw 159 MB, ormaos 114 kB, ormaos-values 116 kB; rl-env: raw 710 kB, ormaos 516 kB, ormaos-values 583 kB; ai-app: raw 7.5 MB, ormaos 39.9 kB, ormaos-values 59.3 kB; agent-change: raw 2.8 MB, ormaos 80.5 kB, ormaos-values 94.5 kB; order-sync: raw 8.1 MB, ormaos 110 kB, ormaos-values 125 kB; freight-quote: raw 12.0 MB, ormaos 195 kB, ormaos-values 240 kB.
 
 | Task | `raw` (bytes) | `ormaos` (bytes) | `ormaos-values` (bytes) |
 |---|---:|---:|---:|
-| web-backend | 75,736,352 | 49,715 | 51,991 |
-| data-pipeline | 51,413,977 | 13,531 | 14,403 |
-| notebook | 123,183,271 | 34,109 | 41,631 |
-| ml-training | 158,799,770 | 113,969 | 116,341 |
-| rl-env | 710,203 | 516,107 | 582,464 |
-| ai-app | 7,523,641 | 39,998 | 59,446 |
-| agent-change | 2,750,985 | 80,439 | 94,464 |
-| order-sync | 8,064,939 | 109,541 | 125,277 |
-| freight-quote | 12,009,753 | 195,302 | 239,816 |
+| web-backend | 75,735,942 | 49,716 | 51,992 |
+| data-pipeline | 51,410,540 | 13,529 | 14,401 |
+| notebook | 123,180,890 | 34,114 | 41,615 |
+| ml-training | 158,801,327 | 113,992 | 116,362 |
+| rl-env | 710,307 | 516,276 | 582,578 |
+| ai-app | 7,527,245 | 39,907 | 59,344 |
+| agent-change | 2,751,020 | 80,488 | 94,525 |
+| order-sync | 8,064,222 | 109,505 | 125,127 |
+| freight-quote | 12,008,506 | 195,252 | 239,868 |
+
+## What was expected before the run
+
+Written before the run: [`agent-bench/harness/expectations/knows2-opus.md`](https://github.com/ormaos/ormaos-examples/blob/244fb20256c405e24ac299f0386e5c3ff494301a/agent-bench/harness/expectations/knows2-opus.md), added in commit [`244fb20`](https://github.com/ormaos/ormaos-examples/commit/244fb20256c405e24ac299f0386e5c3ff494301a), sha256 `e01f669f341fb739694f0568eb948ac0c6ff2e41722116e6a2dedef7c69a3e27` when the run started (2026-11-28T12:26:46); the build stops if the file changed since. The results folder keeps a copy, [`expectations.md`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/expectations.md). Verbatim:
+
+The expectations:
+
+```text
+# knows2, claude-opus-5-5, controlled environment, N=3
+
+Written by Claude (the assistant Levi works with), on 2026-11-28, before the run,
+from the earlier knows2 run of 2026-11-27 (bubblewrap, network open):
+none 0.71, raw 0.87, ormaos 0.93, ormaos-values 0.95; wrong answers 0 / 0 / 1 / 0.
+
+- Order of the mean scores: none < raw < ormaos <= ormaos-values.
+- Each mean score within 0.07 of the earlier run.
+- Wrong answers: at most 1 per arm.
+- Closing the network changes nothing measurable: no agent of the earlier run used the network to answer.
+- Whatever the result, it is published as it is.
+```
+
+Each line, and whether it held. Where a line is a number it is computed from the results files; where it is not, it is quoted and not judged.
+
+| Expected | Held | From the results files |
+|---|---|---|
+| Order of the mean scores: none < raw < ormaos <= ormaos-values. | held | `none` 0.685 < `raw` 0.873 < `ormaos` 0.949 <= `ormaos-values` 0.949: the exact means over the runs of each arm, here to 3 decimals. Equal: `ormaos` and `ormaos-values`. These 95% intervals overlap: `none` and `raw`; `raw` and `ormaos`; `ormaos` and `ormaos-values`; the order holds for the means, and the intervals do not show it. |
+| Each mean score within 0.07 of the earlier run. | held | Against the run of 2026-11-27: `none` 0.685 and 0.712, 0.028 apart, `raw` 0.873 and 0.873, 0.000 apart, `ormaos` 0.949 and 0.931, 0.019 apart, `ormaos-values` 0.949 and 0.949, 0.000 apart. |
+| Wrong answers: at most 1 per arm. | held | Wrong answers: `none` 0, `raw` 0, `ormaos` 1, `ormaos-values` 0. |
+| Closing the network changes nothing measurable: no agent of the earlier run used the network to answer. | – | Not a number: quoted, not judged. |
+| Whatever the result, it is published as it is. | – | Not a number: quoted, not judged. |
+
+### The runs of knows2, side by side
+
+Each column is one results folder; nothing in the table adds two of them up. 2026-11-28: controlled: container, network limited to the model host, `claude-code / claude-opus-5-5`, 27 runs per arm; 2026-11-27: earlier: bubblewrap, network open, `claude-code / claude-opus-5-5`, 27 runs per arm.
+
+| Arm | 2026-11-28 · controlled: mean (95% interval) | right / null / wrong | 2026-11-27 · earlier: mean (95% interval) | right / null / wrong |
+|---|---|---|---|---|
+| `none` | 0.68 (0.54 to 0.82) | 147 / 66 / 0 | 0.71 (0.59 to 0.83) | 153 / 60 / 0 |
+| `raw` | 0.87 (0.79 to 0.95) | 186 / 27 / 0 | 0.87 (0.79 to 0.95) | 186 / 27 / 0 |
+| `ormaos` | 0.95 (0.90 to 0.99) | 202 / 10 / 1 | 0.93 (0.88 to 0.97) | 198 / 14 / 1 |
+| `ormaos-values` | 0.95 (0.90 to 0.99) | 202 / 11 / 0 | 0.95 (0.90 to 0.99) | 202 / 11 / 0 |
+
+### What the proxy refused during the batch
+
+Every target the proxy refused, from the canary before the first run to the end of the last run, from [`proxy.jsonl`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/proxy.jsonl). Every refusal was one the canary asked for: no run asked the proxy for a host it refused.
+
+| Target | Refused | Of which the canary's |
+|---|---:|---:|
+| `github.com:443` | 1 | 1 |
+| `http://example.com/` | 1 | 1 |
+| `raw.githubusercontent.com:443` | 1 | 1 |
 
 ## For web backends
 
-A FastAPI service over a SQLite database of customers, products and orders, with one route that lists a customer's orders, each with its total. Source: [`use-cases/web-backend`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/web-backend).
+A FastAPI service over a SQLite database of customers, products and orders, with one route that lists a customer's orders, each with its total. Source: [`use-cases/web-backend`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/use-cases/web-backend).
 
 The execution: `.venv/bin/python main.py` ran once in this folder.
 
@@ -235,7 +299,7 @@ Format: Order id and total, as "id, cents" (two integers). The oracle: `[8, 3660
 |---|---|---|---|
 | `none` | right: `"8, 3660"` | right: `"8, 3660"` | right: `"8, 3660"` |
 | `raw` | right: `"8, 3660"` | right: `"8, 3660"` | right: `"8, 3660"` |
-| `ormaos` | right: `"8, 3660"` | right: `"8, 3660"` | wrong: `"17, 2880"` |
+| `ormaos` | wrong: `"17, 2880"` | right: `"8, 3660"` | right: `"8, 3660"` |
 | `ormaos-values` | right: `"8, 3660"` | right: `"8, 3660"` | right: `"8, 3660"` |
 
 ### q6. How many times was price_of called while the request was handled?
@@ -299,13 +363,13 @@ Format: An integer. The oracle: `38`.
 
 ## For data pipelines
 
-A monthly report made with pandas from two exports: it drops the orders without an amount and repeated order numbers, joins each order to its customer and sums the amounts by region. Source: [`use-cases/data-pipeline`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/data-pipeline).
+A monthly report made with pandas from two exports: it drops the orders without an amount and repeated order numbers, joins each order to its customer and sums the amounts by region. Source: [`use-cases/data-pipeline`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/use-cases/data-pipeline).
 
 The execution: `.venv/bin/python pipeline.py` ran once in this folder. Taken out of the folder afterwards: `orders.csv` and `customers.csv`.
 
-Mean score: `none` 0.25, `raw` 0.38, `ormaos` 0.88, `ormaos-values` 0.92. Run 1 of each arm side by side, and every run: [the situation's page](https://ormaos.com/benchmarks/cases/knows2-data-pipeline/).
+Mean score: `none` 0.25, `raw` 0.38, `ormaos` 0.96, `ormaos-values` 0.92. Run 1 of each arm side by side, and every run: [the situation's page](https://ormaos.com/benchmarks/cases/knows2-data-pipeline/).
 
-**Runs right per question and arm, data-pipeline.** For each question of data-pipeline, how many of the runs of each arm got it right. q1: none 0/3, raw 0/3, ormaos 3/3, ormaos-values 3/3. q2: none 0/3, raw 0/3, ormaos 3/3, ormaos-values 3/3. q3: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q4: none 0/3, raw 0/3, ormaos 3/3, ormaos-values 3/3. q5: none 0/3, raw 0/3, ormaos 3/3, ormaos-values 3/3. q6: none 0/3, raw 0/3, ormaos 0/3, ormaos-values 1/3. q7: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q8: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3.
+**Runs right per question and arm, data-pipeline.** For each question of data-pipeline, how many of the runs of each arm got it right. q1: none 0/3, raw 0/3, ormaos 3/3, ormaos-values 3/3. q2: none 0/3, raw 0/3, ormaos 3/3, ormaos-values 3/3. q3: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q4: none 0/3, raw 0/3, ormaos 3/3, ormaos-values 3/3. q5: none 0/3, raw 0/3, ormaos 3/3, ormaos-values 3/3. q6: none 0/3, raw 0/3, ormaos 2/3, ormaos-values 1/3. q7: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q8: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3.
 
 | Question | `none` | `raw` | `ormaos` | `ormaos-values` |
 |---|---:|---:|---:|---:|
@@ -314,7 +378,7 @@ Mean score: `none` 0.25, `raw` 0.38, `ormaos` 0.88, `ormaos-values` 0.92. Run 1 
 | q3 | 0/3 | 3/3 | 3/3 | 3/3 |
 | q4 | 0/3 | 0/3 | 3/3 | 3/3 |
 | q5 | 0/3 | 0/3 | 3/3 | 3/3 |
-| q6 | 0/3 | 0/3 | 0/3 | 1/3 |
+| q6 | 0/3 | 0/3 | 2/3 | 1/3 |
 | q7 | 3/3 | 3/3 | 3/3 | 3/3 |
 | q8 | 3/3 | 3/3 | 3/3 | 3/3 |
 
@@ -381,7 +445,7 @@ Format: A non-negative integer, e.g. 0. The oracle: `17`.
 |---|---|---|---|
 | `none` | null | null | null |
 | `raw` | null | null | null |
-| `ormaos` | null | null | null |
+| `ormaos` | null | right: `17` | right: `17` |
 | `ormaos-values` | null | right: `17` | null |
 
 ### q7. Which region appears in the first data row of report.csv (the alphabetically first region after sorting), and what is its total amount as written?
@@ -434,7 +498,7 @@ Format: A decimal number rounded to 2 decimal places, e.g. 48210.55. The oracle:
 
 ## For notebooks
 
-A Jupyter notebook that reads the sales of the week, leaves out single sales above a limit, adds tax and sums the week; its cells ran in the order of their saved execution counts. Source: [`use-cases/notebook`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/notebook).
+A Jupyter notebook that reads the sales of the week, leaves out single sales above a limit, adds tax and sums the week; its cells ran in the order of their saved execution counts. Source: [`use-cases/notebook`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/use-cases/notebook).
 
 The execution: The code cells of report.ipynb ran once in a Jupyter kernel of `.venv/bin/python`, in this folder, in the order of the execution counts saved in the notebook. Taken out of the folder afterwards: `sales.csv`.
 
@@ -515,9 +579,9 @@ Format: decimal number with exactly two decimals, e.g. 12345.67. The oracle: `15
 | Arm | Run 1 | Run 2 | Run 3 |
 |---|---|---|---|
 | `none` | right: `"15602.40"` | right: `"15602.40"` | right: `"15602.40"` |
-| `raw` | right: `"15602.40"` | right: `"15602.40"` | right: `15602.4` |
-| `ormaos` | right: `15602.4` | right: `"15602.40"` | right: `"15602.40"` |
-| `ormaos-values` | right: `"15602.40"` | right: `"15602.40"` | right: `15602.4` |
+| `raw` | right: `"15602.40"` | right: `"15602.40"` | right: `"15602.40"` |
+| `ormaos` | right: `15602.4` | right: `"15602.40"` | right: `15602.4` |
+| `ormaos-values` | right: `15602.4` | right: `"15602.40"` | right: `"15602.40"` |
 
 ### q7. What was the highest price among the rows that remained in rows at the end of the execution (the tax-inclusive price used in the final total)?
 
@@ -569,7 +633,7 @@ The code cells of report.ipynb ran once in a Jupyter kernel of `.venv/bin/python
 
 ## For ML training
 
-A PyTorch model trained on CPU that predicts how long a delivery takes, on data made from a seed; each batch is standardized, and a batch whose loss is not finite is left out. Source: [`use-cases/ml-training`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/ml-training).
+A PyTorch model trained on CPU that predicts how long a delivery takes, on data made from a seed; each batch is standardized, and a batch whose loss is not finite is left out. Source: [`use-cases/ml-training`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/use-cases/ml-training).
 
 The execution: `.venv/bin/python train.py` ran once in this folder.
 
@@ -704,7 +768,7 @@ Format: integer. The oracle: `38`.
 
 ## For RL environments
 
-A grid world in pure Python, where a courier walks from a depot to a customer, and a loop that runs episodes of it with a seeded policy. Source: [`use-cases/rl-env`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/rl-env).
+A grid world in pure Python, where a courier walks from a depot to a customer, and a loop that runs episodes of it with a seeded policy. Source: [`use-cases/rl-env`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/use-cases/rl-env).
 
 The execution: `python3 run.py` ran once in this folder.
 
@@ -839,7 +903,7 @@ Format: A decimal number rounded to one decimal place, e.g. -3.4. The oracle: `-
 
 ## For AI apps
 
-An app that sends each support ticket to a model API, a local stand-in with a small and a large model, and keeps a one-sentence summary of each ticket. Source: [`use-cases/ai-app`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/ai-app).
+An app that sends each support ticket to a model API, a local stand-in with a small and a large model, and keeps a one-sentence summary of each ticket. Source: [`use-cases/ai-app`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/use-cases/ai-app).
 
 The execution: `python3 app.py` ran once in this folder. Taken out of the folder afterwards: `tickets.json`.
 
@@ -962,7 +1026,7 @@ Format: An integer. The oracle: `703`.
 
 ## For changes made by an agent
 
-A small billing tool in a git repository that writes invoices and refunds, run at each of two commits: before and after a change that a coding agent made. Source: [`use-cases/agent-change`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/agent-change).
+A small billing tool in a git repository that writes invoices and refunds, run at each of two commits: before and after a change that a coding agent made. Source: [`use-cases/agent-change`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/use-cases/agent-change).
 
 The execution: This folder is a git repository with two commits. `python3 run.py` ran once at the first commit (that execution is r1) and once at the second (r2).
 
@@ -1097,24 +1161,24 @@ This folder is a git repository with two commits. `python3 run.py` ran once at t
 
 ## For scheduled jobs: order-sync
 
-A scheduled job that applies the new orders of a sales system to a warehouse inventory. The execution is a night on which it printed its OK line and some orders did not reach the inventory. Source: [`order-sync`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/order-sync).
+A scheduled job that applies the new orders of a sales system to a warehouse inventory. The execution is a night on which it printed its OK line and some orders did not reach the inventory. Source: [`order-sync`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/order-sync).
 
 The execution: Last night cron ran `python3 job.py --source api` in this folder; since then the sales system has replaced its orders with today's.
 
-Mean score: `none` 0.38, `raw` 1.00, `ormaos` 0.92, `ormaos-values` 1.00. Run 1 of each arm side by side, and every run: [the situation's page](https://ormaos.com/benchmarks/cases/knows2-order-sync/).
+Mean score: `none` 0.12, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00. Run 1 of each arm side by side, and every run: [the situation's page](https://ormaos.com/benchmarks/cases/knows2-order-sync/).
 
-**Runs right per question and arm, order-sync.** For each question of order-sync, how many of the runs of each arm got it right. q1: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q2: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q3: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q4: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q5: none 0/3, raw 3/3, ormaos 2/3, ormaos-values 3/3. q6: none 0/3, raw 3/3, ormaos 2/3, ormaos-values 3/3. q7: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q8: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3.
+**Runs right per question and arm, order-sync.** For each question of order-sync, how many of the runs of each arm got it right. q1: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q2: none 1/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q3: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q4: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q5: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q6: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q7: none 1/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q8: none 1/3, raw 3/3, ormaos 3/3, ormaos-values 3/3.
 
 | Question | `none` | `raw` | `ormaos` | `ormaos-values` |
 |---|---:|---:|---:|---:|
 | q1 | 0/3 | 3/3 | 3/3 | 3/3 |
-| q2 | 3/3 | 3/3 | 3/3 | 3/3 |
+| q2 | 1/3 | 3/3 | 3/3 | 3/3 |
 | q3 | 0/3 | 3/3 | 3/3 | 3/3 |
 | q4 | 0/3 | 3/3 | 3/3 | 3/3 |
-| q5 | 0/3 | 3/3 | 2/3 | 3/3 |
-| q6 | 0/3 | 3/3 | 2/3 | 3/3 |
-| q7 | 3/3 | 3/3 | 3/3 | 3/3 |
-| q8 | 3/3 | 3/3 | 3/3 | 3/3 |
+| q5 | 0/3 | 3/3 | 3/3 | 3/3 |
+| q6 | 0/3 | 3/3 | 3/3 | 3/3 |
+| q7 | 1/3 | 3/3 | 3/3 | 3/3 |
+| q8 | 1/3 | 3/3 | 3/3 | 3/3 |
 
 ### q1. How many order rows did the sales API's GET /orders return to the job in this run (the number of orders parsed, len(orders) in job.main)?
 
@@ -1133,7 +1197,7 @@ Format: A non-negative integer, e.g. 37. The oracle: `19`.
 
 | Arm | Run 1 | Run 2 | Run 3 |
 |---|---|---|---|
-| `none` | right: `19` | right: `19` | right: `19` |
+| `none` | right: `19` | null | null |
 | `raw` | right: `19` | right: `19` | right: `19` |
 | `ormaos` | right: `19` | right: `19` | right: `19` |
 | `ormaos-values` | right: `19` | right: `19` | right: `19` |
@@ -1168,7 +1232,7 @@ Format: A JSON list of order_id strings sorted in ascending lexicographic order,
 |---|---|---|---|
 | `none` | null | null | null |
 | `raw` | right: `["SO-20521", "SO-20526", "SO-20530", "SO-20533", "SO-20537"]` | right: `["SO-20521", "SO-20526", "SO-20530", "SO-20533", "SO-20537"]` | right: `["SO-20521", "SO-20526", "SO-20530", "SO-20533", "SO-20537"]` |
-| `ormaos` | right: `["SO-20521", "SO-20526", "SO-20530", "SO-20533", "SO-20537"]` | null | right: `["SO-20521", "SO-20526", "SO-20530", "SO-20533", "SO-20537"]` |
+| `ormaos` | right: `["SO-20521", "SO-20526", "SO-20530", "SO-20533", "SO-20537"]` | right: `["SO-20521", "SO-20526", "SO-20530", "SO-20533", "SO-20537"]` | right: `["SO-20521", "SO-20526", "SO-20530", "SO-20533", "SO-20537"]` |
 | `ormaos-values` | right: `["SO-20521", "SO-20526", "SO-20530", "SO-20533", "SO-20537"]` | right: `["SO-20521", "SO-20526", "SO-20530", "SO-20533", "SO-20537"]` | right: `["SO-20521", "SO-20526", "SO-20530", "SO-20533", "SO-20537"]` |
 
 ### q6. For each skipped order (the orders counted in q4), which exception class caused it to be skipped?
@@ -1179,7 +1243,7 @@ Format: A JSON object mapping each skipped order_id to the exception class name,
 |---|---|---|---|
 | `none` | null | null | null |
 | `raw` | right: `{"SO-20521": "SkuFormatError", "SO-20526": "SkuFormatError", "SO-20530": "SkuFormatError", "SO-20533": "SkuFormatError", "SO-20537": "SkuFormatError"}` | right: `{"SO-20521": "SkuFormatError", "SO-20526": "SkuFormatError", "SO-20530": "SkuFormatError", "SO-20533": "SkuFormatError", "SO-20537": "SkuFormatError"}` | right: `{"SO-20521": "SkuFormatError", "SO-20526": "SkuFormatError", "SO-20530": "SkuFormatError", "SO-20533": "SkuFormatError", "SO-20537": "SkuFormatError"}` |
-| `ormaos` | right: `{"SO-20521": "SkuFormatError", "SO-20526": "SkuFormatError", "SO-20530": "SkuFormatError", "SO-20533": "SkuFormatError", "SO-20537": "SkuFormatError"}` | null | right: `{"SO-20521": "SkuFormatError", "SO-20526": "SkuFormatError", "SO-20530": "SkuFormatError", "SO-20533": "SkuFormatError", "SO-20537": "SkuFormatError"}` |
+| `ormaos` | right: `{"SO-20521": "SkuFormatError", "SO-20526": "SkuFormatError", "SO-20530": "SkuFormatError", "SO-20533": "SkuFormatError", "SO-20537": "SkuFormatError"}` | right: `{"SO-20521": "SkuFormatError", "SO-20526": "SkuFormatError", "SO-20530": "SkuFormatError", "SO-20533": "SkuFormatError", "SO-20537": "SkuFormatError"}` | right: `{"SO-20521": "SkuFormatError", "SO-20526": "SkuFormatError", "SO-20530": "SkuFormatError", "SO-20533": "SkuFormatError", "SO-20537": "SkuFormatError"}` |
 | `ormaos-values` | right: `{"SO-20521": "SkuFormatError", "SO-20526": "SkuFormatError", "SO-20530": "SkuFormatError", "SO-20533": "SkuFormatError", "SO-20537": "SkuFormatError"}` | right: `{"SO-20521": "SkuFormatError", "SO-20526": "SkuFormatError", "SO-20530": "SkuFormatError", "SO-20533": "SkuFormatError", "SO-20537": "SkuFormatError"}` | right: `{"SO-20521": "SkuFormatError", "SO-20526": "SkuFormatError", "SO-20530": "SkuFormatError", "SO-20533": "SkuFormatError", "SO-20537": "SkuFormatError"}` |
 
 ### q7. How many single items in total were taken out of stock in this run, i.e. the sum of the 'taken' quantity over all orders newly applied in this run (after pack-to-item conversion and capping at the stock on hand)?
@@ -1188,7 +1252,7 @@ Format: A non-negative integer, e.g. 318. The oracle: `104`.
 
 | Arm | Run 1 | Run 2 | Run 3 |
 |---|---|---|---|
-| `none` | right: `104` | right: `104` | right: `104` |
+| `none` | right: `104` | null | null |
 | `raw` | right: `104` | right: `104` | right: `104` |
 | `ormaos` | right: `104` | right: `104` | right: `104` |
 | `ormaos-values` | right: `104` | right: `104` | right: `104` |
@@ -1199,7 +1263,7 @@ Format: Two non-negative integers separated by a comma: rows,items, e.g. 2,15. T
 
 | Arm | Run 1 | Run 2 | Run 3 |
 |---|---|---|---|
-| `none` | right: `"2,5"` | right: `"2,5"` | right: `"2,5"` |
+| `none` | right: `"2,5"` | null | null |
 | `raw` | right: `"2,5"` | right: `"2,5"` | right: `"2,5"` |
 | `ormaos` | right: `"2,5"` | right: `"2,5"` | right: `"2,5"` |
 | `ormaos-values` | right: `"2,5"` | right: `"2,5"` | right: `"2,5"` |
@@ -1232,7 +1296,7 @@ Last night cron ran `python3 job.py --source api` in this folder; since then the
 
 ## For scheduled jobs: freight-quote
 
-A scheduled job that asks a carrier's rate API for the freight of tomorrow's shipments and writes one quote per shipment. The execution is a night on which some calls were refused. Source: [`freight-quote`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/freight-quote).
+A scheduled job that asks a carrier's rate API for the freight of tomorrow's shipments and writes one quote per shipment. The execution is a night on which some calls were refused. Source: [`freight-quote`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/freight-quote).
 
 The execution: Last night cron ran `python3 job.py` in this folder; since then the dispatch list has been replaced with today's and the carrier's count of calls has started again.
 
@@ -1371,284 +1435,275 @@ Run 1 of every task and arm, always run 1: 36 runs, of which 11 wrote null for a
 
 ### data-pipeline, `none`, run 1: null for q1, q2, q3, q4, q5, q6
 
-The agent's last message, from [`streams/data-pipeline-none-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-none-1.jsonl):
+The agent's last message, from [`streams/data-pipeline-none-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/streams/data-pipeline-none-1.jsonl):
 
 ```text
-I wrote `answers.json`, but only two of the eight questions could be answered. The other six are `null`.
+I wrote `answers.json`. Only two of the eight questions could be answered; the other six are `null`.
 
-**Answered, from `report.csv`:**
-- **q7:** `"east, 4349.29"`. "east" is the first data row after sorting by region.
-- **q8:** `17182.34`. That is 4349.29 + 2567.98 + 6196.49 + 4068.58, the four region totals.
+**Answered from `report.csv`:**
+- **q7:** `"east, 4349.29"`. That's the first data row of the report.
+- **q8:** `17182.34`. That's the sum of the four regions (east 4349.29, north 2567.98, south 6196.49, west 4068.58).
 
-**`null`, q1–q6:** These need row counts from inside the run: rows loaded, rows dropped for a missing amount, whether repeated order IDs were dropped, and rows lost in the join. `orders.csv` and `customers.csv` are gone. The script logs nothing beyond its one-line summary, and I couldn't find any log, cache or leftover output on the system that records these counts.
+**Set to `null`: q1–q6.** These ask how many rows there were at each step (after loading, after dropping unpriced orders, whether duplicates were dropped, and after the merge). The run saved nothing that records those numbers. It only wrote the per-region totals and printed one line, and there are no logs, cache files or copies of the input CSVs anywhere on the machine.
 
-The README says the orders export holds "200 orders of October", but I didn't use that for q1. It describes the usual export, not the file this run actually read. If that file had repeated order IDs, it would have had more than 200 rows.
+The README says `orders.csv` holds "200 orders of October". That describes what the export is supposed to contain, not what this run actually read, so I didn't use it for q1. If you'd rather take the README at its word, q1 would be `200`.
 ```
 
 ### data-pipeline, `raw`, run 1: null for q1, q2, q4, q5, q6
 
-The agent's last message, from [`streams/data-pipeline-raw-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-raw-1.jsonl):
+The agent's last message, from [`streams/data-pipeline-raw-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/streams/data-pipeline-raw-1.jsonl):
 
 ```text
-I wrote `answers.json`. Three answers come from what the run left behind; the five row-count questions are `null`, because nothing left in the folder records them.
+I've written `answers.json`. Three questions have answers; the other five are null because the run left nothing that records how many rows there were.
 
-| id | answer | source |
+| Question | Answer | Source |
 |---|---|---|
-| q1 | null | row count after load not recorded |
-| q2 | null | number of rows dropped not recorded |
-| q3 | "no" | the trace has calls to `load_orders`, `load_customers`, `drop_unpriced`, `join_customers`, `revenue_by_region` and `write_report`, but none to `drop_repeats`, so the duplicate check was False |
-| q4 | null | not recorded |
-| q5 | null | not recorded |
-| q6 | null | not recorded |
-| q7 | "east, 4349.29" | first data row of `report.csv` |
-| q8 | 17182.34 | 4349.29 + 2567.98 + 6196.49 + 4068.58 |
+| q3 (did `drop_repeats` run?) | `"no"` | The trace logs calls to `load_orders`, `load_customers`, `drop_unpriced`, `join_customers`, `revenue_by_region` and `write_report`, but none to `drop_repeats`. So the duplicate check after dropping unpriced orders came out False. |
+| q7 (first region in the report) | `"east, 4349.29"` | First data row of `report.csv` |
+| q8 (sum of the report's amounts) | `17182.34` | 4349.29 + 2567.98 + 6196.49 + 4068.58, the four rows in `report.csv` |
+| q1, q2, q4, q5, q6 (row counts) | `null` | Can't be worked out (see below) |
 
-**Why the row counts are null:** the trace only has function names, start times and durations, with no arguments or return values. pandas reads, filters and merges the rows in compiled code, so no traced call repeats once per row that I could count. The README says the orders file has "200 orders", but that describes the export in general, not the file this run read. So I didn't use it for q1.
+**Why the row counts can't be recovered:**
+- `orders.csv` and `customers.csv` are gone.
+- The trace records which functions were called and when, but not their arguments or return values. The pipeline never prints a row count; it only prints the number of regions.
+- I checked the pandas calls inside `load_orders`, `drop_unpriced` and `join_customers`. Their numbers don't change with the number of rows, because pandas does that work in compiled code the trace doesn't see.
 ```
 
 ### data-pipeline, `ormaos`, run 1: null for q6
 
-The agent's last message, from [`streams/data-pipeline-ormaos-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-ormaos-1.jsonl):
+The agent's last message, from [`streams/data-pipeline-ormaos-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/streams/data-pipeline-ormaos-1.jsonl):
 
 ```text
-I wrote `answers.json`. Seven answers come from the Ormaos recording (`r1`) and `report.csv`; one is null because the recording can't settle it.
+I wrote `answers.json`. The answers come from the Ormaos recording (r1, which exited with code 0) and from `report.csv`, which still has the same timestamp as the run.
+
+| id | answer | evidence |
+|---|---|---|
+| q1 | 200 | `load_orders` returned 200 rows × 4 columns, with 5 nulls in `amount` |
+| q2 | 5 | `drop_unpriced` went from 200 rows to 195 |
+| q3 | "no" | `drop_repeats` doesn't appear in the call tree, so the duplicate check was False |
+| q4 | 195 | `join_customers` received 195 rows |
+| q5 | 178 | `join_customers` returned 178 rows × 6 columns |
+| q6 | null | see below |
+| q7 | "east, 4349.29" | the first data row of `report.csv` |
+| q8 | 17182.34 | 4349.29 + 2567.98 + 6196.49 + 4068.58 |
+
+**q6:** The row count fell from 195 to 178, a difference of 17. That equals the number of unmatched orders only if each `customer_id` appears once in `customers.csv`. If some IDs appeared twice, the merge would have copied some rows and more than 17 orders would have been lost. Ormaos records only row counts and null counts, not values, and `customers.csv` is gone, so I can't check this. That's why the answer is null rather than 17.
+```
+
+### data-pipeline, `ormaos-values`, run 1: null for q6
+
+The agent's last message, from [`streams/data-pipeline-ormaos-values-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/streams/data-pipeline-ormaos-values-1.jsonl):
+
+```text
+I wrote `answers.json` with seven answers and one null. I took the answers from the Ormaos recording (`r1`, exit 0) and from `report.csv`, which was written at the same moment the recording finished.
 
 | id | answer | where it comes from |
 |---|---|---|
 | q1 | 200 | `load_orders` returned 200 rows × 4 columns |
-| q2 | 5 | `amount` had 5 nulls; `drop_unpriced` turned 200 rows into 195 |
-| q3 | "no" | there was no call to `drop_repeats` in the recording; `main` called only `load_orders`, `load_customers`, `drop_unpriced`, `join_customers`, `revenue_by_region` and `write_report` |
-| q4 | 195 | `join_customers` received 195 rows |
+| q2 | 5 | `amount` had 5 nulls; `drop_unpriced` went from 200 to 195 rows |
+| q3 | "no" | the call tree has no `drop_repeats` call, so the duplicate check was False |
+| q4 | 195 | the orders passed to `join_customers` had 195 rows |
 | q5 | 178 | `join_customers` returned 178 rows × 6 columns |
 | q6 | null | see below |
 | q7 | "east, 4349.29" | first data row of `report.csv` |
 | q8 | 17182.34 | 4349.29 + 2567.98 + 6196.49 + 4068.58 |
 
-**Why q6 is null:** the merge went from 195 rows to 178, a drop of 17. That drop equals the number of unmatched orders only if each `customer_id` appears once in `customers.csv`. If an ID appeared twice, the inner merge would duplicate those orders, and more than 17 could have been lost. Ormaos records the row count, column types and nulls of the customers table (40 rows, no nulls), but not its values. So whether the IDs were unique can't be checked, and `customers.csv` is no longer here. If you know the IDs are unique, the answer is 17.
-
-The run wrote `report.csv` (it shows as opened for writing at `pipeline.py:37`), so the file in the folder is the one that run produced. That backs up q7 and q8.
-```
-
-### data-pipeline, `ormaos-values`, run 1: null for q6
-
-The agent's last message, from [`streams/data-pipeline-ormaos-values-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-ormaos-values-1.jsonl):
-
-```text
-I wrote `answers.json` with seven answers taken from the Ormaos recording (`r1`, which finished with exit code 0) and `report.csv`. I left one answer, q6, as null.
-
-| id | answer | source |
-|---|---|---|
-| q1 | 200 | `load_orders` returned a frame of 200 rows × 4 columns |
-| q2 | 5 | `amount` had 5 nulls; `drop_unpriced` went from 200 rows to 195, with 0 nulls left |
-| q3 | "no" | there's no `drop_repeats` call in the recorded call tree |
-| q4 | 195 | the `orders` argument to `join_customers` had 195 rows |
-| q5 | 178 | `join_customers` returned 178 rows × 6 columns |
-| q6 | null | see below |
-| q7 | "east, 4349.29" | first data row of `report.csv`, which was written by that run |
-| q8 | 17182.34 | 4349.29 + 2567.98 + 6196.49 + 4068.58 |
-
-**Why q6 is null:** the inner merge went from 195 rows to 178, a net drop of 17. That net drop only equals the number of unmatched orders if every `customer_id` in `customers.csv` was unique. If some customer appeared twice, matching orders would be doubled in the merge, and more than 17 orders could have gone unmatched. Ormaos records the row and null counts of each table, but not the values or how many are distinct, and `customers.csv` is gone. The README says the file has "one row per customer", but that describes the export, not what this run read. If you trust the README on that point, the answer would be 17.
+I left q6 as null. The merge went from 195 rows to 178, so at least 17 orders were lost, but the exact number can't be determined. The recording shows that `customers.csv` had 40 rows and no null `customer_id`s, but not whether any ID appeared twice. A duplicated customer would have doubled that customer's orders in the merge, so more orders could have been lost than the row counts show. The README says the file has one row per customer, but nothing in the recording confirms it. If you accept that, the answer is 17.
 ```
 
 ### notebook, `none`, run 1: null for q4, q5, q7, q8
 
-The agent's last message, from [`streams/notebook-none-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/notebook-none-1.jsonl):
+The agent's last message, from [`streams/notebook-none-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/streams/notebook-none-1.jsonl):
 
 ```text
-I wrote `answers.json`. Four questions have answers and four are `null`, because they need the row data from `sales.csv`, which is gone.
+I wrote `answers.json`. Four questions are answered from what the notebook saved; the other four are `null` because `sales.csv` is gone and nothing else kept the data.
 
-| id | answer | evidence |
+| id | answer | basis |
 |---|---|---|
-| q1 | `40` | The saved output of cell-2 is `40`. |
-| q2 | `"cell-4"` | The execution counts are cell-1=1, cell-2=2, **cell-4=3**, cell-3=4, cell-5=5. So `add_tax` (cell-4) ran before `drop_key_accounts` (cell-3). |
-| q3 | `"tax-inclusive"` | Because of that order, the filter compared prices that already included the 20% tax against `LIMIT`. |
-| q4 | `null` | |
-| q5 | `null` | |
-| q6 | `"15602.40"` | The saved output of cell-5 is `week total with tax: 15602.40`. |
-| q7 | `null` | |
-| q8 | `null` | |
+| q1 | 40 | The saved output of cell-2 (`len(rows)`) is `40`. |
+| q2 | `"cell-4"` | The saved execution counts are cell-1 → 1, cell-2 → 2, cell-4 → 3, cell-3 → 4, cell-5 → 5. So the third cell executed was cell-4. |
+| q3 | `"tax-inclusive"` | cell-4 (`add_tax`, count 3) ran before cell-3 (`drop_key_accounts`, count 4). The filter therefore compared prices that already included the 20% tax against `LIMIT`. |
+| q4 | `null` | The number of rows left isn't in any saved output. |
+| q5 | `null` | Answering this needs the original prices from `sales.csv`. |
+| q6 | `"15602.40"` | From the printed line `week total with tax: 15602.40`. |
+| q7 | `null` | The rows' prices aren't saved anywhere. |
+| q8 | `null` | The rows' quantities aren't saved anywhere. |
 
-**Why q4, q5, q7 and q8 are null:** each one depends on individual rows. The notebook only kept the row count and the final total. The `ormaos` package in `.venv` is a stand-in whose `record()` does nothing, so no recording of the steps exists either. I found no other leftover files from the run.
-
-**Format note:** I wrote q6 as the string `"15602.40"` so it keeps exactly two decimals. As a JSON number it would read `15602.4`.
-
-The out-of-order run is also why this total doesn't match the README's `47498.40`. The README number comes from running the cells top to bottom, which filters before adding tax.
+- **No recording to recover from:** `ormaos` in `.venv` is a stand-in whose `record()` does nothing, so no step was recorded during the run.
+- **Format of q6:** I stored it as a string so it keeps exactly two decimals, as the format asks; a JSON number would print as 15602.4.
+- **README total:** the README's 47498.40 doesn't match this run's 15602.40. I took 15602.40 because the question asks about the saved execution.
 ```
 
 ### notebook, `raw`, run 1: null for q5, q7, q8
 
-The agent's last message, from [`streams/notebook-raw-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/notebook-raw-1.jsonl):
+The agent's last message, from [`streams/notebook-raw-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/streams/notebook-raw-1.jsonl):
 
 ```text
-I've written `answers.json` in `/srv/notebook`. I could answer five of the eight questions; the other three are null because the data they need isn't in the folder.
+I wrote `answers.json`. Five questions have answers; three are `null` because the data they need is gone.
 
-| id | answer | where it comes from |
-|---|---|---|
-| q1 | 40 | The saved output of cell-2. The trace agrees: `DictReader.__next__` was called 41 times (40 rows plus the end of file). |
-| q2 | cell-4 | Execution counts by cell: cell-1=1, cell-2=2, **cell-4=3**, cell-3=4, cell-5=5. |
-| q3 | tax-inclusive | The cells ran out of their order on the page: `add_tax` (cell-4) ran before `drop_key_accounts` (cell-3). The trace timestamps confirm this (`add_tax` at …779400, `drop_key_accounts` at …784154). So the filter saw prices with the 20% tax already added. |
-| q4 | 22 | `total`'s generator was entered 23 times, which means 22 rows (one extra entry at the end). |
-| q6 | "15602.40" | The printed output of cell-5. |
-| q5, q7, q8 | null | `sales.csv` isn't here, and the trace doesn't record argument or return values. So I can't recover individual prices or quantities. |
+- **q1 = 40.** This is the saved output of cell-2, `len(rows)`.
+- **q2 = cell-4.** The saved execution counts are cell-1 → 1, cell-2 → 2, cell-4 → 3, cell-3 → 4, cell-5 → 5. So the tax cell (cell-4) ran before the filter cell (cell-3). The trace agrees: `add_tax` starts before `drop_key_accounts`.
+- **q3 = tax-inclusive.** Because tax was added first, the filter compared prices that already included the 20%.
+- **q4 = 22.** The trace doesn't record values, so this is counted indirectly. The generator inside `total` was entered 23 times, all during that one `total` call. That's one entry per row plus the final one that ends it, so 22 rows were left.
+- **q6 = 15602.40.** This is the printed output of cell-5. I wrote it as the string `"15602.40"` so it keeps exactly two decimals.
+- **q5, q7, q8 = null.** These need individual prices and quantities. `sales.csv` isn't here, the trace records only function names and timings, and `ormaos.record()` is a stub that saves nothing. So I can't tell how many of the 18 dropped rows were 1000 or less before tax, what the highest remaining price was, or what the quantities added up to.
 
-Two other things:
-- The `ormaos` package in `.venv` is a stand-in whose `record()` does nothing, so it recorded nothing for these steps.
-- The README's expected total (47498.40) comes from running the cells top to bottom, so the filter sees pre-tax prices. That is a different order from this session's, which is why its total doesn't match the 15602.40 printed here.
+The README's expected total of 47498.40 comes from running the cells top to bottom (filter, then tax), so it doesn't match this session.
 ```
 
 ### notebook, `ormaos`, run 1: null for q5, q7, q8
 
-The agent's last message, from [`streams/notebook-ormaos-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/notebook-ormaos-1.jsonl):
+The agent's last message, from [`streams/notebook-ormaos-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/streams/notebook-ormaos-1.jsonl):
 
-````text
-I wrote `answers.json`. I could answer five of the eight questions from the recording and the saved notebook. The other three depend on values from `sales.csv`, which is gone, and the recording doesn't store values, so those are `null`.
+```text
+I've written `answers.json`. Five questions have answers and three are null, because the recording doesn't keep data values and `sales.csv` is gone.
 
-```json
-{"q1": 40, "q2": "cell-4", "q3": "tax-inclusive", "q4": 22, "q5": null, "q6": 15602.40, "q7": null, "q8": null}
+**The main finding: the cells ran out of order.** The saved execution counts are cell-1 → 1, cell-2 → 2, cell-4 → 3, cell-3 → 4, cell-5 → 5. So `add_tax` (cell-4) ran before `drop_key_accounts` (cell-3), and the Ormaos recordings show the same order: r1 `load`, r2 `add_tax`, r3 `drop_key_accounts`, r4 `total`. This means rows were checked against the 1000 limit after the 20% tax was added. The total printed was 15602.40, not the 47498.40 that the README expects from running top to bottom.
+
+| id | answer | source |
+|---|---|---|
+| q1 | 40 | cell-2's saved output, and r1 `load` returned a list of 40 |
+| q2 | cell-4 | the cell with execution count 3 |
+| q3 | tax-inclusive | `add_tax` (r2) ran before `drop_key_accounts` (r3) |
+| q4 | 22 | r3 `drop_key_accounts` went from 40 rows to 22 |
+| q5 | null | see below |
+| q6 | 15602.40 | cell-5's printed output |
+| q7 | null | see below |
+| q8 | null | see below |
+
+**Why q5, q7 and q8 are null:**
+- **q5:** I'd need to know how many of the 18 dropped rows had a price under 1000 before tax. That depends on the prices, which weren't recorded.
+- **q7 and q8:** the highest price and the total quantity of the remaining rows are also values the recording didn't keep.
+
+I wrote q6 as the JSON number `15602.40`.
 ```
-
-**What happened in that run:** the cells did not run top to bottom. Going by the saved execution counts, the order was cell-1 (1), cell-2 (2), cell-4 (3), cell-3 (4), cell-5 (5). So `add_tax` ran before `drop_key_accounts`.
-
-- **q1 = 40:** `load` returned a list of 40 dicts (recording r1), and cell-2's saved output is `40`.
-- **q2 = cell-4:** it has execution count 3.
-- **q3 = tax-inclusive:** `add_tax` (r2) ran before `drop_key_accounts` (r3), so the limit of 1000 was checked against prices that already included the 20% tax.
-- **q4 = 22:** `drop_key_accounts` went from a list of 40 dicts to 22 (r3), and `total` then got those 22 (r4).
-- **q6 = 15602.40:** this is cell-5's printed output, `week total with tax: 15602.40`. The README's 47498.40 is from a top-to-bottom run, not this one.
-- **q5, q7, q8 = null:** these need actual prices and quantities. The recording keeps only types and lengths, and the input file isn't there anymore.
-````
 
 ### notebook, `ormaos-values`, run 1: null for q5, q7, q8
 
-The agent's last message, from [`streams/notebook-ormaos-values-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/notebook-ormaos-values-1.jsonl):
+The agent's last message, from [`streams/notebook-ormaos-values-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/streams/notebook-ormaos-values-1.jsonl):
 
 ```text
-I've written `answers.json`. Five questions have answers; three are null because the recording doesn't contain the data they need.
+I wrote `answers.json`. Five questions have answers; three are `null` because the recording doesn't hold the data they need.
 
-| id | answer | how I know |
+| id | answer | where it comes from |
 |---|---|---|
-| q1 | 40 | The output saved in cell-2 is `40`, and in recording r1 `load` returned a list of 40 items. |
-| q2 | cell-4 | The saved execution counts are cell-1=1, cell-2=2, cell-4=3, cell-3=4, cell-5=5. So `add_tax` ran before `drop_key_accounts`. |
-| q3 | tax-inclusive | Because of that order, recording r3 shows `drop_key_accounts` receiving prices that already include the tax (144.0, 936.0, 2160.0…). |
-| q4 | 22 | In r3 `drop_key_accounts` returned 22 rows, and in r4 `total` received 22. |
-| q5 | null | See below. |
-| q6 | "15602.40" | `total` returned 15602.4, and the cell printed `week total with tax: 15602.40`. |
-| q7 | null | See below. |
-| q8 | null | See below. |
+| q1 | 40 | `load` returned a list of 40 items (r1), and cell-2's saved output is `40` |
+| q2 | cell-4 | The saved execution counts are cell-1=1, cell-2=2, cell-4=3, cell-3=4, cell-5=5 |
+| q3 | tax-inclusive | `add_tax` ran first (r2), and `drop_key_accounts` (r3) received prices like 144.0 and 936.0, which already include the 20% tax |
+| q4 | 22 | `drop_key_accounts` returned 22 items |
+| q5 | null | See below |
+| q6 | 15602.40 | `total` returned 15602.4, which matches the printed `week total with tax: 15602.40` |
+| q7 | null | See below |
+| q8 | null | See below |
 
-**Why three are null:** the recording keeps only the first 10 items of each list, so 30 of the 40 input rows and 12 of the 22 remaining rows were never stored. In the rows that were stored, one was wrongly dropped: desk, 860 → 1032 after tax. The highest remaining price seen is 936.00. Neither is a complete count or maximum, so I didn't answer with them.
+**Why three are `null`:** the recording only kept the first 10 items of each list. q5, q7 and q8 depend on all 40 original rows or all 22 rows that were kept, and `sales.csv` is gone, so they can't be worked out exactly.
 
-**Format choice:** I wrote q6 as the string `"15602.40"` because a JSON number would drop the trailing zero that "exactly two decimals" asks for.
+What the first 10 rows show: at least one row was wrongly dropped (a desk at 860 that became 1032 with tax). Among the visible rows that were kept, the highest price is 936.00. I didn't use either as an answer because they are only lower bounds.
 
-The total of 15602.40 is lower than the 47498.40 in the README because the cells ran out of order. With the tax added before the filter, every sale priced above about 833.33 went over the 1000 limit and was removed.
+The run was out of order: cell-4 (add tax) ran before cell-3 (drop sales over 1000). So rows priced between about 833.34 and 1000 were dropped after tax pushed them over 1000. That's why the total was 15602.40 and not the 47498.40 the README expects.
 ```
 
 ### ai-app, `none`, run 1: null for q2, q3, q4, q5, q6
 
-The agent's last message, from [`streams/ai-app-none-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ai-app-none-1.jsonl):
+The agent's last message, from [`streams/ai-app-none-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/streams/ai-app-none-1.jsonl):
 
 ```text
-I wrote `answers.json`. I could answer two of the seven questions; the other five are `null`.
+I wrote `answers.json`. Only two of the seven questions can be answered from what the run left behind; the other five are `null`.
 
-**Answered:**
-- **q7:** `"The invoice of October shows the old address."` `app.py` writes summaries in the same order as the tickets, so the first entry in `summaries.json` (id 401) belongs to the first ticket.
-- **q8:** `703`. That's the current size of `summaries.json`. It has the exact layout the run's `json.dump(..., indent=2)` produces, with no trailing newline, so it looks like the file that run wrote.
-
-**Null (q2–q6):** these need the length of each ticket's text. The model server sends a 503 to `small-1` for any prompt over 600 characters, and `app.py` then retries the same prompt with `large-1`. So the ticket lengths would tell me which tickets fell back, how many 503s there were, the total number of POSTs (8 plus one per fallback), and the longest prompt. But `tickets.json` is gone. The server didn't log anything, and `summaries.json` doesn't record which model wrote each summary. Both models produce the same text: the first sentence of the ticket. So there's nothing left to work these out from.
+- **q7:** "The invoice of October shows the old address." `app.py` writes summaries in the same order as the tickets, so the first entry in `summaries.json` (id 401) is the first ticket.
+- **q8:** 703 bytes, the current size of `summaries.json`. Nothing suggests it was changed after the run.
+- **q2–q6: `null`.** `summaries.json` stores only the id and summary text. The model's reply says which model answered, but the app throws that away. The model server's logging is switched off, so there is no record of requests or 503 errors. Without `tickets.json` I can't measure the prompts, and the server only sends a 503 when small-1 gets a prompt over 600 characters. Both models also produce exactly the same summary text, so the summaries don't show which model wrote them. All I can say is that there were at least 8 POST requests, one per ticket, but the exact count (q4) is unknown.
 ```
 
 ### ai-app, `raw`, run 1: null for q6
 
-The agent's last message, from [`streams/ai-app-raw-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/ai-app-raw-1.jsonl):
+The agent's last message, from [`streams/ai-app-raw-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/streams/ai-app-raw-1.jsonl):
 
 ```text
-I've written `answers.json` in `/srv/ai-app`, and it parses as valid JSON. I answered six of the seven questions from the trace and the files the run left behind; q6 is `null`.
+I wrote the answers to `answers.json`. Six of the seven questions are answered and one is null.
 
 | Question | Answer | How I got it |
 |---|---|---|
-| q2: summaries from small-1 alone | 5 | 8 tickets went through `summarize`, and 3 of them hit an error and fell back. |
-| q3: HTTP 503 responses | 3 | There were 3 `HTTPError` calls. The model server only sends 503 when a small-1 prompt is over 600 characters. |
-| q4: total POST requests | 11 | There were 11 `ask` calls, 11 `urlopen` calls and 11 server `do_POST` calls. |
-| q5: tickets summarized by large-1 | `[403, 405, 408]` | The errors happened inside the 3rd, 5th and 8th `summarize` calls. I matched those positions to the ids in the order they appear in `summaries.json`. |
-| q6: longest prompt length | `null` | The trace has no call arguments, and `tickets.json` is missing, so the prompt texts can't be recovered. All that's certain is that the 3 prompts that fell back were each over 600 characters. |
-| q7: first ticket's summary | "The invoice of October shows the old address." | From `summaries.json`, entry id 401. |
-| q8: size of `summaries.json` | 703 | The file's size on disk. It was last changed at the same time as the trace, so I took it to be this run's output. |
-
-The trace has three server-side `generate` calls stamped about 1.4 seconds before `main` started, and server events don't line up neatly with each request. None of the answers depend on those events, because I took everything from app.py's own calls (`summarize`, `ask`, `HTTPError`).
+| q2: tickets summarized by small-1 alone | **5** | There were 8 `summarize` calls and 11 `ask` calls. Five tickets needed one call; three needed two. |
+| q3: HTTP 503 responses | **3** | Each second call happens only after a 503 from small-1, because large-1 never refuses. |
+| q4: POST requests in total | **11** | There were 11 `ask` calls, and the server's `do_POST` and `generate` also each ran 11 times. |
+| q5: tickets summarized by large-1 | **[403, 405, 408]** | The 3rd, 5th and 8th tickets made two `ask` calls. I matched them to ids using the order in `summaries.json`, which keeps the input order. |
+| q6: longest prompt length | **null** | The trace records only function names and timings, not arguments or values. All it shows is that those three prompts were over 600 characters, the small-1 limit. |
+| q7: summary of the first ticket | **"The invoice of October shows the old address."** | Taken from `summaries.json`, which is still as this run left it. |
+| q8: size of `summaries.json` | **703** | Measured from the file on disk. |
 ```
 
 ### order-sync, `none`, run 1: null for q1, q3, q4, q5, q6
 
-The agent's last message, from [`streams/order-sync-none-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/order-sync-none-1.jsonl):
+The agent's last message, from [`streams/order-sync-none-1.jsonl`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/streams/order-sync-none-1.jsonl):
 
 ```text
-I've written `answers.json` with answers to three of the eight questions (q2, q7, q8). The other five are `null`, because the information about that run no longer exists.
+I've written `answers.json` with three answers taken from the database and five set to null. The run left no record of what the API returned or which orders it skipped.
 
-**What's left of the run:**
-- `data/cron.log` has two runs, both ending `exit=0 sync finished: OK`, at 16:57:43 and 16:57:44. I took the second one as last night's cron run, since the folder is as the last run left it.
-- In `data/inventory.db`, every row in `applied_orders` has an `applied_at` time. Orders SO-20501 to SO-20514 are stamped 19:57:43 UTC and SO-20515 to SO-20538 are stamped 19:57:44 UTC. The first run had already logged that it finished at :43, so the :44 rows belong to the second run.
-- `data/orders.csv` now holds today's orders, there is no `.ormaos/` recording, and warnings were hidden by the default ERROR log level. So nothing records what the API actually returned or which orders were skipped.
+**What the folder shows:**
+- `data/cron.log` records two successful runs one second apart (`…:47:44` and `…:47:45`). The second one is last night's cron run, since nothing else has touched the folder since.
+- The `applied_orders` table in `data/inventory.db` has 14 rows stamped `02:47:44` (SO-20501 to SO-20514) and 19 stamped `02:47:45` (SO-20515 to SO-20538). The first run ended at `:44`, so I counted the `:45` rows as the cron run's. This rests on one-second timestamps and assumes the cron run applied nothing during second `:44`. It's the best reading available, but it can't be proven.
 
 **Answers:**
-- **q2 = 19:** the 19 orders stamped at :44.
-- **q7 = 104:** the total of the `quantity` (items taken) on those 19 rows.
-- **q8 = "2,5":** both back-orders belong to orders stamped at :44: SO-20524 (2 items) and SO-20534 (3 items).
-- **q1, q3, q4, q5, q6 = null:** these need the list of orders the API returned, which was overwritten. SO-20521, 20526, 20530, 20533 and 20537 are missing from `applied_orders`, so they were probably skipped. But I can't tell which run received them or what error each hit. I also can't tell how many already-applied orders came in again. Some stock levels don't match `data/count.csv` (KBD-0101 is 9 higher than the count, MON-0201 is 1 higher, HDS-0402 is 4 higher). That fits orders being dropped silently, but it isn't enough to answer these questions.
-
-**One caveat:** if the second run started within the same second the first one finished (:43), some of the :43 rows could also be from it. In that case q2 and q7 would be higher. I counted only the :44 rows.
+- **q2 = 19:** orders newly applied in the cron run.
+- **q7 = 104:** total of their `quantity` column. This column stores the amount actually taken, after the pack conversion and the cap at stock on hand.
+- **q8 = "2,5":** two back-orders from that run, SO-20524 (2 items) and SO-20534 (3 items).
+- **q1, q3, q4, q5, q6 = null:**
+  - The API stand-in serves `data/orders.csv`, and that file now holds today's orders, so last night's response is gone.
+  - Already-applied and failed orders leave no trace in the database.
+  - The "skipped" warnings were hidden at the default ERROR log level, and cron.log only kept "sync finished: OK".
+  - No Ormaos recording (`.ormaos/`) exists.
+  - The missing numbers in the order IDs (SO-20521, 20526, 20530, 20533, 20537) might be skipped orders, but they might also be orders that were never sent or never existed, so I didn't guess.
 ```
 
 ## Limits
 
-As the run's report lists them:
+What the run's report lists as not controlled:
 
-- No expected result was written before the run.
-- With --values, a list keeps its first 10 items; notebook q5, q7 and q8 need more and no arm answered them.
-- In 4 of 9 tasks every arm scored 1.00 (ml-training, rl-env, agent-change, freight-quote); those tasks do not separate the arms.
-- The gap between raw and ormaos in the mean score is 0.058. Per task, the difference of the task's mean scores divided by 9, every task where it is not zero: web-backend -0.005, data-pipeline +0.056, ai-app +0.016, order-sync -0.009.
-- The intervals of raw and ormaos overlap.
-- The questions were written by claude-opus-5-5 from the source, the README and the printed output of each program, one writer per task, one attempt; the prompt, the transcript and the questions are in `writer/`. The programs and the executions are still those the makers of Ormaos wrote for `knows`.
-- The agents and the question writer are the same model.
-- The oracle (`oracle.py`, `tracer.py`) and the rule of each question (`rules.json`) were written by the makers of Ormaos after reading the questions and before any agent ran. Where a question can be read in two ways the oracle answers one of them.
-- A question is dropped only when the oracle cannot give one unambiguous answer; a question that an arm cannot answer is kept.
-- The writer's folder had no input file, so some questions ask for what the removed input held; the writer of `rl-env` ran the program in its folder before writing.
-- `notebook`: the cells call `ormaos.record()` themselves. In `ormaos-values` a cell that is not of the notebook first makes that call record values; it is not `ormaos run --values`. The printed output given to the writer is that of the process that ran the kernel, not of the cells.
-- Values in a recording are cut at 200 characters, and likely secrets are written as `***`.
-- Four of the nine programs (`web-backend`, `ml-training`, `rl-env`, `agent-change`) read no input that can be taken away, so an agent can run them again; the report says how many runs did.
-- One model, one prompt per arm, one tracer with its default settings, N runs per task and arm as shown.
-- The dates in the data of the two jobs are relative to the day `build.py` ran: build on the day of the run.
+- The model's own randomness: the same request does not give the same run twice.
+- Tokens and cost are each vendor's own count.
+- The agent can read its own credential in its home folder.
+- The system prompt and the tool descriptions are each command line's own.
 
 ## The runs of knows2
 
-This page, and the headline and the charts of the [overview](https://ormaos.com/benchmarks/), describe the run of 2026-11-27: the most recent complete run made in the controlled environment when there is one, otherwise the first run. Every run in the table counts on the situation pages.
+This page, and the headline and the charts of the [overview](https://ormaos.com/benchmarks/), describe the run of 2026-11-28: the most recent complete run made in the controlled environment when there is one, otherwise the first run. The situation pages show every run in the table, one results folder at a time; no number on these pages adds up the runs of two folders.
 
 | Results folder | Environment | Agent | Date | Runs | Mean score per arm |  |
 |---|---|---|---|---|---|---|
-| [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801) | earlier: bubblewrap, network open | `claude-code / claude-opus-5-5` | 2026-11-27 | 108 | `none` 0.71, `raw` 0.87, `ormaos` 0.93, `ormaos-values` 0.95 | this page |
+| [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801) | earlier: bubblewrap, network open | `claude-code / claude-opus-5-5` | 2026-11-27 | 108 | `none` 0.71, `raw` 0.87, `ormaos` 0.93, `ormaos-values` 0.95 |  |
+| [`agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641) | controlled: container, network limited to the model host | `claude-code / claude-opus-5-5` | 2026-11-28 | 108 | `none` 0.68, `raw` 0.87, `ormaos` 0.95, `ormaos-values` 0.95 | this page |
 
+- **controlled: container, network limited to the model host.** Made by [`agent-bench/harness`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness): every run in a new container, on a network whose only way out is a proxy that allows the model's host; a canary checks it before the first run.
 - **earlier: bubblewrap, network open.** Made by knows2's own runner: every run in bubblewrap, with the network of the machine.
 
 ## This run
 
-- Results folder: [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801)
-- Environment: earlier: bubblewrap, network open
-- ormaos-examples commit that added these results: [`091b688`](https://github.com/ormaos/ormaos-examples/commit/091b688f01b0b233631f0fe714935ebc52ab7fd9)
-- Ormaos commit: [`968f697`](https://github.com/ormaos/ormaos-python/commit/968f697); VizTracer 1.1.1; Python 3.14.4
-- Model: `claude-opus-5-5`, with the `claude` command line 2.1.322
-- Date: 2026-11-27
+- Results folder: [`agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641)
+- Environment: controlled: container, network limited to the model host
+- ormaos-examples commit that added these results: [`d236419`](https://github.com/ormaos/ormaos-examples/commit/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68)
+- Ormaos commit: [`ac4db10`](https://github.com/ormaos/ormaos-python/commit/ac4db10); VizTracer 1.1.1; Python 3.14.4
+- Model: `claude-opus-5-5`, with the agent `claude-code`, command line 2.1.322
+- Date: 2026-11-28
+- Images: base `sha256:3555e687d7c233daa2a0669d2ffdf6d3479fd44b9eaf5d826fb82bd360059456`, with the agent's command line `sha256:6587f63cd673bfad2c6f51a17e2d556d45a80f713a2c6f6213edd39e82950bb3`; Python 3.14.4; Docker version 29.1.3, build 29.1.3-0ubuntu4.1
+- Hosts the proxy allowed: `api.anthropic.com`
+- Expectations, written before the run: [`expectations.md`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/expectations.md), sha256 `e01f669f341fb739694f0568eb948ac0c6ff2e41722116e6a2dedef7c69a3e27` when the run started
 
 The results files, on GitHub:
 
-- [`results.jsonl`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/results.jsonl): one line per run
-- [`streams/`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams): what every agent said and did
-- [`report.md`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/report.md): the report the runner wrote
+- [`results.jsonl`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/results.jsonl): one line per run
+- [`events/`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events): what every agent said and did, in the harness's [event schema](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/EVENTS.md)
+- [`report.md`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/report.md): the report the runner wrote
+- [`run.json`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/run.json): the spec, the images, the canary, the plan
+- [`canary.txt`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/canary.txt) and [`proxy.jsonl`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/proxy.jsonl): the network check before the first run, and what the proxy refused during the batch
 
-To run it again: Linux with [bubblewrap](https://github.com/containers/bubblewrap), Python 3.12 or newer, git, the `claude` command line signed in, and a checkout of ormaos-python next to this repository. The run sends the folders it makes to the model's API.
+To run it again: Linux with podman or docker, Python 3.11 or newer, git, the agent's command line signed in on the machine, and a checkout of ormaos-python next to this repository. The harness does not start a spec without its expectations file. The run sends the folders it makes to the model's API.
 
 ```bash
 git clone https://github.com/ormaos/ormaos-python
-git -C ormaos-python checkout 968f697
+git -C ormaos-python checkout ac4db10
 git clone https://github.com/ormaos/ormaos-examples
-cd ormaos-examples && git checkout 091b688 && cd agent-bench/knows2
+cd ormaos-examples && git checkout d236419 && cd agent-bench/knows2
 python3 build.py
-python3 run.py --runs 3 --replacements 0
+cd ../harness && python3 harness.py run specs/knows2-opus.toml
 ```

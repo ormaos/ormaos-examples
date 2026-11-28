@@ -2,17 +2,20 @@
 
 *Situation · knows2*
 
-A web backend. A FastAPI service over a SQLite database of customers, products and orders, with one route that lists a customer's orders, each with its total. Source: [`use-cases/web-backend`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/web-backend).
+A web backend. A FastAPI service over a SQLite database of customers, products and orders, with one route that lists a customer's orders, each with its total. Source: [`use-cases/web-backend`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/use-cases/web-backend).
 
 Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.
 
-Mean score over every run: `none` 1.00, `raw` 1.00, `ormaos` 0.96, `ormaos-values` 1.00 (3 runs per arm). Agent: `claude-code / claude-opus-5-5`.
+Mean score, per results folder and agent; no number here adds up two of them:
+
+- 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host: `none` 1.00, `raw` 1.00, `ormaos` 0.96, `ormaos-values` 1.00 (3 runs per arm)
+- 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open: `none` 1.00, `raw` 1.00, `ormaos` 0.96, `ormaos-values` 1.00 (3 runs per arm)
 
 ## What happened
 
 During the one request that `main.py` made, the route answered with the customer `Clara` and orders whose `total_cents` add up to 18200; the largest is order 8, with 3660. Handling it ran 38 SQL statements and called `price_of` 24 times; `discount_for` returned 0, from its `except KeyError` branch. Before the request, `store.create()` inserted 38 rows into `order_items`.
 
-The numbers are the oracle's answers to the questions below: [`oracle/web-backend.json`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/oracle/web-backend.json).
+The numbers are the oracle's answers to the questions below: [`oracle/web-backend.json`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/oracle/web-backend.json).
 
 ## What the agent was given
 
@@ -58,6 +61,274 @@ The folder the execution left, with what the arm adds, and 8 questions in `quest
 ## Run 1 of each arm, side by side
 
 Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent's tool calls in order; under each `ormaos` command, the lines of its output that hold a value the agent wrote in `answers.json`, or its first 15 lines, with a link to the full output in the stream.
+
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+#### `none`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-none-1.jsonl)
+- Score 1.00: 8 right, 0 null, 0 wrong
+- 4 tool calls, 45,984 tokens, 25 s
+
+Commands, in order (4):
+
+1. ```text
+   cd /srv/web-backend; ls -la; cat questions.json; cat main.py
+   ```
+2. ```text
+   cd /srv/web-backend; cat app.py store.py README.md requirements.txt
+   ```
+3. ```text
+   cd /tmp && /srv/web-backend/.venv/bin/python -I -c "
+   import sqlite3
+   c=sqlite3.connect('file:/srv/web-backend/orders.db?mode=ro',uri=True);c.row_factory=sqlite3.Row
+   print([tuple(r) for r in c.execute('select * from customers')])
+   print(c.execute('select count(*) from order_items').fetchone()[0])
+   os=c.execute('select id,placed from orders where customer_id=3 order by placed').fetchall()
+   pr={r['id']:r['cents'] for r in c.execute('select * from products')}
+   calls=0;tot=[]
+   for o in os:
+     its=c.execute('select product_id,quantity from order_items where order_id=?',(o['id'],)).fetchall()
+     calls+=len(its); tot.append((o['id'],sum(pr[i[0]]*i[1] for i in its)))
+   print(tot, sum(t for _,t in tot), max(tot,key=lambda x:x[1]), calls, len(os))
+   ```
+
+   … 1 more line of this command
+4. ```text
+   cat > answers.json <<'E'
+   {"q1": "Clara", "q2": "0, yes", "q3": 8, "q4": 18200, "q5": "8, 3660", "q6": 24, "q7": 38, "q8": 38}
+   E
+   cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `"Clara"` |
+| q2 | right | `"0, yes"` |
+| q3 | right | `8` |
+| q4 | right | `18200` |
+| q5 | right | `"8, 3660"` |
+| q6 | right | `24` |
+| q7 | right | `38` |
+| q8 | right | `38` |
+
+#### `raw`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-raw-1.jsonl)
+- Score 1.00: 8 right, 0 null, 0 wrong
+- 5 tool calls, 65,839 tokens, 32 s
+
+Commands, in order (5):
+
+1. ```text
+   cd /srv/web-backend; ls -la; cat questions.json; head -c 1000 result.json
+   ```
+2. ```text
+   cd /srv/web-backend; cat README.md app.py main.py store.py requirements.txt
+   ```
+3. ```text
+   cd /srv/web-backend; python3 - <<'E'
+   import json,collections
+   ev=json.load(open('result.json'))['traceEvents']
+   c=collections.Counter(e['name'] for e in ev if e.get('ph')=='X')
+   for k,v in c.items():
+       if any(s in k for s in ['app.py','store.py','main.py','execute','fetch']): print(v,k)
+   for e in ev:
+       if 'args' in e and e.get('ph')=='X' and ('app.py' in e['name']): print(e['name'],e['args'])
+   E
+   sqlite3 orders.db "select * from customers; select count(*) from order_items;" 2>&1
+   ```
+4. ```text
+   cd /srv/web-backend; python3 - <<'E'
+   import sqlite3
+   c=sqlite3.connect('orders.db')
+   print(c.execute("select * from customers").fetchall())
+   print(c.execute("select * from products").fetchall())
+   print(c.execute("select count(*) from order_items").fetchall())
+   pr=dict(c.execute("select id,cents from products"))
+   tot=[]
+   for oid,pl in c.execute("select id,placed from orders where customer_id=3 order by placed").fetchall():
+       t=sum(pr[p]*q for p,q in c.execute("select product_id,quantity from order_items where order_id=?",(oid,)))
+       tot.append((oid,pl,t))
+   print(tot, sum(t for *_,t in tot), max(tot,key=lambda x:x[2]))
+   ```
+
+   … 1 more line of this command
+5. ```text
+   cd /srv/web-backend; cat > answers.json <<'E'
+   {"q1": "Clara", "q2": "0, yes", "q3": 8, "q4": 18200, "q5": "8, 3660", "q6": 24, "q7": 38, "q8": 38}
+   E
+   cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `"Clara"` |
+| q2 | right | `"0, yes"` |
+| q3 | right | `8` |
+| q4 | right | `18200` |
+| q5 | right | `"8, 3660"` |
+| q6 | right | `24` |
+| q7 | right | `38` |
+| q8 | right | `38` |
+
+#### `ormaos`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-ormaos-1.jsonl)
+- Score 0.88: 7 right, 0 null, 1 wrong
+- 4 tool calls, 71,621 tokens, 29 s
+
+Commands, in order (4):
+
+1. ```text
+   cd /srv/web-backend; .venv/bin/ormaos guide; cat questions.json; ls -la
+   ```
+
+   Output, the first 15 of 181 lines ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-ormaos-1.jsonl?plain=1#L3)):
+
+   ```text
+   ormaos: what actually happened inside a Python execution.
+   It records a run and shows it. It does not judge: you decide whether what
+   happened is what should have happened.
+   
+   WHAT ORMAOS ANSWERS
+   - What ran: the calls of the project's code, as a tree, with the shape of
+     each argument and result (`orders: list[36 Order]`), never the values.
+   - How often: counts by function, by line of code, by kind of I/O.
+   - What was raised and caught: every exception, where it was raised and where
+     it was handled. "swallowed" = it entered an `except` and was not raised
+     again. Also "uncaught", "replaced", "exit".
+   - What I/O happened: SQL statements, files, subprocesses, HTTP requests, each
+     with the line of the project's code that caused it.
+   - What was logged: `logging` records by level, logger and message template,
+     with the line that asked for each; also the ones the level dropped.
+   ```
+2. ```text
+   cd /srv/web-backend; cat README.md app.py main.py store.py; .venv/bin/ormaos show last --full
+   ```
+
+   Output, the 1 line of 211 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-ormaos-1.jsonl?plain=1#L5)):
+
+   ```text
+   CUSTOMERS = [(1, "Ana", "gold"), (2, "Bruno", "silver"), (3, "Clara", "trial")]
+   ```
+3. ```text
+   cd /srv/web-backend; .venv/bin/ormaos io r1 ; .venv/bin/ormaos tree r1 --function price_of --limit 2; .venv/bin/ormaos tree r1 --depth 2; .venv/bin/python -I -c "
+   import sqlite3;c=sqlite3.connect('file:orders.db?mode=ro',uri=True)
+   print(c.execute('select * from customers').fetchall())
+   print(c.execute('select * from products').fetchall())
+   print(c.execute('select count(*) from order_items').fetchall())
+   rows=c.execute('select o.id,o.placed,sum(p.cents*i.quantity) from orders o join order_items i on i.order_id=o.id join products p on p.id=i.product_id where o.customer_id=3 group by o.id order by o.placed').fetchall()
+   print(rows, sum(r[2] for r in rows))
+   print(c.execute('select count(*) from order_items i join orders o on o.id=i.order_id where customer_id=3').fetchall())
+   "
+   ```
+
+   Output, the 6 lines of 62 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-ormaos-1.jsonl?plain=1#L7)):
+
+   ```text
+   r1: 24 of the 72 calls match --function price_of (24 price_of; 0 raised)
+   r1:c10 list_orders(customer_id: int, names: bool, db: sqlite3.Connection) -> dict[2]  app.py:53  3.2ms  io 38  thread 2  calls below: 14
+   [(1, 'Ana', 'gold'), (2, 'Bruno', 'silver'), (3, 'Clara', 'trial')]
+   [(38,)]
+   [(8, '2026-11-01', 3660), (9, '2026-11-02', 120), (10, '2026-11-03', 1510), (11, '2026-11-04', 1520), (12, '2026-11-05', 450), (13, '2026-11-06', 2100), (14, '2026-11-07', 2860), (15, '2026-11-08', 260), (16, '2026-11-09', 690), (17, '2026-11-10', 2880), (18, '2026-11-11', 990), (19, '2026-11-12', 1160)] 18200
+   [(24,)]
+   ```
+4. ```text
+   cd /srv/web-backend; cat > answers.json <<'E'
+   {"q1":"Clara","q2":"0, yes","q3":8,"q4":18200,"q5":"17, 2880","q6":24,"q7":38,"q8":38}
+   E
+   cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `"Clara"` |
+| q2 | right | `"0, yes"` |
+| q3 | right | `8` |
+| q4 | right | `18200` |
+| q5 | wrong | `"17, 2880"` |
+| q6 | right | `24` |
+| q7 | right | `38` |
+| q8 | right | `38` |
+
+#### `ormaos-values`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-ormaos-values-1.jsonl)
+- Score 1.00: 8 right, 0 null, 0 wrong
+- 4 tool calls, 72,546 tokens, 25 s
+
+Commands, in order (4):
+
+1. ```text
+   cd /srv/web-backend; cat questions.json; ls -la; .venv/bin/ormaos guide
+   ```
+
+   Output, the first 15 of 181 lines ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-ormaos-values-1.jsonl?plain=1#L3)):
+
+   ```text
+   {
+     "questions": [
+       {
+         "id": "q1",
+         "question": "What customer name did the route put in the \"customer\" field of the response body it returned for this request?",
+         "format": "A single name exactly as stored in the database, e.g. \"Name\""
+       },
+       {
+         "id": "q2",
+         "question": "What discount percentage did discount_for return for the requested customer during this request, and was it reached through the except KeyError branch?",
+         "format": "An integer followed by yes or no, e.g. \"7, no\""
+       },
+       {
+         "id": "q3",
+         "question": "What was the id of the first order in the \"orders\" list of the response?",
+   ```
+2. ```text
+   cd /srv/web-backend; cat main.py app.py store.py README.md; .venv/bin/ormaos show last --full
+   ```
+
+   Output, the 1 line of 212 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-ormaos-values-1.jsonl?plain=1#L5)):
+
+   ```text
+   CUSTOMERS = [(1, "Ana", "gold"), (2, "Bruno", "silver"), (3, "Clara", "trial")]
+   ```
+3. ```text
+   cd /srv/web-backend; .venv/bin/ormaos tree r1 --limit 200; .venv/bin/ormaos io r1 --limit 200 | head -80
+   ```
+
+   Output, the 2 lines of 67 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-ormaos-values-1.jsonl?plain=1#L7)):
+
+   ```text
+   r1:c10 list_orders(customer_id: int=3, names: bool=False, db: sqlite3.Connection) -> dict[2]="{\"customer\": \"Clara\", \"orders\": \"<another type>\"}"  app.py:53  3.3ms  io 38  thread 2  calls below: 14
+     r1:c13 order_total(db: sqlite3.Connection, order_id: int=8) -> int=3660  app.py:49  355us  io 4  thread 2  calls below: 2
+   ```
+4. ```text
+   cd /srv/web-backend; cat > answers.json <<'E'
+   {"q1": "Clara", "q2": "0, yes", "q3": 8, "q4": 18200, "q5": "8, 3660", "q6": 24, "q7": 38, "q8": 38}
+   E
+   cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `"Clara"` |
+| q2 | right | `"0, yes"` |
+| q3 | right | `8` |
+| q4 | right | `18200` |
+| q5 | right | `"8, 3660"` |
+| q6 | right | `24` |
+| q7 | right | `38` |
+| q8 | right | `38` |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
 
 #### `none`
 
@@ -344,6 +615,21 @@ Its answers
 
 Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its commands up to its last write of `answers.json`. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them.
 
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+| Question | `ormaos`: verbs (runs) | answered | right | `ormaos-values`: verbs (runs) | answered | right |
+|---|---|---|---|---|---|---|
+| q1 | show 3, tree 3, io 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, io 3, guide 3, list 1 | 3/3 | 3/3 |
+| q2 | show 3, tree 3, io 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, io 3, guide 3, list 1 | 3/3 | 3/3 |
+| q3 | show 3, tree 3, io 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, io 3, guide 3, list 1 | 3/3 | 3/3 |
+| q4 | show 3, tree 3, io 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, io 3, guide 3, list 1 | 3/3 | 3/3 |
+| q5 | show 3, tree 3, io 3, guide 3 | 3/3 | 2/3 | show 3, tree 3, io 3, guide 3, list 1 | 3/3 | 3/3 |
+| q6 | show 3, tree 3, io 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, io 3, guide 3, list 1 | 3/3 | 3/3 |
+| q7 | show 3, tree 3, io 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, io 3, guide 3, list 1 | 3/3 | 3/3 |
+| q8 | show 3, tree 3, io 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, io 3, guide 3, list 1 | 3/3 | 3/3 |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
+
 | Question | `ormaos`: verbs (runs) | answered | right | `ormaos-values`: verbs (runs) | answered | right |
 |---|---|---|---|---|---|---|
 | q1 | show 3, tree 3, io 3, guide 3, exceptions 1, list 1 | 3/3 | 3/3 | show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 2 | 3/3 | 3/3 |
@@ -357,7 +643,26 @@ Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its c
 
 ## Every run
 
-Every run of every arm.
+Every run of every arm, one table per results folder and agent.
+
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+| Arm | Run | Score | Right | Null | Wrong | `ormaos` verbs before answers.json | Tool calls | Tokens | Wall time | Stream |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `none` | 1 | 1.00 | 8 | 0 | 0 | – | 4 | 45,984 | 25 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-none-1.jsonl) |
+| `none` | 2 | 1.00 | 8 | 0 | 0 | – | 4 | 45,915 | 23 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-none-2.jsonl) |
+| `none` | 3 | 1.00 | 8 | 0 | 0 | – | 6 | 73,477 | 35 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-none-3.jsonl) |
+| `raw` | 1 | 1.00 | 8 | 0 | 0 | – | 5 | 65,839 | 32 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-raw-1.jsonl) |
+| `raw` | 2 | 1.00 | 8 | 0 | 0 | – | 4 | 55,338 | 28 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-raw-2.jsonl) |
+| `raw` | 3 | 1.00 | 8 | 0 | 0 | – | 6 | 84,039 | 44 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-raw-3.jsonl) |
+| `ormaos` | 1 | 0.88 | 7 | 0 | 1 | guide, show, io, tree | 4 | 71,621 | 29 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-ormaos-1.jsonl) |
+| `ormaos` | 2 | 1.00 | 8 | 0 | 0 | guide, show, io, tree | 4 | 67,380 | 24 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-ormaos-2.jsonl) |
+| `ormaos` | 3 | 1.00 | 8 | 0 | 0 | guide, show, io, tree | 4 | 67,267 | 28 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-ormaos-3.jsonl) |
+| `ormaos-values` | 1 | 1.00 | 8 | 0 | 0 | guide, show, tree, io | 4 | 72,546 | 25 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-ormaos-values-1.jsonl) |
+| `ormaos-values` | 2 | 1.00 | 8 | 0 | 0 | guide, list, show, tree, io | 4 | 72,988 | 27 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-ormaos-values-2.jsonl) |
+| `ormaos-values` | 3 | 1.00 | 8 | 0 | 0 | guide, show, tree, io | 4 | 72,618 | 28 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/web-backend-ormaos-values-3.jsonl) |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
 
 | Arm | Run | Score | Right | Null | Wrong | `ormaos` verbs before answers.json | Tool calls | Tokens | Wall time | Stream |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -377,4 +682,5 @@ Every run of every arm.
 ## The results files
 
 - The benchmark: [knows2](https://ormaos.com/benchmarks/knows2/#web-backend)
-- Results folder: [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801), earlier: bubblewrap, network open
+- Results folder: [`agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641): 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+- Results folder: [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801): 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open

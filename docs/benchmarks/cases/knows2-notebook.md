@@ -2,17 +2,20 @@
 
 *Situation · knows2*
 
-A notebook. A Jupyter notebook that reads the sales of the week, leaves out single sales above a limit, adds tax and sums the week; its cells ran in the order of their saved execution counts. Source: [`use-cases/notebook`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/notebook).
+A notebook. A Jupyter notebook that reads the sales of the week, leaves out single sales above a limit, adds tax and sums the week; its cells ran in the order of their saved execution counts. Source: [`use-cases/notebook`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/use-cases/notebook).
 
 Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.
 
-Mean score over every run: `none` 0.50, `raw` 0.62, `ormaos` 0.62, `ormaos-values` 0.62 (3 runs per arm). Agent: `claude-code / claude-opus-5-5`.
+Mean score, per results folder and agent; no number here adds up two of them:
+
+- 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host: `none` 0.50, `raw` 0.62, `ormaos` 0.62, `ormaos-values` 0.62 (3 runs per arm)
+- 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open: `none` 0.50, `raw` 0.62, `ormaos` 0.62, `ormaos-values` 0.62 (3 runs per arm)
 
 ## What happened
 
 `load("sales.csv")` returned 40 rows, and the third cell the kernel ran was `cell-4`. `drop_key_accounts` compared prices that were tax-inclusive and left 22 rows; 12 of the rows it took out had a price within the limit before tax. At the end `week` held 15602.40, over rows with 42 items in all.
 
-The numbers are the oracle's answers to the questions below: [`oracle/notebook.json`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/oracle/notebook.json).
+The numbers are the oracle's answers to the questions below: [`oracle/notebook.json`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/oracle/notebook.json).
 
 ## What the agent was given
 
@@ -58,6 +61,396 @@ The code cells of report.ipynb ran once in a Jupyter kernel of `.venv/bin/python
 ## Run 1 of each arm, side by side
 
 Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent's tool calls in order; under each `ormaos` command, the lines of its output that hold a value the agent wrote in `answers.json`, or its first 15 lines, with a link to the full output in the stream.
+
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+#### `none`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-none-1.jsonl)
+- Score 0.50: 4 right, 4 null, 0 wrong
+- 4 tool calls, 48,464 tokens, 23 s
+
+Commands, in order (4):
+
+1. ```text
+   cd /srv/notebook; ls -la; cat questions.json; python3 -c "
+   import json;nb=json.load(open('report.ipynb'))
+   for c in nb['cells']:
+     print('---',c['cell_type'],c.get('execution_count'));print(''.join(c['source']))
+     for o in c.get('outputs',[]): print('OUT:',json.dumps(o)[:1500])
+   "
+   ```
+2. ```text
+   cd /srv/notebook; cat README.md run_notebook.py requirements.txt; grep -o '"id": "[^"]*"' report.ipynb; find .venv -iname '*ormaos*'; find / -newer requirements.txt -type f -not -path '/proc/*' -not -path '/sys/*' 2>/dev/null | grep -v -e ^/dev -e ^/run | head -50
+   ```
+3. ```text
+   cd /srv/notebook; cat .venv/lib/python3.14/site-packages/ormaos.py; python3 -c "
+   import json;nb=json.load(open('report.ipynb'))
+   for c in nb['cells']: print(c['id'],c.get('execution_count'),c.get('metadata'))
+   print(nb['metadata'])"
+   ```
+4. ```text
+   cd /srv/notebook; cat > answers.json <<'E'
+   {"q1": 40, "q2": "cell-4", "q3": "tax-inclusive", "q4": null, "q5": null, "q6": "15602.40", "q7": null, "q8": null}
+   E
+   cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `40` |
+| q2 | right | `"cell-4"` |
+| q3 | right | `"tax-inclusive"` |
+| q4 | null |  |
+| q5 | null |  |
+| q6 | right | `"15602.40"` |
+| q7 | null |  |
+| q8 | null |  |
+
+Its own words on q4, q5, q7 and q8: the paragraphs of its last message that name them
+
+```text
+| id | answer | basis |
+|---|---|---|
+| q1 | 40 | The saved output of cell-2 (`len(rows)`) is `40`. |
+| q2 | `"cell-4"` | The saved execution counts are cell-1 → 1, cell-2 → 2, cell-4 → 3, cell-3 → 4, cell-5 → 5. So the third cell executed was cell-4. |
+| q3 | `"tax-inclusive"` | cell-4 (`add_tax`, count 3) ran before cell-3 (`drop_key_accounts`, count 4). The filter therefore compared prices that already included the 20% tax against `LIMIT`. |
+| q4 | `null` | The number of rows left isn't in any saved output. |
+| q5 | `null` | Answering this needs the original prices from `sales.csv`. |
+| q6 | `"15602.40"` | From the printed line `week total with tax: 15602.40`. |
+| q7 | `null` | The rows' prices aren't saved anywhere. |
+| q8 | `null` | The rows' quantities aren't saved anywhere. |
+```
+
+#### `raw`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-raw-1.jsonl)
+- Score 0.62: 5 right, 3 null, 0 wrong
+- 8 tool calls, 93,867 tokens, 49 s
+
+Commands, in order (8):
+
+1. ```text
+   cd /srv/notebook; ls -la; cat questions.json; python3 -c "
+   import json;nb=json.load(open('report.ipynb'))
+   for c in nb['cells']:
+     print('----',c['cell_type'],c.get('execution_count'));print(''.join(c['source']))
+     for o in c.get('outputs',[]): print('OUT:',json.dumps(o)[:1500])
+   "
+   ```
+2. ```text
+   cd /srv/notebook; cat README.md run_notebook.py; python3 -c "
+   import json;nb=json.load(open('report.ipynb'))
+   for c in nb['cells']: print(c.get('id'),c.get('execution_count'))"; find .venv -iname '*ormaos*' | head
+   ```
+3. ```text
+   cd /srv/notebook; python3 -c "
+   import json,collections
+   d=json.load(open('result.json'))
+   ev=d['traceEvents'];print(len(ev)); print([k for k in d if k!='traceEvents'])
+   c=collections.Counter(e.get('name') for e in ev);print(c.most_common(40))
+   print(ev[:3])
+   "
+   ```
+4. ```text
+   cd /srv/notebook; cat .venv/lib/python3.14/site-packages/ormaos.py | head -80; python3 -c "
+   import json,collections
+   d=json.load(open('result.json'))
+   print(d['viztracer_metadata'])
+   ev=d['traceEvents']
+   ks=collections.Counter(k for e in ev for k in e);print(ks)
+   for e in ev:
+     n=e.get('name','')
+     if 'ipykernel' in n and ('cell' in n.lower()) or any(s in n for s in ['load','drop_key','add_tax','total (','ormaos','<listcomp>','<genexpr>']) and 'importlib' not in n and 'site-packages/fastjson' not in n:
+       pass
+   c=collections.Counter(e.get('name') for e in ev if 'ipykernel_' in e.get('name','') or '/tmp/' in e.get('name',''))
+   print(c)
+   ```
+
+   … 1 more line of this command
+5. ```text
+   cd /srv/notebook; python3 -c "
+   import json
+   d=json.load(open('result.json'))
+   ev=d['traceEvents']
+   for e in ev:
+     if 'args' in e: print(e)
+   for e in sorted([e for e in ev if '/tmp/ipykernel_3/1887773198' in e.get('name','') and 'genexpr' not in e['name']],key=lambda e:e['ts']): print(e['name'],e['ts'],e['dur'])
+   "
+   ```
+6. ```text
+   cd /srv/notebook; python3 -c "
+   import json
+   d=json.load(open('result.json'))
+   ev=d['traceEvents']
+   g=[e for e in ev if 'genexpr (/tmp/ipykernel_3' in e.get('name','')]
+   print(min(e['ts'] for e in g), max(e['ts'] for e in g))
+   print(sum(1 for e in ev if e.get('name')=='builtins.float' and 43668740639<e['ts']<43668740831))
+   "
+   ```
+7. ```text
+   cd /srv/notebook; python3 -c "
+   import json
+   d=json.load(open('result.json'))
+   ev=d['traceEvents']
+   g=[e for e in ev if 'genexpr' in e.get('name','') and 'ipykernel_3/' in e['name']]
+   print(len(g),min(e['ts'] for e in g), max(e['ts'] for e in g))
+   print(sum(1 for e in ev if e.get('name')=='builtins.float' and 43668740639<e['ts']<43668740831))
+   "
+   ```
+8. ```text
+   cd /srv/notebook; cat > answers.json <<'E'
+   {"q1": 40, "q2": "cell-4", "q3": "tax-inclusive", "q4": 22, "q5": null, "q6": "15602.40", "q7": null, "q8": null}
+   E
+   python3 -m json.tool answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `40` |
+| q2 | right | `"cell-4"` |
+| q3 | right | `"tax-inclusive"` |
+| q4 | right | `22` |
+| q5 | null |  |
+| q6 | right | `"15602.40"` |
+| q7 | null |  |
+| q8 | null |  |
+
+Its own words on q5, q7 and q8: the paragraphs of its last message that name them
+
+```text
+- **q1 = 40.** This is the saved output of cell-2, `len(rows)`.
+- **q2 = cell-4.** The saved execution counts are cell-1 → 1, cell-2 → 2, cell-4 → 3, cell-3 → 4, cell-5 → 5. So the tax cell (cell-4) ran before the filter cell (cell-3). The trace agrees: `add_tax` starts before `drop_key_accounts`.
+- **q3 = tax-inclusive.** Because tax was added first, the filter compared prices that already included the 20%.
+- **q4 = 22.** The trace doesn't record values, so this is counted indirectly. The generator inside `total` was entered 23 times, all during that one `total` call. That's one entry per row plus the final one that ends it, so 22 rows were left.
+- **q6 = 15602.40.** This is the printed output of cell-5. I wrote it as the string `"15602.40"` so it keeps exactly two decimals.
+- **q5, q7, q8 = null.** These need individual prices and quantities. `sales.csv` isn't here, the trace records only function names and timings, and `ormaos.record()` is a stub that saves nothing. So I can't tell how many of the 18 dropped rows were 1000 or less before tax, what the highest remaining price was, or what the quantities added up to.
+```
+
+#### `ormaos`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-ormaos-1.jsonl)
+- Score 0.62: 5 right, 3 null, 0 wrong
+- 5 tool calls, 79,689 tokens, 28 s
+
+Commands, in order (5):
+
+1. ```text
+   ls -la && cat questions.json && .venv/bin/ormaos guide
+   ```
+
+   Output, the first 15 of 179 lines ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-ormaos-1.jsonl?plain=1#L3)):
+
+   ```text
+   total 36
+   drwxrwxr-x 4 ubuntu ubuntu 4096 Nov 28 02:47 .
+   drwxr-xr-x 1 root   root   4096 Nov 28 15:31 ..
+   drwxrwxr-x 6 ubuntu ubuntu 4096 Nov 28 02:47 .ormaos
+   drwxrwxr-x 6 ubuntu ubuntu 4096 Nov 27 16:56 .venv
+   -rw-rw-r-- 1 ubuntu ubuntu  855 Nov 27 16:26 README.md
+   -rw-rw-r-- 1 ubuntu ubuntu 1864 Nov 28 02:47 questions.json
+   -rw-rw-r-- 1 ubuntu ubuntu 2645 Nov 27 16:25 report.ipynb
+   -rw-rw-r-- 1 ubuntu ubuntu   46 Nov 27 16:25 requirements.txt
+   -rw-rw-r-- 1 ubuntu ubuntu  686 Nov 27 16:25 run_notebook.py
+   {
+     "questions": [
+       {
+         "id": "q1",
+         "question": "How many rows did load(\"sales.csv\") return in this execution, i.e. what was len(rows) right after the cell with id cell-2 ran?",
+   ```
+2. ```text
+   cat README.md run_notebook.py; python3 -c "
+   import json;nb=json.load(open('report.ipynb'))
+   for c in nb['cells']: print(c.get('id'),c.get('execution_count'),c['cell_type']);print(''.join(c['source']));print(c.get('outputs'));print('---')"; .venv/bin/ormaos list; .venv/bin/ormaos show last --full
+   ```
+
+   Output, the 2 lines of 141 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-ormaos-1.jsonl?plain=1#L5)):
+
+   ```text
+   [{'data': {'text/plain': ['40']}, 'execution_count': 2, 'metadata': {}, 'output_type': 'execute_result'}]
+   cell-4 3 code
+   ```
+3. ```text
+   cd /srv/notebook; for r in r1 r2 r3 r4; do .venv/bin/ormaos tree $r; .venv/bin/ormaos exceptions $r; done; .venv/bin/ormaos io r1
+   ```
+
+   Output, the 4 lines of 21 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-ormaos-1.jsonl?plain=1#L7)):
+
+   ```text
+   r1:c1 load(path: str[9]) -> list[40 dict]  /tmp/ipykernel_3/1887773198.py:9  251us  io 1  task 1
+   r2:c1 add_tax(rows: list[40 dict]) -> list[40 dict]  /tmp/ipykernel_3/1887773198.py:21  78us  task 1
+   r3:c1 drop_key_accounts(rows: list[40 dict]) -> list[22 dict]  /tmp/ipykernel_3/1887773198.py:17  49us  task 1
+   r4:c1 total(rows: list[22 dict]) -> float  /tmp/ipykernel_3/1887773198.py:25  201us  task 1  calls below: 1
+   ```
+4. ```text
+   cd /srv/notebook; cat > answers.json <<'E'
+   {"q1": 40, "q2": "cell-4", "q3": "tax-inclusive", "q4": 22, "q5": null, "q6": "15602.40", "q7": null, "q8": null}
+   E
+   python3 -m json.tool answers.json
+   ```
+5. ```text
+   cd /srv/notebook; sed -i 's/"15602.40"/15602.40/' answers.json; cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `40` |
+| q2 | right | `"cell-4"` |
+| q3 | right | `"tax-inclusive"` |
+| q4 | right | `22` |
+| q5 | null |  |
+| q6 | right | `15602.4` |
+| q7 | null |  |
+| q8 | null |  |
+
+Its own words on q5, q7 and q8: the paragraphs of its last message that name them
+
+```text
+| id | answer | source |
+|---|---|---|
+| q1 | 40 | cell-2's saved output, and r1 `load` returned a list of 40 |
+| q2 | cell-4 | the cell with execution count 3 |
+| q3 | tax-inclusive | `add_tax` (r2) ran before `drop_key_accounts` (r3) |
+| q4 | 22 | r3 `drop_key_accounts` went from 40 rows to 22 |
+| q5 | null | see below |
+| q6 | 15602.40 | cell-5's printed output |
+| q7 | null | see below |
+| q8 | null | see below |
+
+**Why q5, q7 and q8 are null:**
+- **q5:** I'd need to know how many of the 18 dropped rows had a price under 1000 before tax. That depends on the prices, which weren't recorded.
+- **q7 and q8:** the highest price and the total quantity of the remaining rows are also values the recording didn't keep.
+```
+
+#### `ormaos-values`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-ormaos-values-1.jsonl)
+- Score 0.62: 5 right, 3 null, 0 wrong
+- 7 tool calls, 137,526 tokens, 38 s
+
+Commands, in order (7):
+
+1. ```text
+   cd /srv/notebook; ls -la; cat questions.json; .venv/bin/ormaos guide
+   ```
+
+   Output, the first 15 of 179 lines ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-ormaos-values-1.jsonl?plain=1#L3)):
+
+   ```text
+   total 36
+   drwxrwxr-x 4 ubuntu ubuntu 4096 Nov 28 02:47 .
+   drwxr-xr-x 1 root   root   4096 Nov 28 15:31 ..
+   drwxrwxr-x 6 ubuntu ubuntu 4096 Nov 28 02:47 .ormaos
+   drwxrwxr-x 6 ubuntu ubuntu 4096 Nov 27 16:56 .venv
+   -rw-rw-r-- 1 ubuntu ubuntu  855 Nov 27 16:26 README.md
+   -rw-rw-r-- 1 ubuntu ubuntu 1864 Nov 28 02:47 questions.json
+   -rw-rw-r-- 1 ubuntu ubuntu 2645 Nov 27 16:25 report.ipynb
+   -rw-rw-r-- 1 ubuntu ubuntu   46 Nov 27 16:25 requirements.txt
+   -rw-rw-r-- 1 ubuntu ubuntu  686 Nov 27 16:25 run_notebook.py
+   {
+     "questions": [
+       {
+         "id": "q1",
+         "question": "How many rows did load(\"sales.csv\") return in this execution, i.e. what was len(rows) right after the cell with id cell-2 ran?",
+   ```
+2. ```text
+   cd /srv/notebook; cat README.md run_notebook.py; python3 -c "
+   import json;nb=json.load(open('report.ipynb'))
+   for c in nb['cells']: print(c.get('id'),c.get('execution_count'),''.join(c['source']),c.get('outputs'),sep='\n');print('---')"; .venv/bin/ormaos list; .venv/bin/ormaos show last --full
+   ```
+
+   Output, the 2 lines of 148 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-ormaos-values-1.jsonl?plain=1#L5)):
+
+   ```text
+   [{'data': {'text/plain': ['40']}, 'execution_count': 2, 'metadata': {}, 'output_type': 'execute_result'}]
+   cell-4
+   ```
+3. ```text
+   cd /srv/notebook; for r in r1 r2 r3 r4; do .venv/bin/ormaos tree $r --json; echo; done; .venv/bin/ormaos exceptions r1
+   ```
+
+   Output, the first 15 of the 19 lines of 599 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-ormaos-values-1.jsonl?plain=1#L7)):
+
+   ```text
+           "len": 40,
+             "dict": 40
+             "...[40 items]"
+             "len": 40,
+               "dict": 40
+               "...[40 items]"
+           "len": 40,
+             "dict": 40
+             "...[40 items]"
+             "len": 40,
+               "dict": 40
+               "...[40 items]"
+           "len": 22,
+             "dict": 22
+             "...[22 items]"
+   ```
+4. ```text
+   cd /srv/notebook; find .ormaos -type f | head -50; du -sh .ormaos/*
+   ```
+5. ```text
+   cd /srv/notebook; grep -o '\.\.\.\[[^]]*\]' -r .ormaos | sort | uniq -c; grep -c '' .ormaos/r*/*.jsonl; head -c 1500 .ormaos/r3/p3*.jsonl
+   ```
+6. ```text
+   cd /srv/notebook; cat > answers.json <<'EOF'
+   {
+     "q1": 40,
+     "q2": "cell-4",
+     "q3": "tax-inclusive",
+     "q4": 22,
+     "q5": null,
+     "q6": "15602.40",
+     "q7": null,
+     "q8": null
+   }
+   EOF
+   ```
+
+   … 1 more line of this command
+7. ```text
+   cd /srv/notebook; sed -i 's/"15602.40"/15602.40/' answers.json; cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `40` |
+| q2 | right | `"cell-4"` |
+| q3 | right | `"tax-inclusive"` |
+| q4 | right | `22` |
+| q5 | null |  |
+| q6 | right | `15602.4` |
+| q7 | null |  |
+| q8 | null |  |
+
+Its own words on q5, q7 and q8: the paragraphs of its last message that name them
+
+```text
+| id | answer | where it comes from |
+|---|---|---|
+| q1 | 40 | `load` returned a list of 40 items (r1), and cell-2's saved output is `40` |
+| q2 | cell-4 | The saved execution counts are cell-1=1, cell-2=2, cell-4=3, cell-3=4, cell-5=5 |
+| q3 | tax-inclusive | `add_tax` ran first (r2), and `drop_key_accounts` (r3) received prices like 144.0 and 936.0, which already include the 20% tax |
+| q4 | 22 | `drop_key_accounts` returned 22 items |
+| q5 | null | See below |
+| q6 | 15602.40 | `total` returned 15602.4, which matches the printed `week total with tax: 15602.40` |
+| q7 | null | See below |
+| q8 | null | See below |
+
+**Why three are `null`:** the recording only kept the first 10 items of each list. q5, q7 and q8 depend on all 40 original rows or all 22 rows that were kept, and `sales.csv` is gone, so they can't be worked out exactly.
+```
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
 
 #### `none`
 
@@ -420,6 +813,21 @@ Its own words on q5, q7 and q8: the paragraphs of its last message that name the
 
 Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its commands up to its last write of `answers.json`. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them.
 
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+| Question | `ormaos`: verbs (runs) | answered | right | `ormaos-values`: verbs (runs) | answered | right |
+|---|---|---|---|---|---|---|
+| q1 | show 3, tree 3, exceptions 3, io 3, list 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, list 3, guide 3, exceptions 2 | 3/3 | 3/3 |
+| q2 | show 3, tree 3, exceptions 3, io 3, list 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, list 3, guide 3, exceptions 2 | 3/3 | 3/3 |
+| q3 | show 3, tree 3, exceptions 3, io 3, list 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, list 3, guide 3, exceptions 2 | 3/3 | 3/3 |
+| q4 | show 3, tree 3, exceptions 3, io 3, list 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, list 3, guide 3, exceptions 2 | 3/3 | 3/3 |
+| q5 | – | 0/3 | 0/3 | – | 0/3 | 0/3 |
+| q6 | show 3, tree 3, exceptions 3, io 3, list 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, list 3, guide 3, exceptions 2 | 3/3 | 3/3 |
+| q7 | – | 0/3 | 0/3 | – | 0/3 | 0/3 |
+| q8 | – | 0/3 | 0/3 | – | 0/3 | 0/3 |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
+
 | Question | `ormaos`: verbs (runs) | answered | right | `ormaos-values`: verbs (runs) | answered | right |
 |---|---|---|---|---|---|---|
 | q1 | show 3, tree 3, exceptions 3, list 3, guide 3, io 2 | 3/3 | 3/3 | show 3, tree 3, exceptions 3, list 3, guide 3 | 3/3 | 3/3 |
@@ -433,7 +841,26 @@ Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its c
 
 ## Every run
 
-Every run of every arm.
+Every run of every arm, one table per results folder and agent.
+
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+| Arm | Run | Score | Right | Null | Wrong | `ormaos` verbs before answers.json | Tool calls | Tokens | Wall time | Stream |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `none` | 1 | 0.50 | 4 | 4 | 0 | – | 4 | 48,464 | 23 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-none-1.jsonl) |
+| `none` | 2 | 0.50 | 4 | 4 | 0 | – | 4 | 45,984 | 24 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-none-2.jsonl) |
+| `none` | 3 | 0.50 | 4 | 4 | 0 | – | 5 | 66,631 | 32 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-none-3.jsonl) |
+| `raw` | 1 | 0.62 | 5 | 3 | 0 | – | 8 | 93,867 | 49 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-raw-1.jsonl) |
+| `raw` | 2 | 0.62 | 5 | 3 | 0 | – | 6 | 93,393 | 42 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-raw-2.jsonl) |
+| `raw` | 3 | 0.62 | 5 | 3 | 0 | – | 5 | 67,633 | 44 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-raw-3.jsonl) |
+| `ormaos` | 1 | 0.62 | 5 | 3 | 0 | guide, list, show, tree, exceptions, io | 5 | 79,689 | 28 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-ormaos-1.jsonl) |
+| `ormaos` | 2 | 0.62 | 5 | 3 | 0 | guide, list, show, tree, exceptions, io | 4 | 63,647 | 24 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-ormaos-2.jsonl) |
+| `ormaos` | 3 | 0.62 | 5 | 3 | 0 | guide, list, show, tree, exceptions, io | 6 | 96,060 | 36 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-ormaos-3.jsonl) |
+| `ormaos-values` | 1 | 0.62 | 5 | 3 | 0 | guide, list, show, tree, exceptions | 7 | 137,526 | 38 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-ormaos-values-1.jsonl) |
+| `ormaos-values` | 2 | 0.62 | 5 | 3 | 0 | guide, list, show, tree, exceptions | 7 | 151,601 | 37 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-ormaos-values-2.jsonl) |
+| `ormaos-values` | 3 | 0.62 | 5 | 3 | 0 | guide, list, show, tree | 6 | 118,447 | 40 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/notebook-ormaos-values-3.jsonl) |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
 
 | Arm | Run | Score | Right | Null | Wrong | `ormaos` verbs before answers.json | Tool calls | Tokens | Wall time | Stream |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -453,4 +880,5 @@ Every run of every arm.
 ## The results files
 
 - The benchmark: [knows2](https://ormaos.com/benchmarks/knows2/#notebook)
-- Results folder: [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801), earlier: bubblewrap, network open
+- Results folder: [`agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641): 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+- Results folder: [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801): 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
