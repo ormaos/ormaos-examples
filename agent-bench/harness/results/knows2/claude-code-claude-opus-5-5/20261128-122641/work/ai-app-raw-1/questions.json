@@ -1,0 +1,39 @@
+{
+  "questions": [
+    {
+      "id": "q2",
+      "question": "How many of the tickets got their summary from the small-1 model, without falling back to large-1?",
+      "format": "An integer between 0 and 8"
+    },
+    {
+      "id": "q3",
+      "question": "How many HTTP 503 ('model overloaded') responses did the model server send during the run?",
+      "format": "An integer"
+    },
+    {
+      "id": "q4",
+      "question": "How many POST requests in total did app.py send to the model server, counting both small-1 and large-1 calls?",
+      "format": "An integer"
+    },
+    {
+      "id": "q5",
+      "question": "What are the ids of the tickets whose summary came from the large-1 model, in the order they were processed?",
+      "format": "A JSON list of the ticket ids exactly as they appear in tickets.json, e.g. [3, 7]; [] if none"
+    },
+    {
+      "id": "q6",
+      "question": "What was the length, in characters, of the longest prompt (instruction plus ticket text) that app.py sent in this run?",
+      "format": "An integer"
+    },
+    {
+      "id": "q7",
+      "question": "What summary text was written to summaries.json for the first ticket in tickets.json?",
+      "format": "The exact summary string, without surrounding quotes"
+    },
+    {
+      "id": "q8",
+      "question": "What was the size, in bytes, of the summaries.json file that this run wrote?",
+      "format": "An integer"
+    }
+  ]
+}

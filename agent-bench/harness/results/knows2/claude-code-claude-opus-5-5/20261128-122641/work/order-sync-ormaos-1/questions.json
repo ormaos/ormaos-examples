@@ -1,0 +1,44 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "How many order rows did the sales API's GET /orders return to the job in this run (the number of orders parsed, len(orders) in job.main)?",
+      "format": "A non-negative integer, e.g. 42"
+    },
+    {
+      "id": "q2",
+      "question": "How many orders were newly applied to the inventory in this run, i.e. for how many orders did inventory.apply_order return True and insert a row into applied_orders?",
+      "format": "A non-negative integer, e.g. 37"
+    },
+    {
+      "id": "q3",
+      "question": "How many orders were passed over without error because an earlier run had already applied their order_id (inventory.apply_order returned False)?",
+      "format": "A non-negative integer, e.g. 3"
+    },
+    {
+      "id": "q4",
+      "question": "How many orders were skipped because an exception was raised for them inside sync_orders (validation failure, unknown SKU, or any other error), each of which produced an 'order ... skipped' warning that the default ERROR log level suppressed?",
+      "format": "A non-negative integer, e.g. 2"
+    },
+    {
+      "id": "q5",
+      "question": "What are the order_ids of the orders skipped because of an exception in sync_orders (the orders counted in q4)?",
+      "format": "A JSON list of order_id strings sorted in ascending lexicographic order, e.g. [\"A-1007\", \"A-1012\"]; [] if none"
+    },
+    {
+      "id": "q6",
+      "question": "For each skipped order (the orders counted in q4), which exception class caused it to be skipped?",
+      "format": "A JSON object mapping each skipped order_id to the exception class name, e.g. {\"A-1007\": \"SkuFormatError\", \"A-1012\": \"UnknownSkuError\"}; {} if none"
+    },
+    {
+      "id": "q7",
+      "question": "How many single items in total were taken out of stock in this run, i.e. the sum of the 'taken' quantity over all orders newly applied in this run (after pack-to-item conversion and capping at the stock on hand)?",
+      "format": "A non-negative integer, e.g. 318"
+    },
+    {
+      "id": "q8",
+      "question": "How many back-order rows did this run insert into the backorders table, and how many items did they add up to in total?",
+      "format": "Two non-negative integers separated by a comma: rows,items, e.g. 2,15"
+    }
+  ]
+}
