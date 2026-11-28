@@ -1,5 +1,7 @@
 # agent-bench/harness: knows2, claude-code, claude-opus-5-5
 
+**A test of the harness, not a result.** Nothing may be concluded from its scores.
+
 Spec `smoke`: 4 runs planned, 4 run; the first attempt of every task, arm and run, all of them. Agent claude-code 2.1.322, model claude-opus-5-5, effort default, 1 per task and arm, 900 s per run, 1 at a time. Started 2026-11-27T19:26:13, finished 2026-11-27T19:29:32.
 
 - Expectations: `expectations/smoke.md`, sha256 `27ea3c80f6ecebd7d86ef8cfceb692ee9bf13242d3890a20f5ae35da05ce5e62` when the run started; it has not changed since.
@@ -17,6 +19,14 @@ Spec `smoke`: 4 runs planned, 4 run; the first attempt of every task, arm and ru
 | ormaos-values | 1 | 1.00 | - | 8 | 0 | 0 | 54 s | 8 | 248,718 | $0.40 |
 
 Tokens are input, output and cache tokens added up, and the cost is in US dollars, both as the agent's command line reports them; different vendors count tokens differently. With one run per arm there is no interval.
+
+## Per task
+
+Mean score of the runs of each task and arm.
+
+| Task | Questions | none | raw | ormaos | ormaos-values |
+|---|---|---|---|---|---|
+| order-sync | 8 | 0.12 | 1.00 | 1.00 | 1.00 |
 
 ## Every run
 

@@ -46,8 +46,15 @@ def mount(task):
 
 
 def manifest():
+    """What build.py made. A path of this machine is written as it is under
+    knows2/, so that no results folder names a home folder."""
     path = BUILD / "manifest.json"
-    return json.loads(path.read_text()) if path.exists() else {"tasks": {}}
+    built = json.loads(path.read_text()) if path.exists() else {"tasks": {}}
+    for task in built["tasks"].values():
+        for arm, venv in (task.get("venvs") or {}).items():
+            if venv and Path(venv).is_absolute() and Path(venv).is_relative_to(FOLDER):
+                task["venvs"][arm] = Path(venv).relative_to(FOLDER).as_posix()
+    return built
 
 
 def not_built(names):
@@ -72,7 +79,7 @@ def folder(task, arm):
 def mounts(task, arm):
     """What is mounted read-only into the folder: the arm's .venv."""
     venv = manifest()["tasks"][task]["venvs"][arm]
-    return [(venv, f"{mount(task)}/.venv", "ro")] if venv else []
+    return [(str(FOLDER / venv), f"{mount(task)}/.venv", "ro")] if venv else []
 
 
 def oracle(task):
@@ -90,6 +97,11 @@ def grade(task, work, oracle_file):
 
 
 def tidy(work):
-    """After grading: the trace is the same file in every run of the arm."""
+    """After grading. The trace is the same file in every run of the arm,
+    and is taken out. So is the ``.gitignore`` that ``ormaos run`` writes
+    into a recording ("Recordings stay on this machine."): the recording an
+    agent read is kept with the results."""
     for trace in Path(work).glob("result*.json"):
         trace.unlink()
+    for ignore in Path(work).glob(".ormaos/.gitignore"):
+        ignore.unlink()

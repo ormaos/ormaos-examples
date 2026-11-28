@@ -23,8 +23,8 @@
       "venvs": {
         "none": null,
         "raw": null,
-        "ormaos": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples-harness/agent-bench/knows2/.build/venvs/order-sync/orm",
-        "ormaos-values": "/home/levimbraga/dev/ormaos-levi/ormaos-git/ormaos-examples-harness/agent-bench/knows2/.build/venvs/order-sync/orm"
+        "ormaos": ".build/venvs/order-sync/orm",
+        "ormaos-values": ".build/venvs/order-sync/orm"
       }
     }
   },

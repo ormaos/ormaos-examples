@@ -1,2 +1,7 @@
+# Scratch results (a folder whose name starts with _) and bytecode.
 results/_*
 __pycache__/
+
+# A results folder is committed whole, the recordings the Ormaos arms read
+# included: the repository leaves .ormaos/ out everywhere else.
+!results/**/.ormaos/
