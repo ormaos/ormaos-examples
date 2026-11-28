@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>data-pipeline, in knows2 · Ormaos benchmarks</title>
+<meta name="description" content="data-pipeline, in knows2: what happened, what the agent was given, run 1 of each arm side by side, and every run.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/cases/knows2-data-pipeline.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long bench">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://docs.ormaos.com/">Docs</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<p class="kicker">Situation · knows2</p>
+<h1 id="top-title">data-pipeline, in knows2</h1>
+<p class="lead">A data pipeline. A monthly report made with pandas from two exports: it drops the orders without an amount and repeated order numbers, joins each order to its customer and sums the amounts by region. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/data-pipeline"><code>use-cases/data-pipeline</code></a>.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<p>Mean score over every run: <code>none</code> 0.25, <code>raw</code> 0.38, <code>ormaos</code> 0.88, <code>ormaos-values</code> 0.92 (3 runs per arm). Agent: <code>claude-code / claude-opus-5-5</code>.</p>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#happened">What happened</a></li>
+  <li><a href="#given">What the agent was given</a></li>
+  <li><a href="#side-by-side">Run 1 of each arm, side by side</a></li>
+  <li><a href="#answered">What Ormaos data answered</a></li>
+  <li><a href="#runs">Every run</a></li>
+  <li><a href="#files">The results files</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="happened" aria-labelledby="happened-title">
+<h2 id="happened-title">What happened</h2>
+<p><code>load_orders</code> read 200 rows; <code>drop_unpriced</code> removed 5 without an amount, and <code>drop_repeats</code> did not run. Of the 195 rows passed to <code>join_customers</code>, 17 had a <code>customer_id</code> that is not in <code>customers.csv</code>, and the joined frame had 178 rows. The amounts of <code>report.csv</code> add up to 17182.34; its first row is <code>east</code>, 4349.29.</p>
+<p>The numbers are the oracle&#x27;s answers to the questions below: <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/oracle/data-pipeline.json"><code>oracle/data-pipeline.json</code></a>.</p>
+</section>
+
+<section class="band" id="given" aria-labelledby="given-title">
+<h2 id="given-title">What the agent was given</h2>
+<p>The folder the execution left, with what the arm adds, and 8 questions in <code>questions.json</code>, written by a model that was not told about Ormaos. The oracle&#x27;s answers were not in the folder.</p>
+<div class="table-wrap">
+<table class="plain questions">
+<thead><tr><th scope="col">Question</th><th scope="col">Asked</th><th scope="col">Format</th><th scope="col">The oracle&#x27;s answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>How many rows did the orders DataFrame have right after load_orders read orders.csv, before any filtering?</td><td>A non-negative integer, e.g. 200</td><td><code>200</code></td></tr>
+<tr><td>q2</td><td>How many order rows did drop_unpriced remove because their amount was missing (NaN)?</td><td>A non-negative integer, e.g. 3</td><td><code>5</code></td></tr>
+<tr><td>q3</td><td>Was drop_repeats actually called during this run, i.e. did orders[&#x27;order_id&#x27;].duplicated().any() evaluate to True after the unpriced orders were dropped?</td><td>&quot;yes&quot; or &quot;no&quot;</td><td><code>false</code></td></tr>
+<tr><td>q4</td><td>How many rows did the orders DataFrame have immediately before being passed to join_customers (after drop_unpriced and, if it ran, drop_repeats)?</td><td>A non-negative integer, e.g. 195</td><td><code>195</code></td></tr>
+<tr><td>q5</td><td>How many rows did the joined DataFrame returned by join_customers (inner merge on customer_id) have?</td><td>A non-negative integer, e.g. 190</td><td><code>178</code></td></tr>
+<tr><td>q6</td><td>How many order rows that reached join_customers were lost in the inner merge because their customer_id had no match in customers.csv?</td><td>A non-negative integer, e.g. 0</td><td><code>17</code></td></tr>
+<tr><td>q7</td><td>Which region appears in the first data row of report.csv (the alphabetically first region after sorting), and what is its total amount as written?</td><td>Region name and amount separated by a comma, e.g. &quot;North, 12345.67&quot;</td><td><code>[&quot;east&quot;, 4349.29]</code></td></tr>
+<tr><td>q8</td><td>What is the sum of the amount column over all 4 rows of the report written to report.csv?</td><td>A decimal number rounded to 2 decimal places, e.g. 48210.55</td><td><code>17182.34</code></td></tr>
+</tbody>
+</table>
+</div>
+<details class="text">
+<summary>The prompt of each arm, verbatim</summary>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>none</code></span></figcaption>
+<pre tabindex="0"><code>`.venv/bin/python pipeline.py` ran once in this folder. The folder is as that left it, without the input it read (orders.csv, customers.csv). questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>raw</code></span></figcaption>
+<pre tabindex="0"><code>`.venv/bin/python pipeline.py` ran once in this folder. The folder is as that left it, without the input it read (orders.csv, customers.csv). questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. A VizTracer trace of that execution is in result.json, in the Chrome Trace Event format (JSON; &quot;traceEvents&quot; has one entry per function call, with its name, its start &quot;ts&quot; and its duration &quot;dur&quot; in microseconds); read it with python3.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos</code></span></figcaption>
+<pre tabindex="0"><code>`.venv/bin/python pipeline.py` ran once in this folder. The folder is as that left it, without the input it read (orders.csv, customers.csv). questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. That execution was recorded with Ormaos: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos-values</code></span></figcaption>
+<pre tabindex="0"><code>`.venv/bin/python pipeline.py` ran once in this folder. The folder is as that left it, without the input it read (orders.csv, customers.csv). questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. That execution was recorded with Ormaos, values included: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+</details>
+</section>
+
+<section class="band" id="side-by-side" aria-labelledby="side-by-side-title">
+<h2 id="side-by-side-title">Run 1 of each arm, side by side</h2>
+<p>Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent&#x27;s tool calls in order; under each <code>ormaos</code> command, the lines of its output that hold a value the agent wrote in <code>answers.json</code>, or its first 15 lines, with a link to the full output in the stream.</p>
+<div class="sbs" style="--cols:4">
+<article class="arm-col a1">
+<h4><code>none</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-none-1.jsonl">stream</a></p><p class="meta">Score 0.25: 2 right, 6 null, 0 wrong</p><p class="meta">4 tool calls, 53,763 tokens, 30 s</p>
+<p class="part">Commands, in order (4)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/data-pipeline; ls -la; cat questions.json; cat pipeline.py</pre></li>
+<li><pre class="cmd-text">cd /srv/data-pipeline; cat README.md requirements.txt; cat report.csv; ls -la .venv .venv/*; find . -newer pipeline.py -not -path &#x27;./.venv/lib/*&#x27; | head -50; find / -name &quot;orders*.csv&quot; -o -name &quot;customers*.csv&quot; 2&gt;/dev/null | head</pre></li>
+<li><pre class="cmd-text">cd /srv/data-pipeline/.venv/lib/python3.14/site-packages; ls -la; ls *.pth 2&gt;/dev/null; cat *.pth 2&gt;/dev/null | head; ls sitecustomize* usercustomize* 2&gt;/dev/null; find / -newer /srv/data-pipeline/pipeline.py -type f -not -path &#x27;/proc/*&#x27; -not -path &#x27;/sys/*&#x27; -not -path &#x27;*/site-packages/*&#x27; 2&gt;/dev/null | head -40; find / -name &quot;*.log&quot; -mmin -300 2&gt;/dev/null | grep -v proc | head; ls -la ~ /tmp</pre></li>
+<li><pre class="cmd-text">cd /srv/data-pipeline; cat &gt; answers.json &lt;&lt;&#x27;EOF&#x27;
+{
+  &quot;q1&quot;: null,
+  &quot;q2&quot;: null,
+  &quot;q3&quot;: null,
+  &quot;q4&quot;: null,
+  &quot;q5&quot;: null,
+  &quot;q6&quot;: null,
+  &quot;q7&quot;: &quot;east, 4349.29&quot;,
+  &quot;q8&quot;: 17182.34
+}
+EOF</pre><p class="note">… 1 more line of this command</p></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>null</td><td></td></tr>
+<tr><td>q2</td><td>null</td><td></td></tr>
+<tr><td>q3</td><td>null</td><td></td></tr>
+<tr><td>q4</td><td>null</td><td></td></tr>
+<tr><td>q5</td><td>null</td><td></td></tr>
+<tr><td>q6</td><td>null</td><td></td></tr>
+<tr><td>q7</td><td>right</td><td><code>&quot;east, 4349.29&quot;</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>17182.34</code></td></tr>
+</tbody>
+</table>
+</div>
+<p class="part">Its own words on q1, q2, q3, q4, q5 and q6: the paragraphs of its last message that name them</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>**`null`, q1–q6:** These need row counts from inside the run: rows loaded, rows dropped for a missing amount, whether repeated order IDs were dropped, and rows lost in the join. `orders.csv` and `customers.csv` are gone. The script logs nothing beyond its one-line summary, and I couldn&#x27;t find any log, cache or leftover output on the system that records these counts.
+
+The README says the orders export holds &quot;200 orders of October&quot;, but I didn&#x27;t use that for q1. It describes the usual export, not the file this run actually read. If that file had repeated order IDs, it would have had more than 200 rows.</code></pre>
+</figure>
+</article>
+<article class="arm-col a2">
+<h4><code>raw</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-raw-1.jsonl">stream</a></p><p class="meta">Score 0.38: 3 right, 5 null, 0 wrong</p><p class="meta">4 tool calls, 52,598 tokens, 27 s</p>
+<p class="part">Commands, in order (4)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/data-pipeline; ls -la; cat questions.json; cat pipeline.py; ls -la result.json</pre></li>
+<li><pre class="cmd-text">cd /srv/data-pipeline; cat report.csv; cat README.md; python3 -c &quot;
+import json
+d=json.load(open(&#x27;result.json&#x27;))
+ev=d[&#x27;traceEvents&#x27;]; print(len(ev), [k for k in d if k!=&#x27;traceEvents&#x27;])
+import collections
+for e in ev:
+  n=e.get(&#x27;name&#x27;,&#x27;&#x27;)
+  if &#x27;pipeline.py&#x27; in n or &#x27;args&#x27; in e: print(e)
+&quot; | head -50</pre></li>
+<li><pre class="cmd-text">cd /srv/data-pipeline; python3 -c &quot;
+import json
+d=json.load(open(&#x27;result.json&#x27;))
+print(d[&#x27;viztracer_metadata&#x27;]); print(list(d[&#x27;file_info&#x27;].keys())[:5] if isinstance(d[&#x27;file_info&#x27;],dict) else 0)
+ev=[e for e in d[&#x27;traceEvents&#x27;] if e.get(&#x27;ph&#x27;)==&#x27;X&#x27;]
+for fn in [&#x27;load_orders&#x27;,&#x27;drop_unpriced&#x27;,&#x27;join_customers&#x27;]:
+  m=[e for e in ev if e[&#x27;name&#x27;].startswith(fn+&#x27; (&#x27;)][0]
+  inner=[e for e in ev if m[&#x27;ts&#x27;]&lt;=e[&#x27;ts&#x27;]&lt;=m[&#x27;ts&#x27;]+m[&#x27;dur&#x27;] and e is not m]
+  import collections
+  c=collections.Counter(e[&#x27;name&#x27;] for e in inner)
+  print(fn,len(inner)); print(c.most_common(15))
+&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/data-pipeline; cat &gt; answers.json &lt;&lt;&#x27;E&#x27;
+{&quot;q1&quot;: null, &quot;q2&quot;: null, &quot;q3&quot;: &quot;no&quot;, &quot;q4&quot;: null, &quot;q5&quot;: null, &quot;q6&quot;: null, &quot;q7&quot;: &quot;east, 4349.29&quot;, &quot;q8&quot;: 17182.34}
+E
+cat answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>null</td><td></td></tr>
+<tr><td>q2</td><td>null</td><td></td></tr>
+<tr><td>q3</td><td>right</td><td><code>&quot;no&quot;</code></td></tr>
+<tr><td>q4</td><td>null</td><td></td></tr>
+<tr><td>q5</td><td>null</td><td></td></tr>
+<tr><td>q6</td><td>null</td><td></td></tr>
+<tr><td>q7</td><td>right</td><td><code>&quot;east, 4349.29&quot;</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>17182.34</code></td></tr>
+</tbody>
+</table>
+</div>
+<p class="part">Its own words on q1, q2, q4, q5 and q6: the paragraphs of its last message that name them</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>| id | answer | source |
+|---|---|---|
+| q1 | null | row count after load not recorded |
+| q2 | null | number of rows dropped not recorded |
+| q3 | &quot;no&quot; | the trace has calls to `load_orders`, `load_customers`, `drop_unpriced`, `join_customers`, `revenue_by_region` and `write_report`, but none to `drop_repeats`, so the duplicate check was False |
+| q4 | null | not recorded |
+| q5 | null | not recorded |
+| q6 | null | not recorded |
+| q7 | &quot;east, 4349.29&quot; | first data row of `report.csv` |
+| q8 | 17182.34 | 4349.29 + 2567.98 + 6196.49 + 4068.58 |
+
+**Why the row counts are null:** the trace only has function names, start times and durations, with no arguments or return values. pandas reads, filters and merges the rows in compiled code, so no traced call repeats once per row that I could count. The README says the orders file has &quot;200 orders&quot;, but that describes the export in general, not the file this run read. So I didn&#x27;t use it for q1.</code></pre>
+</figure>
+</article>
+<article class="arm-col a3">
+<h4><code>ormaos</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-ormaos-1.jsonl">stream</a></p><p class="meta">Score 0.88: 7 right, 1 null, 0 wrong</p><p class="meta">3 tool calls, 51,313 tokens, 26 s</p>
+<p class="part">Commands, in order (3)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; cat questions.json &amp;&amp; .venv/bin/ormaos guide</pre><pre class="out">total 32
+drwxrwxr-x 4 levimbraga levimbraga 4096 Nov 27 16:56 .
+drwx------ 3 levimbraga levimbraga   60 Nov 27 16:58 ..
+drwxrwxr-x 3 levimbraga levimbraga 4096 Nov 27 16:56 .ormaos
+drwxrwxr-x 5 levimbraga levimbraga 4096 Nov 27 13:56 .venv
+-rw-rw-r-- 1 levimbraga levimbraga  637 Nov 27 13:20 README.md
+-rw-rw-r-- 1 levimbraga levimbraga 1331 Nov 27 13:20 pipeline.py
+-rw-rw-r-- 1 levimbraga levimbraga 1857 Nov 27 16:56 questions.json
+-rw-rw-r-- 1 levimbraga levimbraga   68 Nov 27 16:56 report.csv
+-rw-rw-r-- 1 levimbraga levimbraga   12 Nov 27 13:20 requirements.txt
+{
+  &quot;questions&quot;: [
+    {
+      &quot;id&quot;: &quot;q1&quot;,
+      &quot;question&quot;: &quot;How many rows did the orders DataFrame have right after load_orders read orders.csv, before any filtering?&quot;,</pre><p class="note">Output: the first 15 of 179 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-ormaos-1.jsonl?plain=1#L4">Full output</a></p></li>
+<li><pre class="cmd-text">cat pipeline.py report.csv README.md; .venv/bin/ormaos list; .venv/bin/ormaos show last --full; .venv/bin/ormaos tree last --depth 5</pre><pre class="out">east,4349.29
+- `orders.csv`: one row per order (`order_id`, `customer_id`, `placed`, `amount`), 200 orders of October;
+          returned: 200 rows x 4 columns: order_id int64 0 null, customer_id string 0 null, placed str 0 null, amount float64 5 null
+          orders: 200 rows x 4 columns: order_id int64 0 null, customer_id string 0 null, placed str 0 null, amount float64 5 null
+          returned: 195 rows x 4 columns: order_id int64 0 null, customer_id string 0 null, placed str 0 null, amount float64 0 null
+          orders: 195 rows x 4 columns: order_id int64 0 null, customer_id string 0 null, placed str 0 null, amount float64 0 null
+          returned: 178 rows x 6 columns: order_id int64 0 null, customer_id string 0 null, placed str 0 null, amount float64 0 null, name str 0 null, region str 0 null
+          joined: 178 rows x 6 columns: order_id int64 0 null, customer_id string 0 null, placed str 0 null, amount float64 0 null, name str 0 null, region str 0 null</pre><p class="note">Output: the 8 lines of 137 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-ormaos-1.jsonl?plain=1#L6">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos io r1 &amp;&amp; cat &gt; answers.json &lt;&lt;&#x27;EOF&#x27;
+{
+  &quot;q1&quot;: 200,
+  &quot;q2&quot;: 5,
+  &quot;q3&quot;: &quot;no&quot;,
+  &quot;q4&quot;: 195,
+  &quot;q5&quot;: 178,
+  &quot;q6&quot;: null,
+  &quot;q7&quot;: &quot;east, 4349.29&quot;,
+  &quot;q8&quot;: 17182.34
+}
+EOF</pre><p class="note">… 1 more line of this command</p><pre class="out">r1: 6 io events (file 6)
+  1x file open /sys/fs/cgroup/cpu.max (read) -&gt; raised  at pipeline.py:11 in load_orders  [r1:i1]
+  1x file open /sys/fs/cgroup/cpu/cpu.cfs_quota_us (read) -&gt; raised  at pipeline.py:11 in load_orders  [r1:i2]
+  1x file open /sys/fs/cgroup/cpu/cpu.cfs_period_us (read) -&gt; raised  at pipeline.py:11 in load_orders  [r1:i3]
+  1x file open orders.csv (read)  at pipeline.py:11 in load_orders  [r1:i4]
+  1x file open customers.csv (read)  at pipeline.py:15 in load_customers  [r1:i5]
+  1x file open report.csv (write)  at pipeline.py:37 in write_report  [r1:i6]
+next: ormaos io r1:i1 | ormaos io r1:i2 | ormaos io r1:c3 | ormaos exceptions r1
+{
+    &quot;q1&quot;: 200,
+    &quot;q2&quot;: 5,
+    &quot;q3&quot;: &quot;no&quot;,
+    &quot;q4&quot;: 195,
+    &quot;q5&quot;: 178,
+    &quot;q6&quot;: null,</pre><p class="note">Output: the first 15 of 18 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-ormaos-1.jsonl?plain=1#L15">Full output</a></p></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>200</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>5</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>&quot;no&quot;</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>195</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>178</code></td></tr>
+<tr><td>q6</td><td>null</td><td></td></tr>
+<tr><td>q7</td><td>right</td><td><code>&quot;east, 4349.29&quot;</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>17182.34</code></td></tr>
+</tbody>
+</table>
+</div>
+<p class="part">Its own words on q6: the paragraphs of its last message that name it</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>| id | answer | where it comes from |
+|---|---|---|
+| q1 | 200 | `load_orders` returned 200 rows × 4 columns |
+| q2 | 5 | `amount` had 5 nulls; `drop_unpriced` turned 200 rows into 195 |
+| q3 | &quot;no&quot; | there was no call to `drop_repeats` in the recording; `main` called only `load_orders`, `load_customers`, `drop_unpriced`, `join_customers`, `revenue_by_region` and `write_report` |
+| q4 | 195 | `join_customers` received 195 rows |
+| q5 | 178 | `join_customers` returned 178 rows × 6 columns |
+| q6 | null | see below |
+| q7 | &quot;east, 4349.29&quot; | first data row of `report.csv` |
+| q8 | 17182.34 | 4349.29 + 2567.98 + 6196.49 + 4068.58 |
+
+**Why q6 is null:** the merge went from 195 rows to 178, a drop of 17. That drop equals the number of unmatched orders only if each `customer_id` appears once in `customers.csv`. If an ID appeared twice, the inner merge would duplicate those orders, and more than 17 could have been lost. Ormaos records the row count, column types and nulls of the customers table (40 rows, no nulls), but not its values. So whether the IDs were unique can&#x27;t be checked, and `customers.csv` is no longer here. If you know the IDs are unique, the answer is 17.</code></pre>
+</figure>
+</article>
+<article class="arm-col a4">
+<h4><code>ormaos-values</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-ormaos-values-1.jsonl">stream</a></p><p class="meta">Score 0.88: 7 right, 1 null, 0 wrong</p><p class="meta">4 tool calls, 70,789 tokens, 27 s</p>
+<p class="part">Commands, in order (4)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/data-pipeline; ls -la; cat questions.json; .venv/bin/ormaos guide</pre><pre class="out">total 32
+drwxrwxr-x 4 levimbraga levimbraga 4096 Nov 27 16:56 .
+drwx------ 3 levimbraga levimbraga   60 Nov 27 16:58 ..
+drwxrwxr-x 3 levimbraga levimbraga 4096 Nov 27 16:56 .ormaos
+drwxrwxr-x 5 levimbraga levimbraga 4096 Nov 27 13:56 .venv
+-rw-rw-r-- 1 levimbraga levimbraga  637 Nov 27 13:20 README.md
+-rw-rw-r-- 1 levimbraga levimbraga 1331 Nov 27 13:20 pipeline.py
+-rw-rw-r-- 1 levimbraga levimbraga 1857 Nov 27 16:56 questions.json
+-rw-rw-r-- 1 levimbraga levimbraga   68 Nov 27 16:56 report.csv
+-rw-rw-r-- 1 levimbraga levimbraga   12 Nov 27 13:20 requirements.txt
+{
+  &quot;questions&quot;: [
+    {
+      &quot;id&quot;: &quot;q1&quot;,
+      &quot;question&quot;: &quot;How many rows did the orders DataFrame have right after load_orders read orders.csv, before any filtering?&quot;,</pre><p class="note">Output: the first 15 of 179 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-ormaos-values-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/data-pipeline; cat pipeline.py report.csv README.md; .venv/bin/ormaos list; .venv/bin/ormaos show last --full; .venv/bin/ormaos tree last</pre><pre class="out">east,4349.29
+- `orders.csv`: one row per order (`order_id`, `customer_id`, `placed`, `amount`), 200 orders of October;
+values: recorded in this recording (cut at 200 characters, likely secrets written as ***): it holds data of the program
+          returned: 200 rows x 4 columns: order_id int64 0 null, customer_id string 0 null, placed str 0 null, amount float64 5 null
+          orders: 200 rows x 4 columns: order_id int64 0 null, customer_id string 0 null, placed str 0 null, amount float64 5 null
+          returned: 195 rows x 4 columns: order_id int64 0 null, customer_id string 0 null, placed str 0 null, amount float64 0 null
+          orders: 195 rows x 4 columns: order_id int64 0 null, customer_id string 0 null, placed str 0 null, amount float64 0 null
+          returned: 178 rows x 6 columns: order_id int64 0 null, customer_id string 0 null, placed str 0 null, amount float64 0 null, name str 0 null, region str 0 null
+          joined: 178 rows x 6 columns: order_id int64 0 null, customer_id string 0 null, placed str 0 null, amount float64 0 null, name str 0 null, region str 0 null</pre><p class="note">Output: the 9 lines of 138 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-ormaos-values-1.jsonl?plain=1#L7">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/data-pipeline; .venv/bin/ormaos io last; ls -la .ormaos/r1; .venv/bin/ormaos tree last:c6 --json | head -c 3000</pre><pre class="out">          &quot;rows&quot;: 195,
+        &quot;rows&quot;: 178,</pre><p class="note">Output: the 2 lines of 152 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-ormaos-values-1.jsonl?plain=1#L14">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/data-pipeline; cat &gt; answers.json &lt;&lt;&#x27;EOF&#x27;
+{
+  &quot;q1&quot;: 200,
+  &quot;q2&quot;: 5,
+  &quot;q3&quot;: &quot;no&quot;,
+  &quot;q4&quot;: 195,
+  &quot;q5&quot;: 178,
+  &quot;q6&quot;: null,
+  &quot;q7&quot;: &quot;east, 4349.29&quot;,
+  &quot;q8&quot;: 17182.34
+}
+EOF</pre><p class="note">… 1 more line of this command</p></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>200</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>5</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>&quot;no&quot;</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>195</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>178</code></td></tr>
+<tr><td>q6</td><td>null</td><td></td></tr>
+<tr><td>q7</td><td>right</td><td><code>&quot;east, 4349.29&quot;</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>17182.34</code></td></tr>
+</tbody>
+</table>
+</div>
+<p class="part">Its own words on q6: the paragraphs of its last message that name it</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>I wrote `answers.json` with seven answers taken from the Ormaos recording (`r1`, which finished with exit code 0) and `report.csv`. I left one answer, q6, as null.
+
+| id | answer | source |
+|---|---|---|
+| q1 | 200 | `load_orders` returned a frame of 200 rows × 4 columns |
+| q2 | 5 | `amount` had 5 nulls; `drop_unpriced` went from 200 rows to 195, with 0 nulls left |
+| q3 | &quot;no&quot; | there&#x27;s no `drop_repeats` call in the recorded call tree |
+| q4 | 195 | the `orders` argument to `join_customers` had 195 rows |
+| q5 | 178 | `join_customers` returned 178 rows × 6 columns |
+| q6 | null | see below |
+| q7 | &quot;east, 4349.29&quot; | first data row of `report.csv`, which was written by that run |
+| q8 | 17182.34 | 4349.29 + 2567.98 + 6196.49 + 4068.58 |
+
+**Why q6 is null:** the inner merge went from 195 rows to 178, a net drop of 17. That net drop only equals the number of unmatched orders if every `customer_id` in `customers.csv` was unique. If some customer appeared twice, matching orders would be doubled in the merge, and more than 17 orders could have gone unmatched. Ormaos records the row and null counts of each table, but not the values or how many are distinct, and `customers.csv` is gone. The README says the file has &quot;one row per customer&quot;, but that describes the export, not what this run read. If you trust the README on that point, the answer would be 17.</code></pre>
+</figure>
+</article>
+</div>
+</section>
+
+<section class="band" id="answered" aria-labelledby="answered-title">
+<h2 id="answered-title">What Ormaos data answered</h2>
+<p>Read from the streams: in each run of an Ormaos arm, the <code>ormaos</code> verbs in its commands up to its last write of <code>answers.json</code>. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them.</p>
+<div class="table-wrap">
+<table class="plain">
+<thead><tr><th scope="col">Question</th><th scope="col"><code>ormaos</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th><th scope="col"><code>ormaos-values</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>show 3, tree 3, io 3, guide 3, list 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, io 3, guide 3, list 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q2</td><td>show 3, tree 3, io 3, guide 3, list 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, io 3, guide 3, list 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q3</td><td>show 3, tree 3, io 3, guide 3, list 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, io 3, guide 3, list 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q4</td><td>show 3, tree 3, io 3, guide 3, list 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, io 3, guide 3, list 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q5</td><td>show 3, tree 3, io 3, guide 3, list 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, io 3, guide 3, list 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q6</td><td>–</td><td>0/3</td><td>0/3</td><td>show 1, tree 1, io 1, list 1, guide 1</td><td>1/3</td><td>1/3</td></tr>
+<tr><td>q7</td><td>show 3, tree 3, io 3, guide 3, list 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, io 3, guide 3, list 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q8</td><td>show 3, tree 3, io 3, guide 3, list 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, io 3, guide 3, list 2</td><td>3/3</td><td>3/3</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="runs" aria-labelledby="runs-title">
+<h2 id="runs-title">Every run</h2>
+<p>Every run of every arm.</p>
+<div class="table-wrap">
+<table class="plain runs">
+<thead><tr><th scope="col">Arm</th><th scope="col">Run</th><th scope="col">Score</th><th scope="col">Right</th><th scope="col">Null</th><th scope="col">Wrong</th><th scope="col"><code>ormaos</code> verbs before answers.json</th><th scope="col">Tool calls</th><th scope="col">Tokens</th><th scope="col">Wall time</th><th scope="col">Stream</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>1</td><td>0.25</td><td>2</td><td>6</td><td>0</td><td>–</td><td>4</td><td>53,763</td><td>30 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-none-1.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>2</td><td>0.25</td><td>2</td><td>6</td><td>0</td><td>–</td><td>5</td><td>60,965</td><td>26 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-none-2.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>3</td><td>0.25</td><td>2</td><td>6</td><td>0</td><td>–</td><td>4</td><td>46,701</td><td>23 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-none-3.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>1</td><td>0.38</td><td>3</td><td>5</td><td>0</td><td>–</td><td>4</td><td>52,598</td><td>27 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-raw-1.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>2</td><td>0.38</td><td>3</td><td>5</td><td>0</td><td>–</td><td>5</td><td>68,967</td><td>29 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-raw-2.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>3</td><td>0.38</td><td>3</td><td>5</td><td>0</td><td>–</td><td>7</td><td>94,514</td><td>43 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-raw-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>1</td><td>0.88</td><td>7</td><td>1</td><td>0</td><td>guide, list, show, tree, io</td><td>3</td><td>51,313</td><td>26 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-ormaos-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>2</td><td>0.88</td><td>7</td><td>1</td><td>0</td><td>guide, list, show, tree, io</td><td>4</td><td>67,985</td><td>26 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-ormaos-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>3</td><td>0.88</td><td>7</td><td>1</td><td>0</td><td>guide, show, tree, io</td><td>4</td><td>68,105</td><td>27 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-ormaos-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>1</td><td>0.88</td><td>7</td><td>1</td><td>0</td><td>guide, list, show, tree, io</td><td>4</td><td>70,789</td><td>27 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-ormaos-values-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree, io</td><td>4</td><td>68,114</td><td>26 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-ormaos-values-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>3</td><td>0.88</td><td>7</td><td>1</td><td>0</td><td>guide, show, tree, io</td><td>5</td><td>88,746</td><td>30 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/data-pipeline-ormaos-values-3.jsonl">stream</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="files" aria-labelledby="files-title">
+<h2 id="files-title">The results files</h2>
+<ul class="rows">
+  <li>The benchmark: <a href="/benchmarks/knows2/#data-pipeline">knows2</a></li>
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801"><code>agent-bench/knows2/results/20261127-165801</code></a></li>
+</ul>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>

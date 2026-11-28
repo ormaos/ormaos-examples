@@ -166,7 +166,7 @@ A FastAPI service over a SQLite database of customers, products and orders, with
 
 The execution: `.venv/bin/python main.py` ran once in this folder.
 
-Mean score: `none` 1.00, `raw` 1.00, `ormaos` 0.96, `ormaos-values` 1.00.
+Mean score: `none` 1.00, `raw` 1.00, `ormaos` 0.96, `ormaos-values` 1.00. Run 1 of each arm side by side, and every run: [the situation's page](https://ormaos.com/benchmarks/cases/knows2-web-backend/).
 
 **Runs right per question and arm, web-backend.** For each question of web-backend, how many of the runs of each arm got it right. q1: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q2: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q3: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q4: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q5: none 3/3, raw 3/3, ormaos 2/3, ormaos-values 3/3. q6: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q7: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q8: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3.
 
@@ -301,7 +301,7 @@ A monthly report made with pandas from two exports: it drops the orders without 
 
 The execution: `.venv/bin/python pipeline.py` ran once in this folder. Taken out of the folder afterwards: `orders.csv` and `customers.csv`.
 
-Mean score: `none` 0.25, `raw` 0.38, `ormaos` 0.88, `ormaos-values` 0.92.
+Mean score: `none` 0.25, `raw` 0.38, `ormaos` 0.88, `ormaos-values` 0.92. Run 1 of each arm side by side, and every run: [the situation's page](https://ormaos.com/benchmarks/cases/knows2-data-pipeline/).
 
 **Runs right per question and arm, data-pipeline.** For each question of data-pipeline, how many of the runs of each arm got it right. q1: none 0/3, raw 0/3, ormaos 3/3, ormaos-values 3/3. q2: none 0/3, raw 0/3, ormaos 3/3, ormaos-values 3/3. q3: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q4: none 0/3, raw 0/3, ormaos 3/3, ormaos-values 3/3. q5: none 0/3, raw 0/3, ormaos 3/3, ormaos-values 3/3. q6: none 0/3, raw 0/3, ormaos 0/3, ormaos-values 1/3. q7: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q8: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3.
 
@@ -436,7 +436,7 @@ A Jupyter notebook that reads the sales of the week, leaves out single sales abo
 
 The execution: The code cells of report.ipynb ran once in a Jupyter kernel of `.venv/bin/python`, in this folder, in the order of the execution counts saved in the notebook. Taken out of the folder afterwards: `sales.csv`.
 
-Mean score: `none` 0.50, `raw` 0.62, `ormaos` 0.62, `ormaos-values` 0.62.
+Mean score: `none` 0.50, `raw` 0.62, `ormaos` 0.62, `ormaos-values` 0.62. Run 1 of each arm side by side, and every run: [the situation's page](https://ormaos.com/benchmarks/cases/knows2-notebook/).
 
 **Runs right per question and arm, notebook.** For each question of notebook, how many of the runs of each arm got it right. q1: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q2: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q3: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q4: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q5: none 0/3, raw 0/3, ormaos 0/3, ormaos-values 0/3. q6: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q7: none 0/3, raw 0/3, ormaos 0/3, ormaos-values 0/3. q8: none 0/3, raw 0/3, ormaos 0/3, ormaos-values 0/3.
 
@@ -571,7 +571,7 @@ A PyTorch model trained on CPU that predicts how long a delivery takes, on data 
 
 The execution: `.venv/bin/python train.py` ran once in this folder.
 
-Mean score: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00.
+Mean score: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00. Run 1 of each arm side by side, and every run: [the situation's page](https://ormaos.com/benchmarks/cases/knows2-ml-training/).
 
 **Runs right per question and arm, ml-training.** For each question of ml-training, how many of the runs of each arm got it right. q1: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q2: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q3: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q4: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q5: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q6: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q7: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q8: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3.
 
@@ -706,7 +706,7 @@ A grid world in pure Python, where a courier walks from a depot to a customer, a
 
 The execution: `python3 run.py` ran once in this folder.
 
-Mean score: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00.
+Mean score: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00. Run 1 of each arm side by side, and every run: [the situation's page](https://ormaos.com/benchmarks/cases/knows2-rl-env/).
 
 **Runs right per question and arm, rl-env.** For each question of rl-env, how many of the runs of each arm got it right. q1: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q2: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q3: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q4: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q5: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q6: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q7: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q8: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3.
 
@@ -841,7 +841,7 @@ An app that sends each support ticket to a model API, a local stand-in with a sm
 
 The execution: `python3 app.py` ran once in this folder. Taken out of the folder afterwards: `tickets.json`.
 
-Mean score: `none` 0.29, `raw` 0.86, `ormaos` 1.00, `ormaos-values` 1.00.
+Mean score: `none` 0.29, `raw` 0.86, `ormaos` 1.00, `ormaos-values` 1.00. Run 1 of each arm side by side, and every run: [the situation's page](https://ormaos.com/benchmarks/cases/knows2-ai-app/).
 
 **Runs right per question and arm, ai-app.** For each question of ai-app, how many of the runs of each arm got it right. q2: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q3: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q4: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q5: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q6: none 0/3, raw 0/3, ormaos 3/3, ormaos-values 3/3. q7: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q8: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3.
 
@@ -964,7 +964,7 @@ A small billing tool in a git repository that writes invoices and refunds, run a
 
 The execution: This folder is a git repository with two commits. `python3 run.py` ran once at the first commit (that execution is r1) and once at the second (r2).
 
-Mean score: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00.
+Mean score: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00. Run 1 of each arm side by side, and every run: [the situation's page](https://ormaos.com/benchmarks/cases/knows2-agent-change/).
 
 **Runs right per question and arm, agent-change.** For each question of agent-change, how many of the runs of each arm got it right. q1: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q2: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q3: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q4: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q5: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q6: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q7: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q8: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3.
 
@@ -1095,11 +1095,11 @@ This folder is a git repository with two commits. `python3 run.py` ran once at t
 
 ## For scheduled jobs: order-sync
 
-A scheduled job that applies the new orders of a sales system to a warehouse inventory; the execution is a night on which it printed its OK line and some orders did not reach the inventory. Source: [`order-sync`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/order-sync).
+A scheduled job that applies the new orders of a sales system to a warehouse inventory. The execution is a night on which it printed its OK line and some orders did not reach the inventory. Source: [`order-sync`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/order-sync).
 
 The execution: Last night cron ran `python3 job.py --source api` in this folder; since then the sales system has replaced its orders with today's.
 
-Mean score: `none` 0.38, `raw` 1.00, `ormaos` 0.92, `ormaos-values` 1.00.
+Mean score: `none` 0.38, `raw` 1.00, `ormaos` 0.92, `ormaos-values` 1.00. Run 1 of each arm side by side, and every run: [the situation's page](https://ormaos.com/benchmarks/cases/knows2-order-sync/).
 
 **Runs right per question and arm, order-sync.** For each question of order-sync, how many of the runs of each arm got it right. q1: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q2: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q3: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q4: none 0/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q5: none 0/3, raw 3/3, ormaos 2/3, ormaos-values 3/3. q6: none 0/3, raw 3/3, ormaos 2/3, ormaos-values 3/3. q7: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q8: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3.
 
@@ -1230,11 +1230,11 @@ Last night cron ran `python3 job.py --source api` in this folder; since then the
 
 ## For scheduled jobs: freight-quote
 
-A scheduled job that asks a carrier's rate API for the freight of tomorrow's shipments and writes one quote per shipment; the execution is a night on which some calls were refused. Source: [`freight-quote`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/freight-quote).
+A scheduled job that asks a carrier's rate API for the freight of tomorrow's shipments and writes one quote per shipment. The execution is a night on which some calls were refused. Source: [`freight-quote`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/freight-quote).
 
 The execution: Last night cron ran `python3 job.py` in this folder; since then the dispatch list has been replaced with today's and the carrier's count of calls has started again.
 
-Mean score: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00.
+Mean score: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00. Run 1 of each arm side by side, and every run: [the situation's page](https://ormaos.com/benchmarks/cases/knows2-freight-quote/).
 
 **Runs right per question and arm, freight-quote.** For each question of freight-quote, how many of the runs of each arm got it right. q1: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q2: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q3: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q4: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q5: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q6: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q7: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3. q8: none 3/3, raw 3/3, ormaos 3/3, ormaos-values 3/3.
 

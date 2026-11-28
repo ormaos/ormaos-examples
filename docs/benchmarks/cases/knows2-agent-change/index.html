@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agent-change, in knows2 · Ormaos benchmarks</title>
+<meta name="description" content="agent-change, in knows2: what happened, what the agent was given, run 1 of each arm side by side, and every run.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/cases/knows2-agent-change.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long bench">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://docs.ormaos.com/">Docs</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<p class="kicker">Situation · knows2</p>
+<h1 id="top-title">agent-change, in knows2</h1>
+<p class="lead">A change made by an agent. A small billing tool in a git repository that writes invoices and refunds, run at each of two commits: before and after a change that a coding agent made. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/agent-change"><code>use-cases/agent-change</code></a>.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<p>Mean score over every run: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00 (3 runs per arm). Agent: <code>claude-code / claude-opus-5-5</code>.</p>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#happened">What happened</a></li>
+  <li><a href="#given">What the agent was given</a></li>
+  <li><a href="#side-by-side">Run 1 of each arm, side by side</a></li>
+  <li><a href="#answered">What Ormaos data answered</a></li>
+  <li><a href="#runs">Every run</a></li>
+  <li><a href="#files">The results files</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="happened" aria-labelledby="happened-title">
+<h2 id="happened-title">What happened</h2>
+<p>From the run at the first commit (r1) to the run at the second (r2), the <code>total_cents</code> of <code>invoices.csv</code> went from 44270 to 41868 in all, and 9 orders changed total. In r2, <code>tiers.json</code> was opened 38 times, <code>discount_percent</code> returned 10 in 21 calls, and <code>line_price</code> dropped cents in an inexact division in 1 call.</p>
+<p>The numbers are the oracle&#x27;s answers to the questions below: <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/oracle/agent-change.json"><code>oracle/agent-change.json</code></a>.</p>
+</section>
+
+<section class="band" id="given" aria-labelledby="given-title">
+<h2 id="given-title">What the agent was given</h2>
+<p>The folder the execution left, with what the arm adds, and 8 questions in <code>questions.json</code>, written by a model that was not told about Ormaos. The oracle&#x27;s answers were not in the folder.</p>
+<div class="table-wrap">
+<table class="plain questions">
+<thead><tr><th scope="col">Question</th><th scope="col">Asked</th><th scope="col">Format</th><th scope="col">The oracle&#x27;s answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>In r1, how many times in total was billing.line_price called (counting calls from both invoice_total and refund_amount)?</td><td>A single integer, e.g. 42</td><td><code>38</code></td></tr>
+<tr><td>q2</td><td>In r2, how many times was tiers.json opened during the execution?</td><td>A single integer, e.g. 42</td><td><code>38</code></td></tr>
+<tr><td>q3</td><td>In r1, what was the sum of the total_cents values over all 12 rows written to invoices.csv?</td><td>A single integer number of cents, e.g. 123456</td><td><code>44270</code></td></tr>
+<tr><td>q4</td><td>In r2, what was the sum of the total_cents values over all 12 rows written to invoices.csv?</td><td>A single integer number of cents, e.g. 123456</td><td><code>41868</code></td></tr>
+<tr><td>q5</td><td>Of the 12 orders, how many had a different total_cents in r2&#x27;s invoices.csv than in r1&#x27;s invoices.csv?</td><td>A single integer from 0 to 12</td><td><code>9</code></td></tr>
+<tr><td>q6</td><td>In r2, how many of the calls to billing.discount_percent returned 10 (i.e. the customer was looked up as a gold tier)?</td><td>A single integer, e.g. 7</td><td><code>21</code></td></tr>
+<tr><td>q7</td><td>In r2, in how many calls to billing.line_price was the integer division by 100 inexact, i.e. unit_cents * quantity * (100 - discount) was not a multiple of 100, so cents were truncated?</td><td>A single integer, e.g. 3</td><td><code>1</code></td></tr>
+<tr><td>q8</td><td>What were the three refund_cents values written to refunds.csv in r2, in the order the rows were written?</td><td>Three integers separated by commas, in row order, e.g. 1200,450,9900</td><td><code>[228, 1620, 1575]</code></td></tr>
+</tbody>
+</table>
+</div>
+<details class="text">
+<summary>The prompt of each arm, verbatim</summary>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>none</code></span></figcaption>
+<pre tabindex="0"><code>This folder is a git repository with two commits. `python3 run.py` ran once at the first commit (that execution is r1) and once at the second (r2). The folder is as that left it. questions.json has questions about what happened in those executions. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>raw</code></span></figcaption>
+<pre tabindex="0"><code>This folder is a git repository with two commits. `python3 run.py` ran once at the first commit (that execution is r1) and once at the second (r2). The folder is as that left it. questions.json has questions about what happened in those executions. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. A VizTracer trace of each execution is in result-r1.json and result-r2.json, in the Chrome Trace Event format (JSON; &quot;traceEvents&quot; has one entry per function call, with its name, its start &quot;ts&quot; and its duration &quot;dur&quot; in microseconds); read it with python3.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos</code></span></figcaption>
+<pre tabindex="0"><code>This folder is a git repository with two commits. `python3 run.py` ran once at the first commit (that execution is r1) and once at the second (r2). The folder is as that left it. questions.json has questions about what happened in those executions. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. Those executions were recorded with Ormaos: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos-values</code></span></figcaption>
+<pre tabindex="0"><code>This folder is a git repository with two commits. `python3 run.py` ran once at the first commit (that execution is r1) and once at the second (r2). The folder is as that left it. questions.json has questions about what happened in those executions. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. Those executions were recorded with Ormaos, values included: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+</details>
+</section>
+
+<section class="band" id="side-by-side" aria-labelledby="side-by-side-title">
+<h2 id="side-by-side-title">Run 1 of each arm, side by side</h2>
+<p>Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent&#x27;s tool calls in order; under each <code>ormaos</code> command, the lines of its output that hold a value the agent wrote in <code>answers.json</code>, or its first 15 lines, with a link to the full output in the stream.</p>
+<div class="sbs" style="--cols:4">
+<article class="arm-col a1">
+<h4><code>none</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-none-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">4 tool calls, 52,881 tokens, 26 s</p>
+<p class="part">Commands, in order (4)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/agent-change; ls -la; cat questions.json; git log --stat; git show HEAD</pre></li>
+<li><pre class="cmd-text">cd /srv/agent-change; cat run.py README.md tiers.json returns.json invoices.csv refunds.csv .gitignore; cat orders.json | head -50</pre></li>
+<li><pre class="cmd-text">cd /srv/agent-change; git status --short; git diff 8e90a5e HEAD --stat -- orders.json tiers.json returns.json run.py; mkdir -p /tmp/w &amp;&amp; cat &gt; /tmp/w/a.py &lt;&lt;&#x27;EOF&#x27;
+import json
+O=json.load(open(&#x27;/srv/agent-change/orders.json&#x27;));R=json.load(open(&#x27;/srv/agent-change/returns.json&#x27;));T=json.load(open(&#x27;/srv/agent-change/tiers.json&#x27;))
+P={&quot;gold&quot;:10,&quot;silver&quot;:5}
+by={o[&#x27;id&#x27;]:o for o in O}
+def run(v2):
+  st=dict(calls=0,gold=0,inexact=0)
+  def lp(it,c):
+    st[&#x27;calls&#x27;]+=1
+    p=it[&#x27;unit_cents&#x27;]*it[&#x27;quantity&#x27;]
+    if not v2: return p
+    d=P.get(T.get(c),0)</pre><p class="note">… 11 more lines of this command</p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; cat &gt; answers.json &lt;&lt;&#x27;EOF&#x27;
+{&quot;q1&quot;: 38, &quot;q2&quot;: 38, &quot;q3&quot;: 44270, &quot;q4&quot;: 41868, &quot;q5&quot;: 9, &quot;q6&quot;: 21, &quot;q7&quot;: 1, &quot;q8&quot;: &quot;228,1620,1575&quot;}
+EOF
+cat answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>44270</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>41868</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>9</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>21</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>1</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>&quot;228,1620,1575&quot;</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a2">
+<h4><code>raw</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-raw-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">4 tool calls, 57,203 tokens, 30 s</p>
+<p class="part">Commands, in order (4)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/agent-change; ls -la; cat questions.json; git log --stat; git show HEAD</pre></li>
+<li><pre class="cmd-text">cd /srv/agent-change; cat run.py .gitignore tiers.json returns.json invoices.csv refunds.csv; python3 -c &quot;
+import json
+for r in [&#x27;r1&#x27;,&#x27;r2&#x27;]:
+    d=json.load(open(f&#x27;result-{r}.json&#x27;))
+    ev=d[&#x27;traceEvents&#x27;]
+    from collections import Counter
+    c=Counter(e.get(&#x27;name&#x27;) for e in ev if e.get(&#x27;ph&#x27;)==&#x27;X&#x27;)
+    print(r,[(k,v) for k,v in c.items() if &#x27;billing&#x27; in k or &#x27;open&#x27; in k or &#x27;run.py&#x27; in k])
+    print(ev[0].keys(), [e for e in ev if &#x27;args&#x27; in e][:2])
+&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/agent-change; python3 -c &quot;
+import json
+for r in [&#x27;r1&#x27;,&#x27;r2&#x27;]:
+    ev=json.load(open(f&#x27;result-{r}.json&#x27;))[&#x27;traceEvents&#x27;]
+    x=[e for e in ev if e.get(&#x27;ph&#x27;)==&#x27;X&#x27; and (&#x27;discount&#x27; in e[&#x27;name&#x27;] or &#x27;_io.open&#x27;==e[&#x27;name&#x27;])]
+    print(r,len(x), x[:3])
+    print(set(e[&#x27;ph&#x27;] for e in ev), [e for e in ev if e.get(&#x27;args&#x27;) and e[&#x27;ph&#x27;]!=&#x27;M&#x27;][:3])
+&quot;
+python3 - &lt;&lt;&#x27;E&#x27;
+import json
+orders=json.load(open(&#x27;orders.json&#x27;));tiers=json.load(open(&#x27;tiers.json&#x27;));rets=json.load(open(&#x27;returns.json&#x27;))
+P={&quot;gold&quot;:10,&quot;silver&quot;:5}</pre><p class="note">… 23 more lines of this command</p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; cat &gt; answers.json &lt;&lt;&#x27;E&#x27;
+{&quot;q1&quot;: 38, &quot;q2&quot;: 38, &quot;q3&quot;: 44270, &quot;q4&quot;: 41868, &quot;q5&quot;: 9, &quot;q6&quot;: 21, &quot;q7&quot;: 1, &quot;q8&quot;: &quot;228,1620,1575&quot;}
+E
+cat answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>44270</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>41868</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>9</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>21</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>1</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>&quot;228,1620,1575&quot;</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a3">
+<h4><code>ormaos</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-ormaos-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">5 tool calls, 101,359 tokens, 32 s</p>
+<p class="part">Commands, in order (5)</p><ol class="steps">
+<li><pre class="cmd-text">.venv/bin/ormaos guide; cat questions.json; ls -la</pre><pre class="out">ormaos: what actually happened inside a Python execution.
+It records a run and shows it. It does not judge: you decide whether what
+happened is what should have happened.
+
+WHAT ORMAOS ANSWERS
+- What ran: the calls of the project&#x27;s code, as a tree, with the shape of
+  each argument and result (`orders: list[36 Order]`), never the values.
+- How often: counts by function, by line of code, by kind of I/O.
+- What was raised and caught: every exception, where it was raised and where
+  it was handled. &quot;swallowed&quot; = it entered an `except` and was not raised
+  again. Also &quot;uncaught&quot;, &quot;replaced&quot;, &quot;exit&quot;.
+- What I/O happened: SQL statements, files, subprocesses, HTTP requests, each
+  with the line of the project&#x27;s code that caused it.
+- What was logged: `logging` records by level, logger and message template,
+  with the line that asked for each; also the ones the level dropped.</pre><p class="note">Output: the first 15 of 185 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-ormaos-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">cat README.md billing.py run.py tiers.json returns.json invoices.csv refunds.csv orders.json .gitignore; git show --stat HEAD; git diff HEAD~1 HEAD; .venv/bin/ormaos list</pre><pre class="out">9002,cedar,228
+9002,228
+9007,1620
+9011,1575
+ 1 file changed, 21 insertions(+), 4 deletions(-)</pre><p class="note">Output: the 5 lines of 426 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-ormaos-1.jsonl?plain=1#L7">Full output</a></p></li>
+<li><pre class="cmd-text">O=.venv/bin/ormaos; $O show r1 --full; $O show r2 --full; $O io r2; $O io r1; $O tree r1 --function line_price --limit 100 | tail -5; $O diff r1 r2; git status --short</pre><pre class="out">  discount_percent at billing.py:10: none in r1, 38 in r2  [r2:c9]
+  file open tiers.json (read)  at billing.py:11 in discount_percent: none in r1, 38 in r2  [r2:i5]
+  file read tiers.json  at billing.py:12 in discount_percent: none in r1, 38 in r2  [r2:i6]</pre><p class="note">Output: the 3 lines of 105 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-ormaos-1.jsonl?plain=1#L13">Full output</a></p></li>
+<li><pre class="cmd-text">python3 -I -c &quot;
+import json
+o=json.load(open(&#x27;orders.json&#x27;));t=json.load(open(&#x27;tiers.json&#x27;));r=json.load(open(&#x27;returns.json&#x27;))
+P={&#x27;gold&#x27;:10,&#x27;silver&#x27;:5}
+d=lambda c:P.get(t.get(c),0)
+by={x[&#x27;id&#x27;]:x for x in o}
+t1=[sum(i[&#x27;unit_cents&#x27;]*i[&#x27;quantity&#x27;] for i in x[&#x27;items&#x27;]) for x in o]
+t2=[sum(i[&#x27;unit_cents&#x27;]*i[&#x27;quantity&#x27;]*(100-d(x[&#x27;customer&#x27;]))//100 for i in x[&#x27;items&#x27;]) for x in o]
+print(sum(t1),sum(t2),sum(a!=b for a,b in zip(t1,t2)),t2)
+calls=[(i,x[&#x27;customer&#x27;]) for x in o for i in x[&#x27;items&#x27;]]+[(i,by[q[&#x27;order_id&#x27;]][&#x27;customer&#x27;]) for q in r for i in by[q[&#x27;order_id&#x27;]][&#x27;items&#x27;] if i[&#x27;sku&#x27;] in q[&#x27;skus&#x27;]]
+print(len(calls),sum(d(c)==10 for i,c in calls),sum(i[&#x27;unit_cents&#x27;]*i[&#x27;quantity&#x27;]*(100-d(c))%100!=0 for i,c in calls))
+print([sum(i[&#x27;unit_cents&#x27;]*i[&#x27;quantity&#x27;]*(100-d(by[q[&#x27;order_id&#x27;]][&#x27;customer&#x27;]))//100 for i in by[q[&#x27;order_id&#x27;]][&#x27;items&#x27;] if i[&#x27;sku&#x27;] in q[&#x27;skus&#x27;]) for q in r])</pre><p class="note">… 1 more line of this command</p></li>
+<li><pre class="cmd-text">cat &gt; answers.json &lt;&lt;&#x27;EOF&#x27;
+{&quot;q1&quot;: 38, &quot;q2&quot;: 38, &quot;q3&quot;: 44270, &quot;q4&quot;: 41868, &quot;q5&quot;: 9, &quot;q6&quot;: 21, &quot;q7&quot;: 1, &quot;q8&quot;: &quot;228,1620,1575&quot;}
+EOF
+python3 -I -m json.tool answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>44270</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>41868</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>9</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>21</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>1</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>&quot;228,1620,1575&quot;</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a4">
+<h4><code>ormaos-values</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-ormaos-values-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">7 tool calls, 136,381 tokens, 38 s</p>
+<p class="part">Commands, in order (7)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/agent-change; .venv/bin/ormaos guide; cat questions.json; ls -la</pre><pre class="out">ormaos: what actually happened inside a Python execution.
+It records a run and shows it. It does not judge: you decide whether what
+happened is what should have happened.
+
+WHAT ORMAOS ANSWERS
+- What ran: the calls of the project&#x27;s code, as a tree, with the shape of
+  each argument and result (`orders: list[36 Order]`), never the values.
+- How often: counts by function, by line of code, by kind of I/O.
+- What was raised and caught: every exception, where it was raised and where
+  it was handled. &quot;swallowed&quot; = it entered an `except` and was not raised
+  again. Also &quot;uncaught&quot;, &quot;replaced&quot;, &quot;exit&quot;.
+- What I/O happened: SQL statements, files, subprocesses, HTTP requests, each
+  with the line of the project&#x27;s code that caused it.
+- What was logged: `logging` records by level, logger and message template,
+  with the line that asked for each; also the ones the level dropped.</pre><p class="note">Output: the first 15 of 185 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-ormaos-values-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; cat billing.py run.py tiers.json invoices.csv refunds.csv returns.json README.md .gitignore; git show 8e90a5e:billing.py; git log --stat; .venv/bin/ormaos list; .venv/bin/ormaos show r1; .venv/bin/ormaos show r2</pre><pre class="out">9002,cedar,228
+9002,228
+9007,1620
+9011,1575
+ 1 file changed, 21 insertions(+), 4 deletions(-)
+ run.py       |  38 ++++++++++</pre><p class="note">Output: the 6 lines of 195 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-ormaos-values-1.jsonl?plain=1#L7">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; .venv/bin/ormaos tree r1 --function line_price --limit 100 | head -60; .venv/bin/ormaos tree r2 --function discount_percent --limit 100 | head -30; git status --short; git diff 8e90a5e HEAD -- tiers.json</pre><pre class="out">r1: 38 of the 75 calls match --function line_price (38 line_price; 0 raised)
+r2: 38 of the 113 calls match --function discount_percent (38 discount_percent; 0 raised)</pre><p class="note">Output: the 2 lines of 70 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-ormaos-values-1.jsonl?plain=1#L12">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; for r in r1 r2; do for f in invoice_total refund_amount; do echo &quot;$r $f&quot;; .venv/bin/ormaos tree $r --function $f --limit 100 | grep -o &#x27;^[^ ]*\|-&gt; int=[0-9]*&#x27;| paste - - ; done; done; .venv/bin/ormaos tree r2 --function discount_percent --limit 100 | grep -c &#x27;int=10 &#x27;; .venv/bin/ormaos tree r2 --function line_price --limit 100 | head -3</pre><pre class="out">-&gt; int=228	r2:c16
+-&gt; int=228	r2:c100
+-&gt; int=1620	r2:c106
+-&gt; int=1575	next:
+21
+r2: 38 of the 113 calls match --function line_price (38 line_price; 0 raised)</pre><p class="note">Output: the 6 lines of 42 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-ormaos-values-1.jsonl?plain=1#L15">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; .venv/bin/ormaos tree r2 --function line_price --limit 100 --json &gt; /tmp/lp.json; python3 -I -c &quot;
+import json
+d=json.load(open(&#x27;/tmp/lp.json&#x27;))
+print(list(d.keys()))
+print(json.dumps(d,indent=0)[:1500])&quot;</pre><pre class="out">&quot;matched&quot;: 38,
+&quot;line_price&quot;: 38</pre><p class="note">Output: the 2 lines of 128 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-ormaos-values-1.jsonl?plain=1#L21">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; python3 -I -c &quot;
+import json
+d=json.load(open(&#x27;/tmp/lp.json&#x27;))
+disc={&#x27;borealis&#x27;:0,&#x27;cedar&#x27;:5,&#x27;delta&#x27;:10,&#x27;acme&#x27;:10}
+n=0
+for x in d[&#x27;nodes&#x27;]:
+  it=x[&#x27;args&#x27;][&#x27;item&#x27;][&#x27;value&#x27;];c=x[&#x27;args&#x27;][&#x27;customer&#x27;][&#x27;value&#x27;];p=it[&#x27;unit_cents&#x27;]*it[&#x27;quantity&#x27;]*(100-disc[c])
+  assert p//100==x[&#x27;ret&#x27;][&#x27;value&#x27;]
+  n+= p%100!=0
+print(n, len(d[&#x27;nodes&#x27;]))
+print(sum([2500,240,3020,1040,5320,4950,2910,2470,5920,7840,2350,5710]), sum([2500,228,2718,936,5320,4702,2619,2223,5920,7448,2115,5139]))
+&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/agent-change; cat &gt; answers.json &lt;&lt;&#x27;EOF&#x27;
+{&quot;q1&quot;: 38, &quot;q2&quot;: 38, &quot;q3&quot;: 44270, &quot;q4&quot;: 41868, &quot;q5&quot;: 9, &quot;q6&quot;: 21, &quot;q7&quot;: 1, &quot;q8&quot;: &quot;228,1620,1575&quot;}
+EOF
+cat answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>44270</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>41868</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>9</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>21</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>1</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>&quot;228,1620,1575&quot;</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+</div>
+</section>
+
+<section class="band" id="answered" aria-labelledby="answered-title">
+<h2 id="answered-title">What Ormaos data answered</h2>
+<p>Read from the streams: in each run of an Ormaos arm, the <code>ormaos</code> verbs in its commands up to its last write of <code>answers.json</code>. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them.</p>
+<div class="table-wrap">
+<table class="plain">
+<thead><tr><th scope="col">Question</th><th scope="col"><code>ormaos</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th><th scope="col"><code>ormaos-values</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>show 3, tree 3, io 3, list 3, guide 3, diff 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3, io 2, diff 1</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q2</td><td>show 3, tree 3, io 3, list 3, guide 3, diff 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3, io 2, diff 1</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q3</td><td>show 3, tree 3, io 3, list 3, guide 3, diff 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3, io 2, diff 1</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q4</td><td>show 3, tree 3, io 3, list 3, guide 3, diff 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3, io 2, diff 1</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q5</td><td>show 3, tree 3, io 3, list 3, guide 3, diff 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3, io 2, diff 1</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q6</td><td>show 3, tree 3, io 3, list 3, guide 3, diff 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3, io 2, diff 1</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q7</td><td>show 3, tree 3, io 3, list 3, guide 3, diff 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3, io 2, diff 1</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q8</td><td>show 3, tree 3, io 3, list 3, guide 3, diff 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3, io 2, diff 1</td><td>3/3</td><td>3/3</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="runs" aria-labelledby="runs-title">
+<h2 id="runs-title">Every run</h2>
+<p>Every run of every arm.</p>
+<div class="table-wrap">
+<table class="plain runs">
+<thead><tr><th scope="col">Arm</th><th scope="col">Run</th><th scope="col">Score</th><th scope="col">Right</th><th scope="col">Null</th><th scope="col">Wrong</th><th scope="col"><code>ormaos</code> verbs before answers.json</th><th scope="col">Tool calls</th><th scope="col">Tokens</th><th scope="col">Wall time</th><th scope="col">Stream</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>52,881</td><td>26 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-none-1.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>57,847</td><td>26 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-none-2.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>52,196</td><td>24 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-none-3.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>57,203</td><td>30 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-raw-1.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>5</td><td>75,422</td><td>32 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-raw-2.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>5</td><td>74,146</td><td>33 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-raw-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, io, tree, diff</td><td>5</td><td>101,359</td><td>32 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-ormaos-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, io, tree</td><td>7</td><td>121,340</td><td>41 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-ormaos-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, io, tree, diff</td><td>5</td><td>89,349</td><td>31 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-ormaos-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree</td><td>7</td><td>136,381</td><td>38 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-ormaos-values-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree, io</td><td>8</td><td>164,324</td><td>45 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-ormaos-values-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, io, tree, diff</td><td>7</td><td>137,166</td><td>38 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/agent-change-ormaos-values-3.jsonl">stream</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="files" aria-labelledby="files-title">
+<h2 id="files-title">The results files</h2>
+<ul class="rows">
+  <li>The benchmark: <a href="/benchmarks/knows2/#agent-change">knows2</a></li>
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801"><code>agent-bench/knows2/results/20261127-165801</code></a></li>
+</ul>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>

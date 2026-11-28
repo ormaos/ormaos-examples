@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>price-import, in fix · Ormaos benchmarks</title>
+<meta name="description" content="price-import, in fix: what happened, what the agent was given, run 1 of each arm side by side, and every run.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/cases/fix-price-import.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long bench">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://docs.ormaos.com/">Docs</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<p class="kicker">Situation · fix</p>
+<h1 id="top-title">price-import, in fix</h1>
+<p class="lead">A scheduled job. By its README, it takes over a supplier&#x27;s price list. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/bugs/price-import/task"><code>agent-bench/bugs/price-import/task</code></a>.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<p>Passed the check, first attempts: <code>none</code> 3/3, <code>raw</code> 3/3, <code>ormaos</code> 3/3 (3 runs per arm). Agent: <code>claude-code / claude-opus-5-5</code>.</p>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#happened">What happened</a></li>
+  <li><a href="#given">What the agent was given</a></li>
+  <li><a href="#side-by-side">Run 1 of each arm, side by side</a></li>
+  <li><a href="#runs">Every run</a></li>
+  <li><a href="#files">The results files</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="happened" aria-labelledby="happened-title">
+<h2 id="happened-title">What happened</h2>
+<p>That night cron ran <code>python3 job.py</code>; it printed <code>price import finished: OK</code> and exited with code 0. This morning 11 prices in the catalog are not those of the supplier&#x27;s list: <code>ART-2110</code>, <code>ART-2112</code>, <code>ART-2114</code>, <code>ART-2115</code>, <code>ART-2116</code>, <code>ART-2117</code>, <code>ART-2120</code>, <code>ART-2121</code>, <code>ART-2122</code>, <code>ART-2124</code> and <code>ART-2125</code>. Where it behaved otherwise than its README: a subprocess whose exit code is not read.</p>
+<p>The items are those the scenario&#x27;s own check of the data found, in <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/build.json"><code>build.json</code></a>.</p>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label">The symptom, from <code>TASK.md</code> in the agent&#x27;s folder</span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s price import said OK, but this morning many prices in the catalog are not the prices of the supplier&#x27;s list (data/supplier/pricelist.csv).</code></pre>
+</figure>
+</section>
+
+<section class="band" id="given" aria-labelledby="given-title">
+<h2 id="given-title">What the agent was given</h2>
+<p>Its folder (the code, its README, <code>TASK.md</code> and the data that night left, with what the arm adds) and the task text, the same in every arm but for the arm&#x27;s last sentence:</p>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>none</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s price import said OK, but this morning many prices in the catalog are not the prices of the supplier&#x27;s list (data/supplier/pricelist.csv). The job runs from cron with `python3 job.py`. Find the cause and fix it.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>raw</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s price import said OK, but this morning many prices in the catalog are not the prices of the supplier&#x27;s list (data/supplier/pricelist.csv). The job runs from cron with `python3 job.py`. Find the cause and fix it. A VizTracer trace of that run is in result.json, in the Chrome Trace Event format (JSON; &quot;traceEvents&quot; has one entry per function call, with its name, its start &quot;ts&quot; and its duration &quot;dur&quot; in microseconds); read it with python3.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos</code></span></figcaption>
+<pre tabindex="0"><code>Last night&#x27;s price import said OK, but this morning many prices in the catalog are not the prices of the supplier&#x27;s list (data/supplier/pricelist.csv). The job runs from cron with `python3 job.py`. Find the cause and fix it. That run was recorded with Ormaos: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+</section>
+
+<section class="band" id="side-by-side" aria-labelledby="side-by-side-title">
+<h2 id="side-by-side-title">Run 1 of each arm, side by side</h2>
+<p>Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent&#x27;s tool calls in order; under each <code>ormaos</code> command, the first 15 lines of its output, with a link to the full output in the stream.</p>
+<div class="sbs" style="--cols:3">
+<article class="arm-col a1">
+<h4><code>none</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-none-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">9 tool calls, 130,217 tokens, 59 s</p>
+<p class="part">Commands, in order (9)</p><ol class="steps">
+<li><pre class="cmd-text">ls -laR | head -50 &amp;&amp; cat job.py</pre></li>
+<li><pre class="cmd-text">cat convert.py catalog.py README.md TASK.md data/cron.log data/staging.csv; echo ---; cat data/supplier/pricelist.csv; echo ---; ls -l --time-style=full-iso data data/supplier</pre></li>
+<li><pre class="cmd-text">python3 convert.py data/supplier/pricelist.csv /tmp/conv.csv; echo exit=$?; cat /tmp/conv.csv; python3 catalog.py --compare data/supplier/pricelist.csv</pre></li>
+<li><pre class="cmd-text">cd /tmp &amp;&amp; mkdir -p trunc &amp;&amp; head -c 420 /srv/price-import/data/supplier/pricelist.csv &gt; trunc/list.csv &amp;&amp; tail -2 trunc/list.csv; echo; python3 /srv/price-import/convert.py trunc/list.csv trunc/out.csv; echo exit=$?; wc -l trunc/out.csv</pre></li>
+<li><pre class="cmd-text">Edit job.py</pre></li>
+<li><pre class="cmd-text">Edit job.py</pre></li>
+<li><pre class="cmd-text">T=$(mktemp -d) &amp;&amp; cp data/catalog.db $T/db &amp;&amp; python3 job.py --list /tmp/trunc/list.csv --staging $T/s.csv --db $T/db; echo exit=$?; printf &#x27;article;description;price;currency;pack\nART-2101;x;18,90;EUR;100\nAR&#x27; &gt; $T/nonl.csv; python3 job.py --list $T/nonl.csv --staging $T/s.csv --db $T/db; echo exit=$?; python3 catalog.py --db $T/db --compare data/supplier/pricelist.csv | wc -l; python3 job.py --staging $T/s.csv --db $T/db; echo exit=$?; python3 catalog.py --db $T/db --compare data/supplier/pricelist.csv; ls $T</pre></li>
+<li><pre class="cmd-text">T=$(mktemp -d) &amp;&amp; cp data/catalog.db $T/db &amp;&amp; printf &#x27;article;description;price;currency;pack\nART-2101;x;18,90;EUR;100\nART-2102;x;abc;EUR;1\n&#x27; &gt; $T/bad.csv &amp;&amp; python3 job.py --list $T/bad.csv --staging $T/s.csv --db $T/db; echo exit=$?; ls $T</pre></li>
+<li><pre class="cmd-text">cp -p data/catalog.db data/catalog.db.bak-2026-11-26 &amp;&amp; python3 job.py; echo exit=$?; python3 catalog.py --compare data/supplier/pricelist.csv; wc -l data/staging.csv</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/job.py
++++ job.py
+@@ -34,12 +34,55 @@
+     )
+ 
+ 
++def snapshot_list(supplier_list, target):
++    &quot;&quot;&quot;Copy the supplier&#x27;s list, making sure the sync did not change it meanwhile.
++
++    The supplier&#x27;s sync can replace the list at any time; reading it while it
++    is being written gives a cut-off list.
++    &quot;&quot;&quot;
++    supplier_list = Path(supplier_list)
++    before = supplier_list.stat()
++    data = supplier_list.read_bytes()
++    after = supplier_list.stat()
++    same = (before.st_ino, before.st_size, before.st_mtime_ns) == (
++        after.st_ino, after.st_size, after.st_mtime_ns)
++    if not same or len(data) != after.st_size:
++        raise ValueError(f&quot;{supplier_list} changed while it was read; run again&quot;)
++    if not data.endswith(b&quot;\n&quot;):
++        raise ValueError(f&quot;{supplier_list} does not end with a newline; it looks cut off&quot;)
++    Path(target).write_bytes(data)
++
++
+ def convert_list(supplier_list, staging):
+     &quot;&quot;&quot;Run the converter, a program of its own that purchasing also uses by hand.&quot;&quot;&quot;
+     command = [sys.executable, str(HERE / &quot;convert.py&quot;), str(supplier_list), str(staging)]
+     log.info(&quot;running %s&quot;, &quot; &quot;.join(command))
+-    # The converter reports its progress line by line; keep that out of cron&#x27;s mail.
+-    subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
++    # The converter reports its progress line by line; keep that out of cron&#x27;s mail,
++    # but keep it to tell what went wrong if it fails.
++    result = subprocess.run(command, capture_output=True, text=True)
++    if result.returncode != 0:
++        detail = (result.stderr or result.stdout).strip().splitlines()
++        raise ValueError(
++            f&quot;converter exited with {result.returncode}: &quot;
++            f&quot;{detail[-1] if detail else &#x27;no output&#x27;}&quot;
++        )
++
++
++def convert_and_load(conn, supplier_list, staging):
++    &quot;&quot;&quot;Convert a snapshot of the list to a fresh file, load it, then keep it as staging.&quot;&quot;&quot;
++    staging = Path(staging)
++    snapshot = staging.with_name(staging.name + &quot;.list.tmp&quot;)
++    fresh = staging.with_name(staging.name + &quot;.tmp&quot;)
++    try:
++        snapshot_list(supplier_list, snapshot)
++        fresh.unlink(missing_ok=True)
++        convert_list(snapshot, fresh)
++        rows = catalog.load(conn, fresh)
++        os.replace(fresh, staging)
++        return rows
++    finally:
++        snapshot.unlink(missing_ok=True)
++        fresh.unlink(missing_ok=True)
+ 
+ 
+ def main(argv=None):
+@@ -52,8 +95,7 @@
+ 
+     try:
+         conn = catalog.connect(args.db)
+-        convert_list(args.list, args.staging)
+-        rows = catalog.load(conn, args.staging)
++        rows = convert_and_load(conn, args.list, args.staging)
+     except (OSError, ValueError, KeyError) as exc:
+         print(f&quot;price import failed: {exc}&quot;, file=sys.stderr)
+         return 2</code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  a list with a price that is not a number: exit 2, 14 products not at the list&#x27;s price
+pass  a list of prices only: exit 0, not as expected: none
+pass  a list without the price column: exit 2, catalog changed: no
+fixed</code></pre>
+</figure>
+</article>
+<article class="arm-col a2">
+<h4><code>raw</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-raw-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">9 tool calls, 163,401 tokens, 60 s</p>
+<p class="part">Commands, in order (9)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; find . -type f -not -path &#x27;./.git/*&#x27; | head -50 &amp;&amp; cat job.py</pre></li>
+<li><pre class="cmd-text">cat convert.py catalog.py README.md TASK.md data/cron.log; head -5 data/supplier/pricelist.csv data/staging.csv; wc -l data/supplier/pricelist.csv data/staging.csv; ls -la --time-style=full-iso data data/supplier</pre></li>
+<li><pre class="cmd-text">cat -A data/supplier/pricelist.csv; cat data/staging.csv; python3 -c &quot;
+import json
+d=json.load(open(&#x27;result.json&#x27;))
+ev=d[&#x27;traceEvents&#x27;]
+print(len(ev), set(e.get(&#x27;ph&#x27;) for e in ev))
+names={}
+for e in ev: names[e.get(&#x27;name&#x27;)]=names.get(e.get(&#x27;name&#x27;),0)+1
+for n,c in sorted(names.items(),key=lambda x:-x[1])[:60]: print(c,n)
+print([k for k in d if k!=&#x27;traceEvents&#x27;])
+&quot;</pre></li>
+<li><pre class="cmd-text">python3 -c &quot;
+import json
+d=json.load(open(&#x27;result.json&#x27;))
+print(json.dumps(d[&#x27;viztracer_metadata&#x27;])[:500])
+ev=d[&#x27;traceEvents&#x27;]
+import collections
+print(collections.Counter((e.get(&#x27;pid&#x27;),e.get(&#x27;tid&#x27;)) for e in ev))
+for e in ev:
+  if e.get(&#x27;ph&#x27;)==&#x27;M&#x27;: print(e)
+keys=(&#x27;convert&#x27;,&#x27;catalog&#x27;,&#x27;job.py&#x27;,&#x27;subprocess&#x27;,&#x27;Popen&#x27;,&#x27;wait&#x27;,&#x27;communicate&#x27;,&#x27;piece_cents&#x27;,&#x27;to_cents&#x27;,&#x27;load&#x27;,&#x27;open&#x27;,&#x27;main&#x27;,&#x27;Decimal&#x27;,&#x27;DictReader.__next__&#x27;,&#x27;writerow&#x27;,&#x27;print&#x27;,&#x27;exit&#x27;)
+for e in sorted(ev,key=lambda e:e.get(&#x27;ts&#x27;,0)):
+  n=e.get(&#x27;name&#x27;,&#x27;&#x27;)</pre><p class="note">… 3 more lines of this command</p></li>
+<li><pre class="cmd-text">python3 -c &quot;
+import json
+d=json.load(open(&#x27;result.json&#x27;))
+ev=[e for e in d[&#x27;traceEvents&#x27;] if e.get(&#x27;pid&#x27;)==3 and e.get(&#x27;ph&#x27;)==&#x27;X&#x27;]
+ev.sort(key=lambda e:e[&#x27;ts&#x27;])
+for e in ev:
+  n=e[&#x27;name&#x27;]
+  if &#x27;importlib&#x27; in n or &#x27;_bootstrap&#x27; in n or &#x27;RLock&#x27; in n or &#x27;re/_&#x27; in n: continue
+  print(round(e[&#x27;ts&#x27;]),e.get(&#x27;dur&#x27;),n,e.get(&#x27;args&#x27;,&#x27;&#x27;))
+&quot; | grep -v -E &#x27;marshal|open_code|BufferedReader&#x27; | tail -120</pre></li>
+<li><pre class="cmd-text">python3 catalog.py --compare data/supplier/pricelist.csv; mkdir -p /tmp/pi &amp;&amp; python3 convert.py data/supplier/pricelist.csv /tmp/pi/c.csv; echo rc=$?</pre></li>
+<li><pre class="cmd-text">Edit job.py</pre></li>
+<li><pre class="cmd-text">mkdir -p /tmp/pi/t &amp;&amp; printf &#x27;article;description;price;currency;pack\nART-1;x;1,00;EUR;1\nART-2;y;abc;EUR;1\n&#x27; &gt; /tmp/pi/t/bad.csv &amp;&amp; cp data/catalog.db /tmp/pi/t/db &amp;&amp; python3 job.py --list /tmp/pi/t/bad.csv --staging /tmp/pi/t/s.csv --db /tmp/pi/t/db; echo rc=$?</pre></li>
+<li><pre class="cmd-text">cp -p data/catalog.db /tmp/pi/catalog.db.before-rerun &amp;&amp; python3 job.py; echo rc=$?; python3 catalog.py --compare data/supplier/pricelist.csv; wc -l data/staging.csv</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/job.py
++++ job.py
+@@ -38,8 +38,15 @@
+     &quot;&quot;&quot;Run the converter, a program of its own that purchasing also uses by hand.&quot;&quot;&quot;
+     command = [sys.executable, str(HERE / &quot;convert.py&quot;), str(supplier_list), str(staging)]
+     log.info(&quot;running %s&quot;, &quot; &quot;.join(command))
+-    # The converter reports its progress line by line; keep that out of cron&#x27;s mail.
+-    subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
++    # The converter reports its progress line by line; keep that out of cron&#x27;s mail,
++    # but keep its errors: if it fails, the staging file is partial or stale and
++    # must not be loaded.
++    result = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
++    if result.returncode != 0:
++        lines = result.stderr.strip().splitlines()
++        reason = lines[-1] if lines else &quot;no error output&quot;
++        log.error(&quot;converter output:\n%s&quot;, result.stderr)
++        raise ValueError(f&quot;converter exited with code {result.returncode}: {reason}&quot;)
+ 
+ 
+ def main(argv=None):</code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  a list with a price that is not a number: exit 2, 14 products not at the list&#x27;s price
+pass  a list of prices only: exit 0, not as expected: none
+pass  a list without the price column: exit 2, catalog changed: no
+fixed</code></pre>
+</figure>
+</article>
+<article class="arm-col a3">
+<h4><code>ormaos</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-ormaos-1.jsonl">stream</a></p><p class="meta">Passed the check</p><p class="meta">11 tool calls, 175,219 tokens, 66 s</p>
+<p class="part">Commands, in order (11)</p><ol class="steps">
+<li><pre class="cmd-text">.venv/bin/ormaos guide; ls -la; ls -la .ormaos data data/*</pre><pre class="out">ormaos: what happened inside a Python run, to read instead of guessing.
+
+WHEN TO USE IT
+- A Python program runs, and its output does not explain what it did: a job
+  that prints OK, an error that never shows, a result you cannot trace.
+- You want to see what ran: the project&#x27;s calls with the shape of their
+  arguments, every exception (also the caught ones), the SQL statements,
+  files, subprocesses and HTTP requests.
+
+WHERE TO START
+1. Record:  ormaos run -- &lt;command&gt;
+   The command runs unchanged (same output, same exit code); its Python must
+   have ormaos installed. In a script or notebook: `with ormaos.record():`.
+2. Read the summary printed on stderr: at most 5 lines, each starting with
+   &quot;ormaos:&quot;. To see it again, with more: ormaos show</pre><p class="note">Output: the first 15 of 86 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-ormaos-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">cat TASK.md README.md job.py convert.py catalog.py data/cron.log data/staging.csv data/supplier/pricelist.csv; .venv/bin/ormaos show</pre><pre class="out">Last night&#x27;s price import said OK, but this morning many prices in the catalog are not the prices of the supplier&#x27;s list (data/supplier/pricelist.csv).
+# price-import
+
+A scheduled job that takes over the supplier&#x27;s price list: the supplier&#x27;s sync writes the current list to `data/supplier/pricelist.csv`, and at night the job converts it and writes its prices to the catalog, where the shop reads them in the morning.
+
+It uses only the Python standard library (Python 3.12 or newer). The folder is self-contained: copy it anywhere and it runs.
+
+## Run it
+
+```bash
+python3 job.py                                           # take over the prices
+python3 catalog.py                                       # show the catalog
+python3 catalog.py --compare data/supplier/pricelist.csv # catalog prices that are not the list&#x27;s
+```
+</pre><p class="note">Output: the first 15 of 329 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-ormaos-1.jsonl?plain=1#L7">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos exceptions r1:e3; .venv/bin/ormaos tree r1:c1; .venv/bin/ormaos io r1; .venv/bin/python catalog.py --compare data/supplier/pricelist.csv; .venv/bin/python catalog.py</pre><pre class="out">r1:e3 decimal.InvalidOperation: uncaught
+  raised at   convert.py:22 in to_cents  [r1:c28]
+  left calls   to_cents [r1:c28], convert [r1:c11], main [r1:c10], &lt;module&gt; [r1:c9]
+  handled at  nowhere seen
+  message     not recorded; args: tuple[1 list]
+next: ormaos tree r1:c28
+r1:c1 &lt;module&gt;() -&gt; raised  job.py:1  69.3ms  io 23  calls below: 2
+  r1:c2 &lt;module&gt;() -&gt; NoneType  catalog.py:1  2.4ms  calls below: 1
+    r1:c3 &lt;module&gt;() -&gt; NoneType  convert.py:1  841us
+  r1:c4 main(argv: NoneType) -&gt; int  job.py:45  45.7ms  io 23  calls below: 4
+    r1:c5 configure_logging() -&gt; NoneType  job.py:28  66us
+    r1:c6 connect(path: pathlib.PosixPath) -&gt; sqlite3.Connection  catalog.py:29  452us  io 2
+    r1:c7 convert_list(supplier_list: pathlib.PosixPath, staging: pathlib.PosixPath) -&gt; NoneType  job.py:37  39.5ms  io 2
+    r1:c8 load(conn: sqlite3.Connection, staging: pathlib.PosixPath) -&gt; int  catalog.py:35  1.6ms  io 19
+next: ormaos exceptions r1:c1</pre><p class="note">Output: the first 15 of 63 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-ormaos-1.jsonl?plain=1#L13">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos tree r1:c28; .venv/bin/ormaos tree r1:c11; .venv/bin/python convert.py data/supplier/pricelist.csv /tmp/conv.csv; echo exit=$?; cat /tmp/conv.csv | head -12</pre><pre class="out">inside: r1:c9 &lt;module&gt; &gt; r1:c10 main &gt; r1:c11 convert
+r1:c28 to_cents(text: str[10]) -&gt; raised  convert.py:19  27us  process 2
+next: ormaos tree r1:c11 | ormaos exceptions r1:c28
+inside: r1:c9 &lt;module&gt; &gt; r1:c10 main
+r1:c11 convert(source: str[45], target: str[34]) -&gt; raised  convert.py:31  1.0ms  io 2  process 2  calls below: 17
+  r1:c12 to_cents(text: str[5]) -&gt; int  convert.py:19  25us  process 2
+  r1:c13 piece_cents(pack_cents: int, pack: str[3]) -&gt; int  convert.py:25  14us  process 2
+  r1:c14 to_cents(text: str[4]) -&gt; int  convert.py:19  8us  process 2
+  r1:c15 piece_cents(pack_cents: int, pack: str[3]) -&gt; int  convert.py:25  8us  process 2
+  r1:c16 to_cents(text: str[4]) -&gt; int  convert.py:19  7us  process 2
+  r1:c17 piece_cents(pack_cents: int, pack: str[3]) -&gt; int  convert.py:25  7us  process 2
+  r1:c18 to_cents(text: str[5]) -&gt; int  convert.py:19  8us  process 2
+  r1:c19 piece_cents(pack_cents: int, pack: str[3]) -&gt; int  convert.py:25  7us  process 2
+  r1:c20 to_cents(text: str[4]) -&gt; int  convert.py:19  6us  process 2
+  r1:c21 piece_cents(pack_cents: int, pack: str[3]) -&gt; int  convert.py:25  7us  process 2</pre><p class="note">Output: the first 15 of 39 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-ormaos-1.jsonl?plain=1#L20">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos exceptions r1</pre><pre class="out">r1: 3 exceptions (0 swallowed, 1 uncaught, 1 StopIteration taken by the interpreter)
+r1:e3 uncaught decimal.InvalidOperation  raised at convert.py:22  process 2
+r1:e2 exit SystemExit  raised at job.py:67
+1x StopIteration taken by the interpreter, at /usr/lib/python3.14/csv.py:177 in DictReader.__next__  [r1:e1]
+next: ormaos exceptions r1:e3 | ormaos exceptions r1:e2</pre><p class="note">Output: all 5 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-ormaos-1.jsonl?plain=1#L29">Full output</a></p></li>
+<li><pre class="cmd-text">Edit job.py</pre></li>
+<li><pre class="cmd-text">Edit convert.py</pre></li>
+<li><pre class="cmd-text">Edit convert.py</pre></li>
+<li><pre class="cmd-text">Edit convert.py</pre></li>
+<li><pre class="cmd-text">T=$(mktemp -d) &amp;&amp; cp data/catalog.db $T/db &amp;&amp; cp data/staging.csv $T/staging.csv &amp;&amp; sed &#x27;s/^ART-2109;Angle bracket 60 mm;24,00/ART-2109;Angle bracket 60 mm;24,00 EUR/&#x27; data/supplier/pricelist.csv &gt; $T/bad.csv
+echo &quot;--- bad list&quot;; .venv/bin/python job.py --list $T/bad.csv --staging $T/staging.csv --db $T/db; echo exit=$?; ls $T; cmp $T/db data/catalog.db &amp;&amp; echo &quot;db untouched&quot;; cmp $T/staging.csv data/staging.csv &amp;&amp; echo &quot;staging untouched&quot;
+echo &quot;--- real list&quot;; .venv/bin/python job.py --staging $T/staging.csv --db $T/db; echo exit=$?; .venv/bin/python catalog.py --db $T/db --compare data/supplier/pricelist.csv</pre></li>
+<li><pre class="cmd-text">cp -p data/catalog.db data/catalog.db.bak-2026-11-26 &amp;&amp; .venv/bin/python job.py; echo exit=$?; .venv/bin/python catalog.py --compare data/supplier/pricelist.csv; .venv/bin/python catalog.py | grep inactive</pre></li>
+</ol>
+<p class="part">Its change, against <code>task/</code></p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>--- task/convert.py
++++ convert.py
+@@ -12,8 +12,10 @@
+ &quot;&quot;&quot;
+ 
+ import csv
++import os
+ import sys
+-from decimal import ROUND_HALF_UP, Decimal
++from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
++from pathlib import Path
+ 
+ 
+ def to_cents(text):
+@@ -29,19 +31,38 @@
+ 
+ 
+ def convert(source, target):
++    &quot;&quot;&quot;Convert ``source`` to ``target``.
++
++    The output is written to a temporary file next to ``target`` and renamed
++    only when the whole list was converted, so a failed conversion never
++    leaves a partial list behind for the job to load.
++    &quot;&quot;&quot;
+     rows = 0
+-    with open(source, newline=&quot;&quot;, encoding=&quot;utf-8&quot;) as supplier, \
+-            open(target, &quot;w&quot;, newline=&quot;&quot;, encoding=&quot;utf-8&quot;) as out:
+-        writer = csv.writer(out)
+-        writer.writerow((&quot;sku&quot;, &quot;price_cents&quot;))
+-        for row in csv.DictReader(supplier, delimiter=&quot;;&quot;):
+-            if row[&quot;currency&quot;].strip() != &quot;EUR&quot;:
+-                continue
+-            cents = piece_cents(to_cents(row[&quot;price&quot;]), row[&quot;pack&quot;] or 1)
+-            writer.writerow((row[&quot;article&quot;].strip(), cents))
+-            rows += 1
+-            if rows % 10 == 0:
+-                print(f&quot;{rows} rows&quot;)
++    target = Path(target)
++    partial = target.with_name(target.name + &quot;.partial&quot;)
++    try:
++        with open(source, newline=&quot;&quot;, encoding=&quot;utf-8&quot;) as supplier, \
++                open(partial, &quot;w&quot;, newline=&quot;&quot;, encoding=&quot;utf-8&quot;) as out:
++            writer = csv.writer(out)
++            writer.writerow((&quot;sku&quot;, &quot;price_cents&quot;))
++            reader = csv.DictReader(supplier, delimiter=&quot;;&quot;)
++            for row in reader:
++                if (row[&quot;currency&quot;] or &quot;&quot;).strip() != &quot;EUR&quot;:
++                    continue
++                try:
++                    cents = piece_cents(to_cents(row[&quot;price&quot;]), row[&quot;pack&quot;] or 1)
++                except (InvalidOperation, ValueError, ZeroDivisionError, TypeError) as exc:
++                    raise ValueError(
++                        f&quot;line {reader.line_num}: cannot read price {row[&#x27;price&#x27;]!r} &quot;
++                        f&quot;/ pack {row[&#x27;pack&#x27;]!r} of {row[&#x27;article&#x27;]!r}&quot;
++                    ) from exc
++                writer.writerow((row[&quot;article&quot;].strip(), cents))
++                rows += 1
++                if rows % 10 == 0:
++                    print(f&quot;{rows} rows&quot;)
++        os.replace(partial, target)
++    finally:
++        partial.unlink(missing_ok=True)
+     return rows
+ 
+ 
+@@ -49,7 +70,11 @@
+     if len(argv) != 3:
+         print(__doc__, file=sys.stderr)
+         return 2
+-    rows = convert(argv[1], argv[2])
++    try:
++        rows = convert(argv[1], argv[2])
++    except ValueError as exc:
++        print(f&quot;convert failed: {exc}&quot;, file=sys.stderr)
++        return 1
+     print(f&quot;done, {rows} rows&quot;)
+     return 0
+ 
+--- task/job.py
++++ job.py
+@@ -38,8 +38,16 @@
+     &quot;&quot;&quot;Run the converter, a program of its own that purchasing also uses by hand.&quot;&quot;&quot;
+     command = [sys.executable, str(HERE / &quot;convert.py&quot;), str(supplier_list), str(staging)]
+     log.info(&quot;running %s&quot;, &quot; &quot;.join(command))
+-    # The converter reports its progress line by line; keep that out of cron&#x27;s mail.
+-    subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
++    # The converter reports its progress line by line; keep that out of cron&#x27;s mail,
++    # but keep its errors: a failed conversion must fail the job, not be loaded.
++    result = subprocess.run(
++        command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True
++    )
++    if result.returncode != 0:
++        detail = result.stderr.strip().splitlines()[-1:] or [&quot;no message&quot;]
++        raise ValueError(
++            f&quot;converter exited with code {result.returncode}: {detail[0]}&quot;
++        )
+ 
+ 
+ def main(argv=None):</code></pre>
+</figure>
+<p class="part">What the check said</p>
+<figure class="code wrap verbatim">
+<pre tabindex="0"><code>pass  a list with a price that is not a number: exit 2, 14 products not at the list&#x27;s price
+pass  a list of prices only: exit 0, not as expected: none
+pass  a list without the price column: exit 2, catalog changed: no
+fixed</code></pre>
+</figure>
+</article>
+</div>
+</section>
+
+<section class="band" id="runs" aria-labelledby="runs-title">
+<h2 id="runs-title">Every run</h2>
+<p>The first attempt of every run of every arm.</p>
+<div class="table-wrap">
+<table class="plain runs">
+<thead><tr><th scope="col">Arm</th><th scope="col">Run</th><th scope="col">Check</th><th scope="col">Last line</th><th scope="col">Tool calls</th><th scope="col">Tokens</th><th scope="col">Wall time</th><th scope="col">Stream</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>9</td><td>130,217</td><td>59 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-none-1.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>9</td><td>111,863</td><td>54 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-none-2.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>7</td><td>115,072</td><td>66 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-none-3.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>9</td><td>163,401</td><td>60 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-raw-1.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>10</td><td>213,841</td><td>70 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-raw-2.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>11</td><td>167,500</td><td>66 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-raw-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>1</td><td>passed</td><td><code>fixed</code></td><td>11</td><td>175,219</td><td>66 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-ormaos-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>2</td><td>passed</td><td><code>fixed</code></td><td>10</td><td>157,874</td><td>62 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-ormaos-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>3</td><td>passed</td><td><code>fixed</code></td><td>10</td><td>132,940</td><td>58 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703/streams/price-import-ormaos-3.jsonl">stream</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="files" aria-labelledby="files-title">
+<h2 id="files-title">The results files</h2>
+<ul class="rows">
+  <li>The benchmark: <a href="/benchmarks/fix/">fix</a></li>
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703"><code>agent-bench/results/20261126-220703</code></a></li>
+</ul>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>

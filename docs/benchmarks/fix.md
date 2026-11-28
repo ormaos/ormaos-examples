@@ -1,6 +1,6 @@
-# fix: 8 programs whose behaviour differed from their README
+# fix: 8 programs that behaved otherwise than their README
 
-N = 72 runs: 8 programs x 3 arms x 3 runs, the first attempt of every slot, model `claude-opus-5-5`, 2026-11-26. A coding agent gets a scheduled program whose behaviour on one night differs from what its README says, the data that night left and a one-sentence symptom. A check it does not see then plays that night again on the code the agent left; `fixed` is the name of the metric that counts the runs whose code passed it.
+N = 72 runs: 8 programs x 3 arms x 3 runs, the first attempt of every slot, model `claude-opus-5-5`, 2026-11-26. A coding agent gets a scheduled program that behaved otherwise than its README on one night, the data that night left and a one-sentence symptom. A check it does not see then plays that night again on the code the agent left; `fixed` is the name of the metric that counts the runs whose code passed it.
 
 Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.
 
@@ -12,9 +12,9 @@ Ormaos records and shows what happened inside your Python execution — the runt
 
 ### The programs
 
-8 small scheduled Python programs, standard library only. Each runs from cron, prints its OK line and exits with code 0; on one night its behaviour differs from what its README says, in a different place in each program, and that shows only in the data it left. Running it again today does not show it: that night's input is gone.
+8 small scheduled Python programs, standard library only. Each runs from cron, prints its OK line and exits with code 0; on one night it behaved otherwise than its README, in a different place in each program, and that shows only in the data it left. Running it again today does not show it: that night's input is gone.
 
-| Program | What it does, by its README | Where its behaviour differs |
+| Program | What it does, by its README | Where it behaved otherwise than its README |
 |---|---|---|
 | `order-sync` | applies orders to an inventory | an exception that is caught and not shown |
 | `freight-quote` | quotes freight from a carrier's API | a fallback, with nothing printed, after HTTP calls that returned an error |
@@ -65,14 +65,14 @@ The 95% intervals of all 3 arms overlap one another.
 
 | Program | `none` | `raw` | `ormaos` |
 |---|---:|---:|---:|
-| `order-sync` | 3/3 | 3/3 | 3/3 |
-| `freight-quote` | 3/3 | 3/3 | 3/3 |
-| `late-fees` | 2/3 | 2/3 | 3/3 |
-| `statement-import` | 3/3 | 3/3 | 3/3 |
-| `fx-rates` | 1/3 | 3/3 | 3/3 |
-| `price-import` | 3/3 | 3/3 | 3/3 |
-| `points-grant` | 3/3 | 3/3 | 3/3 |
-| `commission-run` | 3/3 | 3/3 | 3/3 |
+| [`order-sync`](https://ormaos.com/benchmarks/cases/fix-order-sync/) | 3/3 | 3/3 | 3/3 |
+| [`freight-quote`](https://ormaos.com/benchmarks/cases/fix-freight-quote/) | 3/3 | 3/3 | 3/3 |
+| [`late-fees`](https://ormaos.com/benchmarks/cases/fix-late-fees/) | 2/3 | 2/3 | 3/3 |
+| [`statement-import`](https://ormaos.com/benchmarks/cases/fix-statement-import/) | 3/3 | 3/3 | 3/3 |
+| [`fx-rates`](https://ormaos.com/benchmarks/cases/fix-fx-rates/) | 1/3 | 3/3 | 3/3 |
+| [`price-import`](https://ormaos.com/benchmarks/cases/fix-price-import/) | 3/3 | 3/3 | 3/3 |
+| [`points-grant`](https://ormaos.com/benchmarks/cases/fix-points-grant/) | 3/3 | 3/3 | 3/3 |
+| [`commission-run`](https://ormaos.com/benchmarks/cases/fix-commission-run/) | 3/3 | 3/3 | 3/3 |
 
 ### First attempts whose code did not pass the check
 
@@ -87,7 +87,7 @@ The report adds an analysis made after seeing the results, not planned before th
 
 ## Limits
 
-- The 8 programs, and where each one's behaviour differs from its README, were written for this benchmark by the people who make Ormaos; they are not a sample of real programs.
+- The 8 programs, and where each one behaved otherwise than its README, were written for this benchmark by the people who make Ormaos; they are not a sample of real programs.
 - One model, one prompt per arm, one tracer with its default settings.
 - The dates in the data are relative to the day `build.py` ran: build on the day of the run.
 

@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rl-env, in knows2 · Ormaos benchmarks</title>
+<meta name="description" content="rl-env, in knows2: what happened, what the agent was given, run 1 of each arm side by side, and every run.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/benchmarks/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/markdown" href="/benchmarks/cases/knows2-rl-env.md">
+
+<script>
+  (function () {
+    // Light is the default. Dark only after the visitor picks it with the
+    // header switch; nothing is stored until then.
+    var t;
+    try { t = localStorage.getItem("theme"); } catch (e) {}
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.querySelector('meta[name="theme-color"]').content = "#0a0a0a";
+    }
+  })();
+</script>
+
+<link rel="stylesheet" href="/benchmarks/style.css">
+</head>
+<body class="long bench">
+
+<header class="site-header">
+  <nav aria-label="Main navigation">
+    <a class="home" href="https://ormaos.com/" aria-label="Ormaos home">
+      <svg class="logo" viewBox="0 0 320 320" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="96" y="32" width="128" height="64"/>
+        <rect x="32" y="96" width="64" height="128"/>
+        <rect x="224" y="96" width="64" height="128"/>
+        <rect x="96" y="224" width="128" height="64"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a class="nav-github" href="https://github.com/ormaos">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+      <a href="https://docs.ormaos.com/">Docs</a>
+      <a href="https://ormaos.com/demo/">Demo</a>
+      <a href="/benchmarks/">Benchmarks</a>
+      <a href="https://ormaos.com/contact">Contact</a>
+      <div class="theme-switch" role="group" aria-label="Theme" hidden>
+        <button type="button" data-theme-option="light" aria-pressed="true">Light</button>
+        <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+  (function (header) {
+    // The theme switch stays hidden without JavaScript, where the page is
+    // always light.
+    var root = document.documentElement;
+    var group = header.querySelector(".theme-switch");
+    var buttons = group.querySelectorAll("button");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    function apply(theme) {
+      if (theme === "dark") root.setAttribute("data-theme", "dark");
+      else root.removeAttribute("data-theme");
+      Array.prototype.forEach.call(buttons, function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-theme-option") === theme ? "true" : "false");
+      });
+      meta.content = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    }
+
+    apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+    group.hidden = false;
+
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.addEventListener("click", function () {
+        var theme = b.getAttribute("data-theme-option");
+        apply(theme);
+        try { localStorage.setItem("theme", theme); } catch (e) {}
+      });
+    });
+  })(document.currentScript.previousElementSibling);
+</script>
+
+<main>
+
+<section class="band first" id="top" aria-labelledby="top-title">
+<p class="kicker">Situation · knows2</p>
+<h1 id="top-title">rl-env, in knows2</h1>
+<p class="lead">A RL environment. A grid world in pure Python, where a courier walks from a depot to a customer, and a loop that runs episodes of it with a seeded policy. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/rl-env"><code>use-cases/rl-env</code></a>.</p>
+<p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
+<p>Mean score over every run: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00 (3 runs per arm). Agent: <code>claude-code / claude-opus-5-5</code>.</p>
+<nav class="toc" aria-label="On this page">
+<h2>On this page</h2>
+<ol>
+  <li><a href="#happened">What happened</a></li>
+  <li><a href="#given">What the agent was given</a></li>
+  <li><a href="#side-by-side">Run 1 of each arm, side by side</a></li>
+  <li><a href="#answered">What Ormaos data answered</a></li>
+  <li><a href="#runs">Every run</a></li>
+  <li><a href="#files">The results files</a></li>
+</ol>
+</nav>
+</section>
+
+<section class="band" id="happened" aria-labelledby="happened-title">
+<h2 id="happened-title">What happened</h2>
+<p>19 episodes ended with the courier at the customer, and episode 13 at the step limit; <code>_arrival_bonus</code> was called 0 times. Over 363 calls of <code>env.step()</code>, 89 moves were blocked by a wall or the edge of the grid, and the highest return of an episode was -6.7.</p>
+<p>The numbers are the oracle&#x27;s answers to the questions below: <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/oracle/rl-env.json"><code>oracle/rl-env.json</code></a>.</p>
+</section>
+
+<section class="band" id="given" aria-labelledby="given-title">
+<h2 id="given-title">What the agent was given</h2>
+<p>The folder the execution left, with what the arm adds, and 8 questions in <code>questions.json</code>, written by a model that was not told about Ormaos. The oracle&#x27;s answers were not in the folder.</p>
+<div class="table-wrap">
+<table class="plain questions">
+<thead><tr><th scope="col">Question</th><th scope="col">Asked</th><th scope="col">Format</th><th scope="col">The oracle&#x27;s answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>Of the 20 episodes, how many ended with the courier at the customer at (5, 5), as opposed to ending because the 30-step limit was reached?</td><td>An integer, e.g. 7</td><td><code>19</code></td></tr>
+<tr><td>q2</td><td>How many times during the whole execution did GridEnv._arrival_bonus() get called (that is, how many times was the 10.0 arrival reward actually given out)?</td><td>An integer, e.g. 7</td><td><code>0</code></td></tr>
+<tr><td>q3</td><td>What was the value of env.bumps (the counter of moves blocked by a wall or the grid edge) after all 20 episodes had finished?</td><td>An integer, e.g. 7</td><td><code>89</code></td></tr>
+<tr><td>q4</td><td>What was the total number of env.step() calls made over all 20 episodes combined?</td><td>An integer, e.g. 7</td><td><code>363</code></td></tr>
+<tr><td>q5</td><td>Which episode, counting from 1, ended because the 30-step limit was reached rather than at the customer?</td><td>An integer episode number from 1 to 20, e.g. 7</td><td><code>13</code></td></tr>
+<tr><td>q6</td><td>How many steps did the shortest episode of the run take?</td><td>An integer, e.g. 7</td><td><code>13</code></td></tr>
+<tr><td>q7</td><td>How many times in the whole run did the policy function choose() return the action &quot;right&quot;?</td><td>An integer, e.g. 7</td><td><code>162</code></td></tr>
+<tr><td>q8</td><td>What was the highest total return of any single episode in the run?</td><td>A decimal number rounded to one decimal place, e.g. -3.4</td><td><code>-6.7</code></td></tr>
+</tbody>
+</table>
+</div>
+<details class="text">
+<summary>The prompt of each arm, verbatim</summary>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>none</code></span></figcaption>
+<pre tabindex="0"><code>`python3 run.py` ran once in this folder. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>raw</code></span></figcaption>
+<pre tabindex="0"><code>`python3 run.py` ran once in this folder. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. A VizTracer trace of that execution is in result.json, in the Chrome Trace Event format (JSON; &quot;traceEvents&quot; has one entry per function call, with its name, its start &quot;ts&quot; and its duration &quot;dur&quot; in microseconds); read it with python3.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos</code></span></figcaption>
+<pre tabindex="0"><code>`python3 run.py` ran once in this folder. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. That execution was recorded with Ormaos: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+<figure class="code wrap verbatim">
+<figcaption class="code-bar"><span class="code-label"><code>ormaos-values</code></span></figcaption>
+<pre tabindex="0"><code>`python3 run.py` ran once in this folder. The folder is as that left it. questions.json has questions about what happened in that execution. Write answers.json in this folder: one JSON object with the id of every question as a key and, under it, the answer in the format the question gives. Answer what happened then; give null for an answer you cannot find out. That execution was recorded with Ormaos, values included: the recording is in .ormaos/ and the command line is .venv/bin/ormaos; run &quot;.venv/bin/ormaos guide&quot; first.</code></pre>
+</figure>
+</details>
+</section>
+
+<section class="band" id="side-by-side" aria-labelledby="side-by-side-title">
+<h2 id="side-by-side-title">Run 1 of each arm, side by side</h2>
+<p>Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent&#x27;s tool calls in order; under each <code>ormaos</code> command, the lines of its output that hold a value the agent wrote in <code>answers.json</code>, or its first 15 lines, with a link to the full output in the stream.</p>
+<div class="sbs" style="--cols:4">
+<article class="arm-col a1">
+<h4><code>none</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-none-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">4 tool calls, 46,849 tokens, 23 s</p>
+<p class="part">Commands, in order (4)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; cat questions.json &amp;&amp; cat run.py</pre></li>
+<li><pre class="cmd-text">cat env.py README.md</pre></li>
+<li><pre class="cmd-text">mkdir -p /tmp/sim &amp;&amp; cat &gt; /tmp/sim/s.py &lt;&lt;&#x27;EOF&#x27;
+import sys; sys.path.insert(0,&#x27;/srv/rl-env&#x27;)
+import random, run, env as E
+calls={&#x27;bonus&#x27;:0,&#x27;right&#x27;:0}
+ob=E.GridEnv._arrival_bonus
+def b(self): calls[&#x27;bonus&#x27;]+=1; return ob(self)
+E.GridEnv._arrival_bonus=b
+rng=random.Random(3); g=E.GridEnv(); res=[]; steps=0
+oc=run.choose
+for i in range(20):
+    p=g.reset(); t=0.0; d=False; n=0
+    while not d:</pre><p class="note">… 8 more lines of this command</p></li>
+<li><pre class="cmd-text">echo &#x27;{&quot;q1&quot;:19,&quot;q2&quot;:0,&quot;q3&quot;:89,&quot;q4&quot;:363,&quot;q5&quot;:13,&quot;q6&quot;:13,&quot;q7&quot;:162,&quot;q8&quot;:-6.7}&#x27; &gt; answers.json &amp;&amp; cat answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>19</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>0</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>89</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>363</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>13</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>13</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>162</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>-6.7</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a2">
+<h4><code>raw</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-raw-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">4 tool calls, 52,715 tokens, 26 s</p>
+<p class="part">Commands, in order (4)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/rl-env; ls -la; cat questions.json; head -c 1500 result.json; echo; wc -c result.json</pre></li>
+<li><pre class="cmd-text">cd /srv/rl-env; cat README.md env.py run.py; python3 -c &quot;
+import json,collections
+d=json.load(open(&#x27;result.json&#x27;))[&#x27;traceEvents&#x27;]
+c=collections.Counter(e[&#x27;name&#x27;] for e in d if e.get(&#x27;ph&#x27;)==&#x27;X&#x27;)
+for k,v in c.items():
+  if &#x27;/srv&#x27; in k or &#x27;run.py&#x27; in k or &#x27;env.py&#x27; in k: print(v,k)
+&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/rl-env; python3 -c &quot;
+import json
+d=[e for e in json.load(open(&#x27;result.json&#x27;))[&#x27;traceEvents&#x27;] if e.get(&#x27;ph&#x27;)==&#x27;X&#x27;]
+eps=sorted([e for e in d if e[&#x27;name&#x27;].startswith(&#x27;run_episode&#x27;)],key=lambda e:e[&#x27;ts&#x27;])
+st=[e for e in d if e[&#x27;name&#x27;].startswith(&#x27;GridEnv.step&#x27;)]
+lim=[e for e in d if e[&#x27;name&#x27;].startswith(&#x27;ended_at_limit&#x27;)][0]
+for i,ep in enumerate(eps,1):
+  n=sum(ep[&#x27;ts&#x27;]&lt;=s[&#x27;ts&#x27;]&lt;=ep[&#x27;ts&#x27;]+ep[&#x27;dur&#x27;] for s in st)
+  print(i,n, ep[&#x27;ts&#x27;]&lt;=lim[&#x27;ts&#x27;]&lt;=ep[&#x27;ts&#x27;]+ep[&#x27;dur&#x27;])
+&quot;
+cat &gt; /tmp/sim.py &lt;&lt;&#x27;EOF&#x27;
+import sys; sys.path.insert(0,&#x27;/srv/rl-env&#x27;)</pre><p class="note">… 12 more lines of this command</p></li>
+<li><pre class="cmd-text">cd /srv/rl-env; echo &#x27;{&quot;q1&quot;:19,&quot;q2&quot;:0,&quot;q3&quot;:89,&quot;q4&quot;:363,&quot;q5&quot;:13,&quot;q6&quot;:13,&quot;q7&quot;:162,&quot;q8&quot;:-6.7}&#x27; &gt; answers.json; cat answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>19</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>0</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>89</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>363</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>13</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>13</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>162</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>-6.7</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a3">
+<h4><code>ormaos</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">6 tool calls, 114,889 tokens, 39 s</p>
+<p class="part">Commands, in order (6)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; cat questions.json &amp;&amp; .venv/bin/ormaos guide</pre><pre class="out">-rw-rw-r-- 1 levimbraga levimbraga  704 Nov 27 13:30 README.md
+-rw-rw-r-- 1 levimbraga levimbraga 1568 Nov 27 13:23 env.py
+-rw-rw-r-- 1 levimbraga levimbraga 1250 Nov 27 13:22 run.py</pre><p class="note">Output: the 3 lines of 178 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-1.jsonl?plain=1#L4">Full output</a></p></li>
+<li><pre class="cmd-text">cat run.py env.py README.md; .venv/bin/ormaos list; .venv/bin/ormaos show last --full</pre><pre class="out">&quot;&quot;&quot;Run episodes of the grid world with a policy that mostly walks to the goal.&quot;&quot;&quot;
+
+import random
+
+from env import MOVES, GridEnv
+
+EPISODES = 20
+
+
+def choose(rng, position, goal, explore=0.3):
+    if rng.random() &lt; explore:
+        return rng.choice(sorted(MOVES))
+    if position[0] != goal[0] and rng.random() &lt; 0.5:
+        return &quot;right&quot; if goal[0] &gt; position[0] else &quot;left&quot;
+    if position[1] != goal[1]:</pre><p class="note">Output: the first 15 of 156 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-1.jsonl?plain=1#L6">Full output</a></p></li>
+<li><pre class="cmd-text">O=.venv/bin/ormaos; $O tree r1 --depth 3 | head -40; for f in ended_at_goal ended_at_limit _arrival_bonus _bump step choose run_episode; do echo &quot;== $f&quot;; $O tree r1 --function $f --limit 3 | head -8; done</pre><pre class="out">... 19 of the 21 calls directly below r1:c4 are not shown (19 run_episode): --offset 2
+r1: 19 of the 1969 calls match --function ended_at_goal (19 ended_at_goal; 0 raised)
+r1: 89 of the 1969 calls match --function _bump (89 GridEnv._bump; 0 raised)
+r1: 363 of the 1969 calls match --function step (363 GridEnv.step; 0 raised)
+r1: 363 of the 1969 calls match --function choose (363 choose; 0 raised)</pre><p class="note">Output: the 5 lines of 75 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-1.jsonl?plain=1#L12">Full output</a></p></li>
+<li><pre class="cmd-text">O=.venv/bin/ormaos; $O tree r1 --function choose --json --limit 1000 &gt; /tmp/choose.json; $O tree r1 --function run_episode --json --limit 100 &gt; /tmp/ep.json; python3 -c &quot;
+import json
+d=json.load(open(&#x27;/tmp/choose.json&#x27;)); print(list(d.keys()))
+print(json.dumps(d,indent=1)[:2500])&quot;</pre><pre class="out"> &quot;matched&quot;: 363,
+  &quot;choose&quot;: 363</pre><p class="note">Output: the 2 lines of 170 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-1.jsonl?plain=1#L18">Full output</a></p></li>
+<li><pre class="cmd-text">python3 -c &quot;
+import json
+d=json.load(open(&#x27;/tmp/choose.json&#x27;))
+from collections import Counter
+print(len(d[&#x27;nodes&#x27;]), Counter(n[&#x27;ret&#x27;][&#x27;len&#x27;] for n in d[&#x27;nodes&#x27;]))
+e=json.load(open(&#x27;/tmp/ep.json&#x27;))
+s=[(n[&#x27;calls_below&#x27;]-2)//2 for n in e[&#x27;nodes&#x27;]]; print(s, sum(s), min(s))
+&quot;
+cat &gt; /tmp/sim.py &lt;&lt;&#x27;EOF&#x27;
+import sys; sys.path.insert(0,&#x27;/srv/rl-env&#x27;)
+import random, run
+from env import GridEnv</pre><p class="note">… 15 more lines of this command</p></li>
+<li><pre class="cmd-text">cat &gt; answers.json &lt;&lt;&#x27;EOF&#x27;
+{&quot;q1&quot;: 19, &quot;q2&quot;: 0, &quot;q3&quot;: 89, &quot;q4&quot;: 363, &quot;q5&quot;: 13, &quot;q6&quot;: 13, &quot;q7&quot;: 162, &quot;q8&quot;: -6.7}
+EOF
+cat answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>19</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>0</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>89</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>363</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>13</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>13</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>162</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>-6.7</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a4">
+<h4><code>ormaos-values</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-values-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">7 tool calls, 126,028 tokens, 36 s</p>
+<p class="part">Commands, in order (7)</p><ol class="steps">
+<li><pre class="cmd-text">ls -la &amp;&amp; cat questions.json &amp;&amp; .venv/bin/ormaos guide</pre><pre class="out">-rw-rw-r-- 1 levimbraga levimbraga  704 Nov 27 13:30 README.md
+-rw-rw-r-- 1 levimbraga levimbraga 1568 Nov 27 13:23 env.py
+-rw-rw-r-- 1 levimbraga levimbraga 1250 Nov 27 13:22 run.py</pre><p class="note">Output: the 3 lines of 178 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-values-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">cat run.py env.py README.md; .venv/bin/ormaos list; .venv/bin/ormaos show last --full</pre><pre class="out">&quot;&quot;&quot;Run episodes of the grid world with a policy that mostly walks to the goal.&quot;&quot;&quot;
+
+import random
+
+from env import MOVES, GridEnv
+
+EPISODES = 20
+
+
+def choose(rng, position, goal, explore=0.3):
+    if rng.random() &lt; explore:
+        return rng.choice(sorted(MOVES))
+    if position[0] != goal[0] and rng.random() &lt; 0.5:
+        return &quot;right&quot; if goal[0] &gt; position[0] else &quot;left&quot;
+    if position[1] != goal[1]:</pre><p class="note">Output: the first 15 of 157 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-values-1.jsonl?plain=1#L8">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos tree r1 --function run_episode --limit 3 ; .venv/bin/ormaos tree r1 --function ended_at_goal --limit 100 | head -50; .venv/bin/ormaos tree r1 --function ended_at_limit</pre><pre class="out">r1: 19 of the 1969 calls match --function ended_at_goal (19 ended_at_goal; 0 raised)
+r1:c1425 ended_at_goal(returns: list[13 float]=&quot;[-11.9, -9.7, -9.8, -9.600000000000001, -17.1999999999999...&quot;, ...) -&gt; NoneType  run.py:20  16us
+r1:c1969 ended_at_goal(returns: list[19 float]=&quot;[-11.9, -9.7, -9.8, -9.600000000000001, -17.1999999999999...&quot;, ...) -&gt; NoneType  run.py:20  17us</pre><p class="note">Output: the 3 lines of 30 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-values-1.jsonl?plain=1#L11">Full output</a></p></li>
+<li><pre class="cmd-text">for f in _arrival_bonus _bump step choose ended_at_goal ended_at_limit reset; do .venv/bin/ormaos tree r1 --function $f --limit 1 | head -1; done; .venv/bin/ormaos tree r1 --function ended_at_goal --json --limit 100 | head -c 1500</pre><pre class="out">r1: 89 of the 1969 calls match --function _bump (89 GridEnv._bump; 0 raised)
+r1: 363 of the 1969 calls match --function step (363 GridEnv.step; 0 raised)
+r1: 363 of the 1969 calls match --function choose (363 choose; 0 raised)
+r1: 19 of the 1969 calls match --function ended_at_goal (19 ended_at_goal; 0 raised)
+  &quot;matched&quot;: 19,
+    &quot;ended_at_goal&quot;: 19</pre><p class="note">Output: the 6 lines of 89 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-values-1.jsonl?plain=1#L16">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos tree r1 --function choose --json --limit 1000 &gt; /tmp/ch.json; .venv/bin/ormaos tree r1 --function ended_at_goal --json --limit 100 &gt; /tmp/g.json; .venv/bin/ormaos tree r1 --function ended_at_limit --json &gt; /tmp/l.json; .venv/bin/ormaos tree r1 --function run_episode --json --limit 100 &gt; /tmp/r.json; python3 -I -c &quot;
+import json,collections
+c=json.load(open(&#x27;/tmp/ch.json&#x27;));print(len(c[&#x27;nodes&#x27;]),collections.Counter(n[&#x27;ret&#x27;].get(&#x27;value&#x27;) for n in c[&#x27;nodes&#x27;]))
+t=[n[&#x27;args&#x27;][&#x27;total&#x27;][&#x27;value&#x27;] for f in [&#x27;/tmp/g.json&#x27;,&#x27;/tmp/l.json&#x27;] for n in json.load(open(f))[&#x27;nodes&#x27;]];print(t, max(t))
+r=json.load(open(&#x27;/tmp/r.json&#x27;));print([n[&#x27;calls_below&#x27;] for n in r[&#x27;nodes&#x27;]])
+&quot;</pre><pre class="out">363 Counter({&#x27;right&#x27;: 162, &#x27;down&#x27;: 148, &#x27;up&#x27;: 30, &#x27;left&#x27;: 23})
+[-11.9, -9.7, -9.8, -9.600000000000001, -17.199999999999996, -8.2, -6.699999999999999, -13.9, -13.199999999999998, -8.8, -12.3, -9.1, -7.800000000000001, -9.4, -9.9, -10.400000000000002, -8.4, -9.1, -6.9, -18.7] -6.699999999999999</pre><p class="note">Output: the 2 lines of 3 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-values-1.jsonl?plain=1#L21">Full output</a></p></li>
+<li><pre class="cmd-text">.venv/bin/ormaos tree r1 --function step --json --limit 1000 &gt; /tmp/s.json; python3 -I -c &quot;
+import json,bisect
+s=[int(n[&#x27;address&#x27;].split(&#x27;:c&#x27;)[1]) for n in json.load(open(&#x27;/tmp/s.json&#x27;))[&#x27;nodes&#x27;]]
+r=[int(n[&#x27;address&#x27;].split(&#x27;:c&#x27;)[1]) for n in json.load(open(&#x27;/tmp/r.json&#x27;))[&#x27;nodes&#x27;]]
+c=[0]*20
+for a in s: c[bisect.bisect(r,a)-1]+=1
+print(c,sum(c),min(c))
+&quot;</pre><pre class="out">[17, 15, 17, 16, 26, 14, 13, 23, 21, 18, 20, 17, 30, 15, 17, 19, 22, 15, 14, 14] 363 13</pre><p class="note">Output: the 1 line of 1 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-values-1.jsonl?plain=1#L27">Full output</a></p></li>
+<li><pre class="cmd-text">Write answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>19</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>0</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>89</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>363</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>13</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>13</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>162</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>-6.7</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+</div>
+</section>
+
+<section class="band" id="answered" aria-labelledby="answered-title">
+<h2 id="answered-title">What Ormaos data answered</h2>
+<p>Read from the streams: in each run of an Ormaos arm, the <code>ormaos</code> verbs in its commands up to its last write of <code>answers.json</code>. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them.</p>
+<div class="table-wrap">
+<table class="plain">
+<thead><tr><th scope="col">Question</th><th scope="col"><code>ormaos</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th><th scope="col"><code>ormaos-values</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q2</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q3</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q4</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q5</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q6</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q7</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q8</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3</td><td>3/3</td><td>3/3</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="runs" aria-labelledby="runs-title">
+<h2 id="runs-title">Every run</h2>
+<p>Every run of every arm.</p>
+<div class="table-wrap">
+<table class="plain runs">
+<thead><tr><th scope="col">Arm</th><th scope="col">Run</th><th scope="col">Score</th><th scope="col">Right</th><th scope="col">Null</th><th scope="col">Wrong</th><th scope="col"><code>ormaos</code> verbs before answers.json</th><th scope="col">Tool calls</th><th scope="col">Tokens</th><th scope="col">Wall time</th><th scope="col">Stream</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>46,849</td><td>23 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-none-1.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>47,025</td><td>23 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-none-2.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>46,653</td><td>22 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-none-3.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>52,715</td><td>26 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-raw-1.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>55,160</td><td>28 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-raw-2.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>52,730</td><td>25 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-raw-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree</td><td>6</td><td>114,889</td><td>39 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree</td><td>8</td><td>151,201</td><td>48 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree</td><td>6</td><td>113,178</td><td>37 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree</td><td>7</td><td>126,028</td><td>36 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-values-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree</td><td>6</td><td>105,370</td><td>33 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-values-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree</td><td>6</td><td>106,909</td><td>32 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams/rl-env-ormaos-values-3.jsonl">stream</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="band" id="files" aria-labelledby="files-title">
+<h2 id="files-title">The results files</h2>
+<ul class="rows">
+  <li>The benchmark: <a href="/benchmarks/knows2/#rl-env">knows2</a></li>
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801"><code>agent-bench/knows2/results/20261127-165801</code></a></li>
+</ul>
+</section>
+
+</main>
+
+<footer>
+  <p class="copyright">&copy; 2026 Ormaos</p>
+  <ul>
+    <li><a href="https://github.com/ormaos">GitHub</a></li>
+    <li><a href="https://x.com/ormaoshq">X (Twitter)</a></li>
+    <li><a href="https://ormaos.com/privacy">Privacy</a></li>
+    <li><a href="https://ormaos.com/contact">Contact</a></li>
+    <li><a href="https://ormaos.com/llms.txt">For agents</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>

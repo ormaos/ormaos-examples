@@ -31,6 +31,7 @@ Standard library only.
 """
 
 import argparse
+import difflib
 import filecmp
 import html
 import importlib.util
@@ -53,9 +54,13 @@ DOCS = REPO / "docs"
 OUT = DOCS / "benchmarks"
 OVERHEAD = HERE / "overhead"
 
-KNOWS2 = BENCH / "knows2" / "results" / "20261127-165801"
-KNOWS = BENCH / "knows" / "results" / "20261127-140018"
-FIX = BENCH / "results" / "20261126-220703"
+# Where each benchmark keeps its results folders: every folder there whose
+# results.jsonl is committed is read, oldest first. The first one is the run
+# that the benchmark's own page describes; every folder counts on the
+# situation pages and the overview.
+KNOWS2 = BENCH / "knows2" / "results"
+KNOWS = BENCH / "knows" / "results"
+FIX = BENCH / "results"
 
 SITE = "https://ormaos.com"
 EXAMPLES = "https://github.com/ormaos/ormaos-examples"
@@ -66,36 +71,129 @@ SENTENCE = ("Ormaos records and shows what happened inside your Python execution
 ARMS4 = ("none", "raw", "ormaos", "ormaos-values")
 SLOT = {"none": 1, "raw": 2, "ormaos": 3, "ormaos-values": 4}
 
-# The kind of program of each task, for the heading of its section, and what
-# the program does. The numbers of a section come from the results.
+# Each program of knows2: the heading of its section on the knows2 page, its
+# kind, its source, what it does (written by hand, without numbers), what the
+# knows2 page adds about its execution, and one line for the overview.
 KINDS = {
-    "web-backend": ("For web backends", "use-cases/web-backend",
-                    "A FastAPI service over a SQLite database of customers, products and orders, with one route "
-                    "that lists a customer's orders, each with its total."),
-    "data-pipeline": ("For data pipelines", "use-cases/data-pipeline",
-                      "A monthly report made with pandas from two exports: it drops the orders without an amount "
-                      "and repeated order numbers, joins each order to its customer and sums the amounts by region."),
-    "notebook": ("For notebooks", "use-cases/notebook",
-                 "A Jupyter notebook that reads the sales of the week, leaves out single sales above a limit, "
-                 "adds tax and sums the week; its cells ran in the order of their saved execution counts."),
-    "ml-training": ("For ML training", "use-cases/ml-training",
-                    "A PyTorch model trained on CPU that predicts how long a delivery takes, on data made from a "
-                    "seed; each batch is standardized, and a batch whose loss is not finite is left out."),
-    "rl-env": ("For RL environments", "use-cases/rl-env",
-               "A grid world in pure Python, where a courier walks from a depot to a customer, and a loop that "
-               "runs episodes of it with a seeded policy."),
-    "ai-app": ("For AI apps", "use-cases/ai-app",
-               "An app that sends each support ticket to a model API, a local stand-in with a small and a large "
-               "model, and keeps a one-sentence summary of each ticket."),
-    "agent-change": ("For changes made by an agent", "use-cases/agent-change",
-                     "A small billing tool in a git repository that writes invoices and refunds, run at each of two "
-                     "commits: before and after a change that a coding agent made."),
-    "order-sync": ("For scheduled jobs: order-sync", "order-sync",
-                   "A scheduled job that applies the new orders of a sales system to a warehouse inventory; the "
-                   "execution is a night on which it printed its OK line and some orders did not reach the inventory."),
-    "freight-quote": ("For scheduled jobs: freight-quote", "freight-quote",
-                      "A scheduled job that asks a carrier's rate API for the freight of tomorrow's shipments and "
-                      "writes one quote per shipment; the execution is a night on which some calls were refused."),
+    "web-backend": dict(
+        heading="For web backends", kind="web backend", source="use-cases/web-backend",
+        does="A FastAPI service over a SQLite database of customers, products and orders, with one route that "
+             "lists a customer's orders, each with its total.",
+        line="a FastAPI route that lists a customer's orders with their totals"),
+    "data-pipeline": dict(
+        heading="For data pipelines", kind="data pipeline", source="use-cases/data-pipeline",
+        does="A monthly report made with pandas from two exports: it drops the orders without an amount and "
+             "repeated order numbers, joins each order to its customer and sums the amounts by region.",
+        line="a pandas report that joins two exports and sums them by region"),
+    "notebook": dict(
+        heading="For notebooks", kind="notebook", source="use-cases/notebook",
+        does="A Jupyter notebook that reads the sales of the week, leaves out single sales above a limit, adds "
+             "tax and sums the week; its cells ran in the order of their saved execution counts.",
+        line="a Jupyter notebook that sums a week of sales, with tax"),
+    "ml-training": dict(
+        heading="For ML training", kind="ML training", source="use-cases/ml-training",
+        does="A PyTorch model trained on CPU that predicts how long a delivery takes, on data made from a seed; "
+             "each batch is standardized, and a batch whose loss is not finite is left out.",
+        line="a PyTorch training run that leaves out batches whose loss is not finite"),
+    "rl-env": dict(
+        heading="For RL environments", kind="RL environment", source="use-cases/rl-env",
+        does="A grid world in pure Python, where a courier walks from a depot to a customer, and a loop that "
+             "runs episodes of it with a seeded policy.",
+        line="episodes of a grid world, a courier walking to a customer"),
+    "ai-app": dict(
+        heading="For AI apps", kind="AI app", source="use-cases/ai-app",
+        does="An app that sends each support ticket to a model API, a local stand-in with a small and a large "
+             "model, and keeps a one-sentence summary of each ticket.",
+        line="support tickets summarized through a model API with a small and a large model"),
+    "agent-change": dict(
+        heading="For changes made by an agent", kind="change made by an agent", source="use-cases/agent-change",
+        does="A small billing tool in a git repository that writes invoices and refunds, run at each of two "
+             "commits: before and after a change that a coding agent made.",
+        line="a billing tool run before and after a change an agent made"),
+    "order-sync": dict(
+        heading="For scheduled jobs: order-sync", kind="scheduled job", source="order-sync",
+        does="A scheduled job that applies the new orders of a sales system to a warehouse inventory.",
+        night="The execution is a night on which it printed its OK line and some orders did not reach the "
+              "inventory.",
+        line="a night run of a job that applies orders to an inventory"),
+    "freight-quote": dict(
+        heading="For scheduled jobs: freight-quote", kind="scheduled job", source="freight-quote",
+        does="A scheduled job that asks a carrier's rate API for the freight of tomorrow's shipments and writes "
+             "one quote per shipment.",
+        night="The execution is a night on which some calls were refused.",
+        line="a night run of a job that quotes freight from a carrier's API"),
+}
+
+
+def _n(count, one, many=None):
+    return f"{count} {one if count == 1 else (many or one + 's')}"
+
+
+def _ids(values):
+    """Names as code spans; a run of names that differ only in a growing
+    number is written as its first and last."""
+    values = [str(v) for v in values]
+    parts = [re.fullmatch(r"(.*?)(\d+)", v) for v in values]
+    if len(values) > 3 and all(parts) and len({p.group(1) for p in parts}) == 1:
+        numbers = [int(p.group(2)) for p in parts]
+        if numbers == list(range(numbers[0], numbers[0] + len(numbers))):
+            return f"{code(values[0])} to {code(values[-1])}"
+    return joined(code(v) for v in values)
+
+
+# What happened in each execution of knows2, in two or three sentences that
+# describe and do not judge. Every number is the oracle's answer to one of
+# the task's questions (o: question id -> answer, from oracle/<task>.json).
+HAPPENED = {
+    "web-backend": lambda o, says: [
+        f"During the one request that `main.py` made, the route answered with the customer {code(o['q1'])} and "
+        f"orders whose `total_cents` add up to {o['q4']}; the largest is order {o['q5'][0]}, with {o['q5'][1]}.",
+        f"Handling it ran {o['q7']} SQL statements and called `price_of` {o['q6']} times; `discount_for` "
+        f"returned {o['q2'][0]}, " + ("from" if o["q2"][1] else "not from") + " its `except KeyError` branch.",
+        f"Before the request, `store.create()` inserted {o['q8']} rows into `order_items`."],
+    "data-pipeline": lambda o, says: [
+        f"`load_orders` read {o['q1']} rows; `drop_unpriced` removed {o['q2']} without an amount, and "
+        "`drop_repeats` " + ("ran." if o["q3"] else "did not run."),
+        f"Of the {o['q4']} rows passed to `join_customers`, {o['q6']} had a `customer_id` that is not in "
+        f"`customers.csv`, and the joined frame had {o['q5']} rows.",
+        f"The amounts of `report.csv` add up to {o['q8']}; its first row is {code(o['q7'][0])}, {o['q7'][1]}."],
+    "notebook": lambda o, says: [
+        f"`load(\"sales.csv\")` returned {o['q1']} rows, and the third cell the kernel ran was {code(o['q2'])}.",
+        f"`drop_key_accounts` compared prices that were {o['q3']} and left {o['q4']} rows; {o['q5']} of the rows "
+        "it took out had a price within the limit before tax.",
+        f"At the end `week` held {o['q6']:.2f}, over rows with {o['q8']} items in all."],
+    "ml-training": lambda o, says: [
+        f"{_n(o['q1'], 'batch', 'batches')} produced an optimizer update and {o['q2']} were left out because "
+        f"their loss was not finite: positions {', '.join(str(i) for i in o['q3'])}.",
+        f"In each batch left out, the `{o['q4']}` column had the one value {o['q7']}; {o['q8']} batches had "
+        "both values of it."],
+    "rl-env": lambda o, says: [
+        f"{_n(o['q1'], 'episode')} ended with the courier at the customer, and episode {o['q5']} at the step "
+        f"limit; `_arrival_bonus` was called {_n(o['q2'], 'time')}.",
+        f"Over {o['q4']} calls of `env.step()`, {o['q3']} moves were blocked by a wall or the edge of the grid, "
+        f"and the highest return of an episode was {o['q8']}."],
+    "ai-app": lambda o, says: [
+        f"{_n(o['q2'], 'ticket')} got a summary from `small-1`, and {_n(len(o['q5']), 'ticket')} "
+        f"({joined(str(t) for t in o['q5'])}) from `large-1`.",
+        f"The model server answered {o['q3']} of the {o['q4']} POST requests with HTTP 503, and `summaries.json` "
+        f"was {o['q8']} bytes."],
+    "agent-change": lambda o, says: [
+        f"From the run at the first commit (r1) to the run at the second (r2), the `total_cents` of "
+        f"`invoices.csv` went from {o['q3']} to {o['q4']} in all, and {_n(o['q5'], 'order')} changed total.",
+        f"In r2, `tiers.json` was opened {_n(o['q2'], 'time')}, `discount_percent` returned 10 in "
+        f"{_n(o['q6'], 'call')}, and `line_price` dropped cents in an inexact division in {_n(o['q7'], 'call')}."],
+    "order-sync": lambda o, says: [
+        f"The job parsed {o['q1']} orders from the sales API: {o['q2']} were applied, {o['q3']} had been applied "
+        f"by an earlier run, and {o['q4']} were skipped after an exception "
+        f"({joined(code(c) for c in sorted(set(o['q6'].values())))}): {_ids(o['q5'])}.",
+        f"It took {o['q7']} items out of stock, inserted {_n(o['q8'][0], 'back-order row')} for "
+        f"{_n(o['q8'][1], 'item')}, and printed {code(says)}."],
+    "freight-quote": lambda o, says: [
+        f"The run wrote {o['q1']} quotes: {o['q2']} from the carrier stand-in's answer and {o['q3']} from the "
+        f"contract rate card, after the stand-in refused {o['q4']} requests with HTTP 429; the first quote from "
+        f"the rate card is {code(o['q5'])}.",
+        f"`calls_used_today` went up by {o['q7']}, the quotes add up to {o['q8']} cents, and the job printed "
+        f"{code(says)}."],
 }
 
 
@@ -137,6 +235,38 @@ def added_in(path):
 
 def jsonl(path):
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def results_folders(results):
+    """The results folders under `results` whose results.jsonl is committed,
+    oldest first (their names are dates)."""
+    listed = git("ls-files", "--", f"{rel(results)}/*/results.jsonl")
+    folders = sorted({(REPO / line).parent for line in listed.splitlines()
+                      if (REPO / line).parent.parent == results})
+    if not folders:
+        raise SystemExit(f"no committed results.jsonl under {rel(results)}/")
+    return folders
+
+
+def agent_of(record):
+    """The agent of a run: command line, model and effort, e.g.
+    "claude-code / claude-opus-5-5". A record that names its agent is taken
+    as it is; one written by the claude command line (it has the "claude"
+    version) is claude-code."""
+    given = record.get("agent")
+    if isinstance(given, str) and given:
+        return given
+    if isinstance(given, dict):
+        record = {**record, **given}
+    cli = record.get("cli") or ("claude-code" if record.get("claude") else "unknown")
+    parts = [cli, record.get("model") or "unknown model"]
+    if record.get("effort"):
+        parts.append(str(record["effort"]))
+    return " / ".join(parts)
+
+
+def committed_on(commit):
+    return git("log", "-1", "--format=%cs", commit)
 
 
 def rel(path):
@@ -343,13 +473,19 @@ class Pre(Block):
         self.label, self.text = label, text
 
     def html(self):
-        return (f'<figure class="code wrap verbatim">\n<figcaption class="code-bar"><span class="code-label">'
-                f'{inline(self.label)}</span></figcaption>\n<pre tabindex="0"><code>{esc(self.text)}</code></pre>'
+        bar = (f'<figcaption class="code-bar"><span class="code-label">{inline(self.label)}</span></figcaption>\n'
+               if self.label else "")
+        return (f'<figure class="code wrap verbatim">\n{bar}<pre tabindex="0"><code>{esc(self.text)}</code></pre>'
                 "\n</figure>")
 
     def md(self):
-        fence = "`" * max(3, max((len(m) for m in re.findall(r"`+", self.text)), default=0) + 1)
-        return f"{to_markdown_inline(self.label)}:\n\n{fence}text\n{self.text}\n{fence}"
+        return (f"{to_markdown_inline(self.label)}:\n\n" if self.label else "") + fenced(self.text)
+
+
+def fenced(text):
+    """A Markdown code block that holds any text."""
+    fence = "`" * max(3, max((len(m) for m in re.findall(r"`+", text)), default=0) + 1)
+    return f"{fence}text\n{text}\n{fence}"
 
 
 class Commands(Block):
@@ -937,6 +1073,232 @@ main .band > .facts.three {
 .question + p {
   color: var(--text-soft);
 }
+
+/* A situation's page: one column per arm, side by side from 64rem, wider
+   than the text column; one under the other below it. */
+.sbs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  margin: 24px 0 8px;
+}
+
+@media (min-width: 64rem) {
+  .bench main .band > .sbs {
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    gap: 20px;
+    width: min(calc(100vw - 48px), 100rem);
+    max-width: none;
+    margin-inline: calc(50% - min(50vw - 24px, 50rem));
+  }
+}
+
+.arm-col {
+  min-width: 0;
+  border-top: 3px solid var(--line);
+  padding-top: 10px;
+}
+
+.arm-col.a1 { border-top-color: var(--series-1); }
+.arm-col.a2 { border-top-color: var(--series-2); }
+.arm-col.a3 { border-top-color: var(--series-3); }
+.arm-col.a4 { border-top-color: var(--series-4); }
+
+.arm-col h4 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.arm-col p {
+  margin: 2px 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.arm-col p.meta {
+  color: var(--text-soft);
+}
+
+.arm-col p.part {
+  margin: 18px 0 6px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.arm-col ol.steps {
+  margin: 0;
+  padding-left: 1.6em;
+}
+
+.arm-col ol.steps li {
+  margin: 0 0 10px;
+  font-size: 12px;
+}
+
+.arm-col pre {
+  margin: 0;
+  padding: 6px 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.45;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel);
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.arm-col pre.out {
+  margin-top: 4px;
+  border-style: dashed;
+  color: var(--text-soft);
+}
+
+.arm-col p.note {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.arm-col figure.code {
+  margin: 0;
+  max-width: none;
+}
+
+.arm-col figure.code pre {
+  max-height: 26rem;
+}
+
+.arm-col .table-wrap {
+  margin: 0;
+}
+
+.arm-col table.mini {
+  font-size: 13px;
+}
+
+.arm-col table.mini th,
+.arm-col table.mini td {
+  padding: 3px 10px 3px 0;
+}
+
+.arm-col table.mini td code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+table.questions td:nth-child(2) {
+  min-width: 18rem;
+}
+
+table.runs td {
+  white-space: nowrap;
+}
+
+/* The overview's situations: a name and a line, small bars per arm. */
+p.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: 13px;
+}
+
+p.legend .key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+i.sw {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+i.sw.s1 { background: var(--series-1); }
+i.sw.s2 { background: var(--series-2); }
+i.sw.s3 { background: var(--series-3); }
+i.sw.s4 { background: var(--series-4); }
+
+table.situations td {
+  vertical-align: top;
+}
+
+table.situations td:first-child {
+  min-width: 14rem;
+}
+
+table.situations .bench {
+  margin-left: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+table.situations .line {
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+table.situations td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 40rem) {
+  table.situations thead { display: none; }
+
+  table.situations,
+  table.situations tbody {
+    display: block;
+    width: 100%;
+  }
+
+  table.situations tr {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: end;
+    column-gap: 16px;
+    border-bottom: 1px solid var(--line);
+    padding: 12px 0;
+  }
+
+  table.situations td {
+    border: 0;
+    padding: 0;
+  }
+
+  table.situations td:first-child {
+    grid-column: 1 / -1;
+    min-width: 0;
+    padding-bottom: 8px;
+  }
+
+  table.situations td.num::before {
+    display: block;
+    content: "ormaos − none";
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+}
+
+svg.mini {
+  display: block;
+  overflow: visible;
+}
+
+svg.mini text {
+  font-size: 12px;
+  fill: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+svg.mini rect.track { fill: var(--line); }
+svg.mini rect.s1 { fill: var(--series-1); }
+svg.mini rect.s2 { fill: var(--series-2); }
+svg.mini rect.s3 { fill: var(--series-3); }
+svg.mini rect.s4 { fill: var(--series-4); }
 """
 
 
@@ -949,6 +1311,9 @@ class KnowsRun:
     def __init__(self, folder, arms, h):
         self.folder, self.h = folder, h
         self.records = jsonl(folder / "results.jsonl")
+        for r in self.records:
+            r["_agent"], r["_run"] = agent_of(r), self
+        self.agents = sorted({r["_agent"] for r in self.records})
         self.built = json.loads((folder / "build.json").read_text(encoding="utf-8"))
         self.report = (folder / "report.md").read_text(encoding="utf-8")
         self.arms = [a for a in arms if any(r["arm"] == a for r in self.records)]
@@ -1159,7 +1524,7 @@ def knows2_page(run, h, frame):
         Facts([(f"{run.mean(a):.2f}", f"`{a}`, mean score, 95% interval "
                 f"{run.interval(a)[0]:.2f} to {run.interval(a)[1]:.2f}") for a in run.arms]),
         Toc([("method", "Method"), ("results", "Results")]
-            + [(n, KINDS[n][0]) for n in run.names]
+            + [(n, KINDS[n]["heading"]) for n in run.names]
             + [("null-reasons", "What the agents said when they could not answer"), ("limits", "Limits"),
                ("this-run", "This run")]),
     ], first=True)]
@@ -1299,7 +1664,9 @@ def knows2_page(run, h, frame):
 
     # One section per task
     for name in run.names:
-        heading, source, does = KINDS[name]
+        kind = KINDS[name]
+        heading, source = kind["heading"], kind["source"]
+        does = kind["does"] + (" " + kind["night"] if kind.get("night") else "")
         task = h.tasks.TASKS[name]
         removed = built["tasks"][name]["removed"]
         questions = run.questions(name)
@@ -1308,7 +1675,8 @@ def knows2_page(run, h, frame):
             P(does + f" Source: [`{source}`]({tree(run.commit, REPO / source)})."),
             P("The execution: " + task["what"] + (" Taken out of the folder afterwards: "
                                                    + joined(f"`{f}`" for f in removed) + "." if removed else "")),
-            P("Mean score: " + ", ".join(f"`{a}` {run.mean(a, name):.2f}" for a in run.arms) + "."),
+            P("Mean score: " + ", ".join(f"`{a}` {run.mean(a, name):.2f}" for a in run.arms) + ". Run 1 of each "
+              f"arm side by side, and every run: [the situation's page](/benchmarks/cases/knows2-{name}/)."),
         ]
         cells = [[(run.right_runs(name, q["id"], a) / len(run.of(a, name)),
                    f"{run.right_runs(name, q['id'], a)}/{len(run.of(a, name))}",
@@ -1426,11 +1794,37 @@ DIFFERS = {
     "commission-run": "a value kept from one item to the next",
 }
 
+# What the data of each program showed the morning after, in one sentence.
+# The items are those the scenario's own check of the data (`wrong`) found,
+# as build.py wrote them into build.json.
+FIX_MORNING = {
+    "order-sync": lambda w: f"This morning the stock of {_n(len(w), 'SKU')} in `data/inventory.db` is not the "
+                            f"warehouse's count in `data/count.csv`: {_ids(w)}.",
+    "freight-quote": lambda w: f"This morning {_n(len(w), 'quote')} of last night are not what the carrier charged "
+                               f"in `data/booked.csv`: {_ids(w)}.",
+    "late-fees": lambda w: "This morning the billing database has no late fee dated "
+                           + joined(re.sub(r"^no fee on ", "", x) for x in w) + ", the night of the run.",
+    "statement-import": lambda w: "This morning " + joined(
+        re.sub(r"^ledger (-?\d+), bank (-?\d+)$", r"the ledger adds up to \1 and the bank's closing balance of "
+               r"yesterday is \2", x) for x in w) + ".",
+    "fx-rates": lambda w: f"This morning {_n(len(w), 'currency', 'currencies')} still have the rate of the day "
+                          f"before: {_ids(w)}.",
+    "price-import": lambda w: f"This morning {_n(len(w), 'price')} in the catalog are not those of the supplier's "
+                              f"list: {_ids(w)}.",
+    "points-grant": lambda w: f"This morning the points of {_n(len(w), 'member')} are not the sum of their "
+                              f"grants: {_ids(w)}.",
+    "commission-run": lambda w: f"This morning the payouts of {_n(len(w), 'rep')} for yesterday are not what "
+                                f"finance worked out: {_ids(w)}.",
+}
+
 
 class FixRun:
     def __init__(self, folder, h):
         self.folder, self.h = folder, h
         self.records = jsonl(folder / "results.jsonl")
+        for r in self.records:
+            r["_agent"], r["_run"] = agent_of(r), self
+        self.agents = sorted({r["_agent"] for r in self.records})
         self.first = [r for r in self.records if r["attempt"] == 0]
         self.built = json.loads((folder / "build.json").read_text(encoding="utf-8"))
         self.report = (folder / "report.md").read_text(encoding="utf-8")
@@ -1498,7 +1892,7 @@ def fixed_chart(cid, run, width=None, compact=False, left=130, right=190):
 
 
 def fix_title(run):
-    return f"fix: {len(run.cases)} programs whose behaviour differed from their README"
+    return f"fix: {len(run.cases)} programs that behaved otherwise than their README"
 
 
 def fix_page(run):
@@ -1509,7 +1903,7 @@ def fix_page(run):
     sections = [Section("top", fix_title(run), [
         P(f"N = {len(run.first)} runs: {len(run.cases)} programs x {len(run.arms)} arms x {len(run.runs)} runs, "
           f"the first attempt of every slot, model {model}, {run.date}. A coding agent gets a scheduled program "
-          "whose behaviour on one night differs from what its README says, the data that night left and a "
+          "that behaved otherwise than its README on one night, the data that night left and a "
           "one-sentence symptom. A check it does not see then plays that night again on the code the agent left; "
           "`fixed` is the name of the metric that counts the runs whose code passed it.", "lead"),
         P(SENTENCE, "sentence"),
@@ -1520,10 +1914,10 @@ def fix_page(run):
     sections.append(Section("method", "Method", [
         H(3, "The programs"),
         P(f"{len(run.cases)} small scheduled Python programs, standard library only. Each runs from cron, prints "
-          "its OK line and exits with code 0; on one night its behaviour differs from what its README says, in "
+          "its OK line and exits with code 0; on one night it behaved otherwise than its README, in "
           "a different place in each program, and that shows only in the data it left. Running it again today "
           "does not show it: that night's input is gone."),
-        Table(["Program", "What it does, by its README", "Where its behaviour differs"],
+        Table(["Program", "What it does, by its README", "Where it behaved otherwise than its README"],
               [[code(c), j, d] for c, j, d in run.cases], numbers=False),
         H(3, "The arms"),
         Table(["Arm", "Added to the folder", "Added to the prompt"], [
@@ -1558,7 +1952,8 @@ def fix_page(run):
 
     chart = fixed_chart("fixed", run)
     per_case = Table(["Program"] + [code(a) for a in run.arms],
-                     [[code(c)] + [f"{run.fixed(a, c)}/{len(run.of(a, c))}" for a in run.arms]
+                     [[f"[{code(c)}](/benchmarks/cases/fix-{c}/)"] + [f"{run.fixed(a, c)}/{len(run.of(a, c))}"
+                                                                     for a in run.arms]
                       for c, _, _ in run.cases])
     order = {c: i for i, (c, _, _) in enumerate(run.cases)}
     not_fixed = sorted((r for r in run.first if not r["fixed"]),
@@ -1579,7 +1974,7 @@ def fix_page(run):
           f"run\" in [`report.md`]({blob(run.commit, run.folder / 'report.md')})."),
     ]))
     sections.append(Section("limits", "Limits", [UL([
-        f"The {len(run.cases)} programs, and where each one's behaviour differs from its README, were written "
+        f"The {len(run.cases)} programs, and where each one behaved otherwise than its README, were written "
         "for this benchmark by the people who make Ormaos; they are not a sample of real programs.",
         "One model, one prompt per arm, one tracer with its default settings.",
         "The dates in the data are relative to the day `build.py` ran: build on the day of the run.",
@@ -1693,13 +2088,598 @@ def overhead_page(over):
     return "overhead: what recording adds to the time of a run", sections
 
 
+# ---------------------------------------------------------------- streams
+#
+# What an agent did, read from the stream the claude command line wrote:
+# its tool calls in order, each with what the tool gave back.
+
+# The verbs of the ormaos command line (src/ormaos/cli.py of ormaos-python).
+# `ormaos --help` counts as the verb "help".
+VERBS = ("run", "show", "tree", "exceptions", "path", "io", "logs", "diff", "list", "status", "guide")
+_ASSIGN = re.compile(r"(?:^|[\s;&|(])(\w+)=[\"']?[\w./~-]*ormaos(?=[\s;\"')]|$)")
+_WRITES_ANSWERS = re.compile(
+    r">\s*[\"']?(?:\./)?answers\.json|tee\s+(?:-a\s+)?(?:\./)?answers\.json"
+    r"|open\(\s*[\"'](?:\./)?answers\.json[\"']\s*,\s*[\"'][wa]|answers\.json[\"']?\)?\.write_text")
+_STEPS = {}
+
+
+class Step:
+    def __init__(self, tool, given):
+        self.tool, self.input, self.output, self.line = tool, given or {}, None, None
+
+    @property
+    def command(self):
+        return self.input.get("command", "") if self.tool == "Bash" else ""
+
+
+def read_steps(path):
+    """(the folder the agent ran in, its tool calls in order)."""
+    if path in _STEPS:
+        return _STEPS[path]
+    cwd, steps, by_id = "", [], {}
+    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        event = json.loads(line)
+        kind = event.get("type")
+        if kind == "system" and event.get("subtype") == "init":
+            cwd = event.get("cwd") or ""
+        elif kind == "assistant":
+            for part in event["message"].get("content", []):
+                if part.get("type") == "tool_use":
+                    by_id[part["id"]] = Step(part.get("name", "?"), part.get("input"))
+                    steps.append(by_id[part["id"]])
+        elif kind == "user" and isinstance(event["message"].get("content"), list):
+            for part in event["message"]["content"]:
+                if part.get("type") == "tool_result" and part.get("tool_use_id") in by_id:
+                    given = part.get("content")
+                    text = given if isinstance(given, str) else "\n".join(
+                        x.get("text", "") for x in given or [] if isinstance(x, dict))
+                    step = by_id[part["tool_use_id"]]
+                    step.output, step.line = text, number
+    _STEPS[path] = cwd, steps
+    return cwd, steps
+
+
+def ormaos_calls(command):
+    """The ormaos verbs a shell command runs, with where each is in it,
+    also through a variable (`O=.venv/bin/ormaos; $O tree r1`)."""
+    names = sorted(set(_ASSIGN.findall(command)))
+    callee = r"(?:[\w./~-]*/)?ormaos" + "".join(rf"|\$\{{?{n}\}}?" for n in names)
+    pattern = re.compile(rf"(?:^|(?<=[\s;&|(`]))(?:{callee})[ \t]+({'|'.join(VERBS)}|--help|-h)(?![\w-])")
+    return [(m.start(), "help" if m.group(1) in ("--help", "-h") else m.group(1))
+            for m in pattern.finditer(command)]
+
+
+def writes_answers(step):
+    """Where in the call answers.json is written, or None."""
+    if step.tool in ("Write", "Edit"):
+        return 0 if str(step.input.get("file_path", "")).endswith("answers.json") else None
+    found = _WRITES_ANSWERS.search(step.command)
+    return found.start() if found else None
+
+
+def verbs_before_answers(steps):
+    """The ormaos verbs run before the last write of answers.json, in the
+    order they were first run."""
+    last = max((i for i, s in enumerate(steps) if writes_answers(s) is not None), default=len(steps) - 1)
+    seen = []
+    for i, step in enumerate(steps[:last + 1]):
+        cut = writes_answers(step) if i == last else None
+        for at, verb in ormaos_calls(step.command):
+            if (cut is None or at < cut) and verb not in seen:
+                seen.append(verb)
+    return seen
+
+
+def shown_command(step, cwd):
+    """A tool call as one line or a few, with paths relative to the folder."""
+    def short(path):
+        path = str(path or ".")
+        return path[len(cwd) + 1:] if cwd and path.startswith(cwd + "/") else path
+    given = step.input
+    if step.tool == "Bash":
+        return given.get("command", "")
+    if step.tool == "Read":
+        extra = "".join(f" {k} {given[k]}" for k in ("offset", "limit") if given.get(k))
+        return f"Read {short(given.get('file_path'))}{extra}"
+    if step.tool == "Grep":
+        return f"Grep {given.get('pattern', '')!r} in {short(given.get('path'))}"
+    if step.tool == "Glob":
+        return f"Glob {given.get('pattern', '')}" + (f" in {short(given['path'])}" if given.get("path") else "")
+    if step.tool in ("Write", "Edit"):
+        return f"{step.tool} {short(given.get('file_path'))}"
+    return f"{step.tool} {dumped(given)}"
+
+
+def clipped(text, lines):
+    rows = text.splitlines()
+    if len(rows) <= lines:
+        return text, 0
+    return "\n".join(rows[:lines]), len(rows) - lines
+
+
+def atoms(value):
+    """The values an answer holds, as text, to find them in an output."""
+    if isinstance(value, dict):
+        for k, v in value.items():
+            yield from atoms(k)
+            yield from atoms(v)
+    elif isinstance(value, list):
+        for v in value:
+            yield from atoms(v)
+    elif value is not None and not isinstance(value, bool):
+        text = str(value)
+        yield text
+        if "," in text:
+            yield from (part.strip() for part in text.split(","))
+
+
+# A line of questions.json or answers.json printed back: not a value read
+# from the execution.
+_ECHO = re.compile(r'^\s*"(q\d+|id|question|format)"\s*:')
+
+
+def used_lines(output, answers, most=15):
+    """The lines of an output that hold a value the agent wrote in
+    answers.json (values of two characters or more), else its first lines.
+    (lines, what they are)."""
+    rows = output.splitlines()
+    values = {a for v in (answers or {}).values() for a in atoms(v) if len(a) >= 2 and a.lower() not in ("yes", "no")}
+    found = [row for row in rows if not _ECHO.match(row)
+             and any(re.search(rf"(?<![\w.]){re.escape(v)}(?!\w)", row) for v in values)]
+    if found:
+        what = (f"the {_n(len(found), 'line')} of {len(rows)} that hold a value it wrote in answers.json"
+                if len(found) <= most else f"the first {most} of the {len(found)} lines of {len(rows)} that hold "
+                "a value it wrote in answers.json")
+        return found[:most], what
+    if len(rows) <= most:
+        return rows, f"all {_n(len(rows), 'line')}"
+    return rows[:most], f"the first {most} of {len(rows)} lines"
+
+
+# ---------------------------------------------------------------- situations
+
+
+class Situation:
+    """One execution an agent was asked about (knows2) or one program it was
+    asked to change (fix), with every run of every agent."""
+
+    def __init__(self, bench, name, records, arms, page_url):
+        self.bench, self.name, self.records, self.arms = bench, name, records, arms
+        self.id = f"{bench}-{name}"
+        self.path = f"cases/{self.id}/"
+        self.url = f"/benchmarks/{self.path}"
+        self.page_url = page_url
+        self.agents = []
+        for r in records:
+            if r["_agent"] not in self.agents:
+                self.agents.append(r["_agent"])
+
+    def score(self, r):
+        return float(r["fixed"]) if self.bench == "fix" else r["score"]
+
+    def of(self, arm=None, agent=None):
+        rows = [r for r in self.records if arm in (None, r["arm"]) and agent in (None, r["_agent"])]
+        return sorted(rows, key=lambda r: (r["_run"].folder.name, r["run"]))
+
+    def mean(self, arm):
+        return statistics.fmean(self.score(r) for r in self.of(arm))
+
+    def change(self):
+        """The mean of ormaos minus the mean of none."""
+        return self.mean("ormaos") - self.mean("none")
+
+    def value_text(self, arm):
+        if self.bench == "fix":
+            return f"{sum(1 for r in self.of(arm) if r['fixed'])}/{len(self.of(arm))}"
+        return f"{self.mean(arm):.2f}"
+
+    def run_label(self, r):
+        folders = {x["_run"].folder for x in self.of(agent=r["_agent"])}
+        return str(r["run"]) if len(folders) == 1 else f"{r['_run'].date} · {r['run']}"
+
+    def first_run(self, arm, agent):
+        """Run 1 of the arm, in the agent's first results folder."""
+        rows = self.of(arm, agent)
+        return next((r for r in rows if r["run"] == 1 and r["_run"] is rows[0]["_run"]), rows[0])
+
+
+def stream_url(r, line=None):
+    run = r["_run"]
+    return blob(run.commit, run.folder / r["stream"]) + (f"?plain=1#L{line}" if line else "")
+
+
+def outcome_of(r, qid):
+    return KnowsRun.outcome(r, qid)
+
+
+class SideBySide(Block):
+    """One column per arm: what one run of each arm did. `columns` are
+    dicts: arm, head (lines in the inline marks), steps (command, output or
+    None, what part of the output, url), then the end of the run."""
+
+    def __init__(self, columns):
+        self.columns = columns
+
+    def html(self):
+        out = [f'<div class="sbs" style="--cols:{len(self.columns)}">']
+        for col in self.columns:
+            out.append(f'<article class="arm-col a{SLOT[col["arm"]]}">')
+            out.append(f'<h4><code>{esc(col["arm"])}</code></h4>')
+            out.append("".join(f'<p class="meta">{inline(line)}</p>' for line in col["head"]))
+            out.append(f'<p class="part">Commands, in order ({len(col["steps"])})</p><ol class="steps">')
+            for command, output, what, url in col["steps"]:
+                text, more = clipped(command, 12)
+                item = f'<pre class="cmd-text">{esc(text)}</pre>'
+                if more:
+                    item += f'<p class="note">… {_n(more, "more line")} of this command</p>'
+                if output is not None:
+                    item += (f'<pre class="out">{esc(chr(10).join(output))}</pre>'
+                             f'<p class="note">Output: {esc(what)}. <a href="{esc(url)}">Full output</a></p>')
+                out.append(f"<li>{item}</li>")
+            out.append("</ol>")
+            for label, body in col["end"]:
+                out.append(f'<p class="part">{inline(label)}</p>')
+                out.append(body.html())
+            out.append("</article>")
+        out.append("</div>")
+        return "\n".join(out)
+
+    def md(self):
+        out = []
+        for col in self.columns:
+            out.append(f"#### `{col['arm']}`\n\n" + "\n".join(f"- {to_markdown_inline(x)}" for x in col["head"]))
+            lines = [f"Commands, in order ({len(col['steps'])}):", ""]
+            for n, (command, output, what, url) in enumerate(col["steps"], 1):
+                text, more = clipped(command, 12)
+                lines.append(f"{n}. " + fenced(text).replace("\n", "\n   ")
+                             + (f"\n\n   … {_n(more, 'more line')} of this command" if more else ""))
+                if output is not None:
+                    lines.append("\n   Output, " + what + f" ([full output]({url})):\n\n   "
+                                 + fenced("\n".join(output)).replace("\n", "\n   "))
+            out.append("\n".join(lines))
+            for label, body in col["end"]:
+                out.append(f"{to_markdown_inline(label)}\n\n{body.md()}")
+        return "\n\n".join(out)
+
+
+class Bars(Block):
+    """The situations as rows: a link and a line, small bars per arm, and
+    the change from none to ormaos."""
+
+    def __init__(self, situations, arms):
+        self.situations, self.arms = situations, arms
+
+    def svg(self, sit):
+        row, width, bar = 15, 200, 130
+        arms = [a for a in self.arms if a in sit.arms]
+        out = [f'<svg class="mini" viewBox="0 0 {width} {row * len(arms)}" width="{width}" '
+               f'height="{row * len(arms)}" role="img" aria-label="'
+               + esc(", ".join(f"{a} {sit.value_text(a)}" for a in arms)) + '">']
+        for i, arm in enumerate(arms):
+            y = i * row
+            share = sit.mean(arm)
+            out.append(f'<rect class="track" x="0" y="{y + 3}" width="{bar}" height="8" rx="1.5"/>')
+            if share:
+                out.append(f'<rect class="s{SLOT[arm]}" x="0" y="{y + 3}" width="{fmt(max(bar * share, 1.5))}" '
+                           f'height="8" rx="1.5"><title>{esc(arm)}: {esc(sit.value_text(arm))}</title></rect>')
+            out.append(f'<text x="{bar + 8}" y="{y + 11}">{esc(sit.value_text(arm))}</text>')
+        out.append("</svg>")
+        return "".join(out)
+
+    def html(self):
+        legend = "".join(f'<span class="key"><i class="sw s{SLOT[a]}"></i><code>{esc(a)}</code></span>'
+                         for a in self.arms)
+        out = [f'<p class="legend">{legend}</p>', '<div class="table-wrap">', '<table class="situations">',
+               '<thead><tr><th scope="col">Situation</th><th scope="col">Per arm</th>'
+               '<th scope="col" class="num"><code>ormaos</code>&nbsp;−&nbsp;<code>none</code></th></tr></thead>', "<tbody>"]
+        for sit in self.situations:
+            out.append(f'<tr><td><a href="{esc(sit.url)}"><b>{esc(sit.name)}</b></a> '
+                       f'<span class="bench">{esc(sit.bench)}</span><br><span class="line">{inline(sit.line)}</span>'
+                       f'</td><td>{self.svg(sit)}</td><td class="num">{sit.change():+.2f}</td></tr>')
+        out += ["</tbody>", "</table>", "</div>"]
+        return "\n".join(out)
+
+    def md(self):
+        head = "| Situation | " + " | ".join(f"`{a}`" for a in self.arms) + " | `ormaos` − `none` |"
+        lines = [head, "|---|" + "---:|" * (len(self.arms) + 1)]
+        for sit in self.situations:
+            cells = [sit.value_text(a) if a in sit.arms else "" for a in self.arms]
+            lines.append(f"| [{sit.name}]({SITE}{sit.url}) ({sit.bench}): {to_markdown_inline(sit.line)} | "
+                         + " | ".join(cells) + f" | {sit.change():+.2f} |")
+        return "\n".join(lines)
+
+
+def runs_note(sit):
+    agents = sit.agents
+    return ("Agent: " + code(agents[0]) + "." if len(agents) == 1 else
+            "Agents: " + joined(code(a) for a in agents) + ".")
+
+
+def knows2_situations(runs, h):
+    out = []
+    names = [n for n in h.tasks.NAMES if any(n in run.names for run in runs)]
+    for name in names:
+        records = [r for run in runs for r in run.of(name=name)]
+        arms = [a for a in ARMS4 if any(r["arm"] == a for r in records)]
+        sit = Situation("knows2", name, records, arms, f"/benchmarks/knows2/#{name}")
+        run = next(run for run in runs if name in run.names)
+        sit.run, sit.kind = run, KINDS[name]
+        sit.line = sit.kind["line"]
+        sit.questions, sit.oracle = run.questions(name), run.oracle(name)
+        task = h.tasks.TASKS[name]
+        says = h.benchlib.scenario(name).SAYS if task.get("job") else None
+        sit.source = REPO / sit.kind["source"]
+        sit.happened = HAPPENED[name](sit.oracle, says)
+        for r in records:
+            if r["arm"].startswith("ormaos"):
+                r["_verbs"] = verbs_before_answers(read_steps(r["_run"].folder / r["stream"])[1])
+        out.append(sit)
+    return out
+
+
+def fix_situations(runs, h):
+    out = []
+    first = runs[0]
+    for name, job, differs in first.cases:
+        records = [r for run in runs for r in run.of(case=name)]
+        arms = [a for a in ARMS4 if any(r["arm"] == a for r in records)]
+        sit = Situation("fix", name, records, arms, "/benchmarks/fix/")
+        sit.run, sit.job, sit.differs = first, job, differs
+        sit.line = f"a scheduled job that {job}; where it behaved otherwise than its README: {differs}"
+        story = h.benchlib.scenario(name)
+        built = first.built["bugs"][name]
+        exit_code = re.match(r"r\d+ exit (\d+)", built["recording"]).group(1)
+        sit.happened = [f"That night cron ran `{story.RUNS_WITH}`; it printed {code(story.SAYS)} and exited with "
+                        f"code {exit_code}.", FIX_MORNING[name](built["wrong"]),
+                        f"Where it behaved otherwise than its README: {differs}."]
+        sit.story = story
+        any_run = sit.of()[0]
+        sit.symptom = (first.folder / any_run["folder"] / "TASK.md").read_text(encoding="utf-8").strip()
+        source = getattr(story, "SOURCE", None)
+        sit.source = Path(source) if source else BENCH / "bugs" / name / "task"
+        sit.skip = tuple(h.benchlib.NOT_CODE) + tuple(getattr(story, "NOT_COPIED", ()))
+        out.append(sit)
+    return out
+
+
+def code_at(commit, folder, skip):
+    """The files of a folder of this repository at a commit, without the
+    names in `skip`: path -> text."""
+    names = git("ls-tree", "-r", "--name-only", commit, "--", rel(folder)).splitlines()
+    out = {}
+    for name in names:
+        inside = name[len(rel(folder)) + 1:]
+        if inside.split("/")[0] in skip:
+            continue
+        out[inside] = git_bytes(f"{commit}:{name}")
+    return out
+
+
+def git_bytes(spec):
+    done = subprocess.run(["git", "-C", str(REPO), "show", spec], capture_output=True, check=False)
+    if done.returncode:
+        raise SystemExit(f"git show {spec}: {done.stderr.decode(errors='replace').strip()}")
+    return done.stdout
+
+
+def code_left(folder, skip):
+    """The committed files of a work folder, without the names in `skip`."""
+    out = {}
+    for name in git("ls-files", "--", rel(folder)).splitlines():
+        inside = name[len(rel(folder)) + 1:]
+        if inside.split("/")[0] in skip:
+            continue
+        out[inside] = (REPO / name).read_bytes()
+    return out
+
+
+def diff_of(sit, r):
+    """The agent's change: a unified diff of the code it left against the
+    code it was given (task/, at the commit that added the results)."""
+    before = code_at(r["_run"].commit, sit.source, sit.skip)
+    after = code_left(r["_run"].folder / r["folder"], sit.skip)
+    out = []
+    for name in sorted(set(before) | set(after)):
+        a, b = before.get(name), after.get(name)
+        if a == b:
+            continue
+        try:
+            a_text = a.decode("utf-8").splitlines(keepends=True) if a is not None else []
+            b_text = b.decode("utf-8").splitlines(keepends=True) if b is not None else []
+        except UnicodeDecodeError:
+            out.append(f"Binary file {name} changed\n")
+            continue
+        out += difflib.unified_diff(a_text, b_text, f"task/{name}" if a is not None else "/dev/null",
+                                    name if b is not None else "/dev/null")
+    return "".join(line if line.endswith("\n") else line + "\n" for line in out).rstrip("\n")
+
+
+def column(sit, r):
+    """What one run did, for its column."""
+    cwd, steps = read_steps(r["_run"].folder / r["stream"])
+    answers = r.get("answers") if isinstance(r.get("answers"), dict) else {}
+    shown = []
+    for step in steps:
+        output = what = None
+        if ormaos_calls(step.command) and step.output is not None:
+            output, what = used_lines(step.output, answers if sit.bench == "knows2" else {})
+            if sit.bench == "fix":
+                rows = step.output.splitlines()
+                output = rows[:15]
+                what = f"all {_n(len(rows), 'line')}" if len(rows) <= 15 else f"the first 15 of {len(rows)} lines"
+        shown.append((shown_command(step, cwd), output, what, stream_url(r, step.line)))
+    tokens = r["_run"].h.base.bench_run.tokens_of(r)
+    head = [f"Run {sit.run_label(r)}, [stream]({stream_url(r)})",
+            f"{_n(r['tool_calls'], 'tool call')}, {tokens:,} tokens, {r['wall_seconds']:.0f} s"
+            + (", out of time" if r.get("timed_out") else "")]
+    end = []
+    if sit.bench == "knows2":
+        counts = {"right": 0, "null": 0, "wrong": 0}
+        rows, nulls = [], []
+        for q in sit.questions:
+            kind, given = outcome_of(r, q["id"])
+            counts[kind] += 1
+            rows.append([q["id"], kind, "" if kind == "null" else code(dumped(given))])
+            if kind == "null":
+                nulls.append(q["id"])
+        head.insert(1, f"Score {r['score']:.2f}: {counts['right']} right, {counts['null']} null, "
+                       f"{counts['wrong']} wrong")
+        end.append(("Its answers", Table(["Question", "Graded", "Answer"], rows, numbers=False, cls="plain mini")))
+        if nulls:
+            said = r["_run"].last_text(r) or ""
+            parts = [x for x in re.split(r"\n\s*\n", said) if any(re.search(rf"\b{q}\b", x) for q in nulls)]
+            end.append((f"Its own words on {joined(nulls)}: the paragraphs of its last message that name "
+                        + ("them" if len(nulls) > 1 else "it") if parts else
+                        f"Its own words on {joined(nulls)}: its last message",
+                        Pre("", "\n\n".join(parts) if parts else said)))
+    else:
+        head.insert(1, "Passed the check" if r["fixed"] else "Did not pass the check")
+        diff = diff_of(sit, r)
+        end.append(("Its change, against `task/`", Pre("", diff or "no change")))
+        end.append(("What the check said", Pre("", "\n".join(r["check"]))))
+    return {"arm": r["arm"], "head": head, "steps": shown, "end": end}
+
+
+def every_run_table(sit):
+    many = len(sit.agents) > 1
+    knows = sit.bench == "knows2"
+    headers = (["Agent"] if many else []) + ["Arm", "Run"] + (
+        ["Score", "Right", "Null", "Wrong", "`ormaos` verbs before answers.json"] if knows else ["Check", "Last line"]
+    ) + ["Tool calls", "Tokens", "Wall time", "Stream"]
+    rows = []
+    for agent in sit.agents:
+        for arm in sit.arms:
+            for r in sit.of(arm, agent):
+                tokens = r["_run"].h.base.bench_run.tokens_of(r)
+                if knows:
+                    kinds = [outcome_of(r, q["id"])[0] for q in sit.questions]
+                    middle = [f"{r['score']:.2f}", str(kinds.count("right")), str(kinds.count("null")),
+                              str(kinds.count("wrong")), ", ".join(r.get("_verbs", [])) or "–"]
+                else:
+                    middle = ["passed" if r["fixed"] else "did not pass", code(r["check"][-1])]
+                rows.append(([code(agent)] if many else []) + [code(arm), sit.run_label(r)] + middle
+                            + [str(r["tool_calls"]), f"{tokens:,}", f"{r['wall_seconds']:.0f} s",
+                               f"[stream]({stream_url(r)})"])
+    return Table(headers, rows, numbers=False, cls="plain runs")
+
+
+def verbs_by_question(sit):
+    """For each question, the verbs the runs that answered it had run before
+    answers.json, with how many of those runs ran each, and how many runs
+    got it right, per Ormaos arm."""
+    arms = [a for a in sit.arms if a.startswith("ormaos")]
+    rows = []
+    for q in sit.questions:
+        row = [q["id"]]
+        for arm in arms:
+            runs = sit.of(arm)
+            answered = [r for r in runs if outcome_of(r, q["id"])[0] != "null"]
+            count = {}
+            for r in answered:
+                for verb in r["_verbs"]:
+                    count[verb] = count.get(verb, 0) + 1
+            row.append(", ".join(f"{v} {n}" for v, n in sorted(count.items(), key=lambda x: (-x[1], VERBS.index(x[0])
+                                                                                          if x[0] in VERBS else 99)))
+                       or "–")
+            row.append(f"{len(answered)}/{len(runs)}")
+            row.append(f"{sum(1 for r in runs if r['right'][q['id']])}/{len(runs)}")
+        rows.append(row)
+    headers = ["Question"] + [h for a in arms for h in (f"`{a}`: verbs (runs)", "answered", "right")]
+    return Table(headers, rows, numbers=False, cls="plain")
+
+
+VERBS_RULE = ("Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its commands up to its "
+              "last write of `answers.json`. A question counts for a verb when a run that ran the verb answered "
+              "it (not null); a run that ran several verbs counts under each of them.")
+
+
+def case_page(sit, h):
+    first = Section("top", f"{sit.name}, in {sit.bench}", [
+        P((f"A {sit.kind['kind']}. {sit.kind['does']}" if sit.bench == "knows2" else
+           f"A scheduled job. By its README, it {sit.job}.")
+          + f" Source: [`{rel(sit.source)}`]({tree(sit.run.commit, sit.source)}).", "lead"),
+        P(SENTENCE, "sentence"),
+        P(("Mean score over every run: " if sit.bench == "knows2" else "Passed the check, first attempts: ")
+          + ", ".join(f"`{a}` {sit.value_text(a)}" for a in sit.arms)
+          + f" ({_n(len(sit.of(sit.arms[0])), 'run')} per arm). " + runs_note(sit)),
+        Toc([("happened", "What happened"), ("given", "What the agent was given"),
+             ("side-by-side", "Run 1 of each arm, side by side")]
+            + ([("answered", "What Ormaos data answered")] if sit.bench == "knows2" else [])
+            + [("runs", "Every run"), ("files", "The results files")]),
+    ], kicker=f"Situation · {sit.bench}", first=True)
+    happened = [P(" ".join(sit.happened))]
+    if sit.bench == "knows2":
+        happened.append(P("The numbers are the oracle's answers to the questions below: "
+                          f"[`oracle/{sit.name}.json`]({blob(sit.run.commit, sit.run.folder / 'oracle' / (sit.name + '.json'))})."))
+        given = [P(f"The folder the execution left, with what the arm adds, and {_n(len(sit.questions), 'question')} "
+                   "in `questions.json`, written by a model that was not told about Ormaos. The oracle's answers "
+                   "were not in the folder."),
+                 Table(["Question", "Asked", "Format", "The oracle's answer"],
+                       [[q["id"], q["question"], q["format"], code(dumped(sit.oracle[q["id"]]))] for q in sit.questions],
+                       numbers=False, cls="plain questions"),
+                 Details(f"The prompt of each arm, verbatim", [Pre(f"`{a}`", h.prompt(sit.name, a)) for a in sit.arms])]
+    else:
+        happened.append(P("The items are those the scenario's own check of the data found, in "
+                          f"[`build.json`]({blob(sit.run.commit, sit.run.folder / 'build.json')})."))
+        happened.append(Pre("The symptom, from `TASK.md` in the agent's folder", sit.symptom))
+        given = [P("Its folder (the code, its README, `TASK.md` and the data that night left, with what the arm "
+                   "adds) and the task text, the same in every arm but for the arm's last sentence:")]
+        given += [Pre(f"`{a}`", h.benchlib.prompt(sit.name, a)) for a in sit.arms]
+    sbs = [P("Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent's tool "
+             "calls in order" + ("; under each `ormaos` command, the lines of its output that hold a value the "
+                                 "agent wrote in `answers.json`, or its first 15 lines, with a link to the full "
+                                 "output in the stream." if sit.bench == "knows2" else
+                                 "; under each `ormaos` command, the first 15 lines of its output, with a link "
+                                 "to the full output in the stream."))]
+    for agent in sit.agents:
+        if len(sit.agents) > 1:
+            sbs.append(H(3, code(agent)))
+        sbs.append(SideBySide([column(sit, sit.first_run(a, agent)) for a in sit.arms]))
+    sections = [first, Section("happened", "What happened", happened),
+                Section("given", "What the agent was given", given),
+                Section("side-by-side", "Run 1 of each arm, side by side", sbs)]
+    if sit.bench == "knows2":
+        sections.append(Section("answered", "What Ormaos data answered", [P(VERBS_RULE), verbs_by_question(sit)]))
+    sections.append(Section("runs", "Every run", [
+        P(("Every run of every arm" if sit.bench == "knows2" else "The first attempt of every run of every arm")
+          + (", of every agent." if len(sit.agents) > 1 else ".")), every_run_table(sit)]))
+    folders = sorted({r["_run"].folder for r in sit.records})
+    sections.append(Section("files", "The results files", [UL(
+        [f"The benchmark: [{sit.bench}]({sit.page_url})"]
+        + [f"Results folder: [`{rel(f)}`]({tree(next(r['_run'].commit for r in sit.records if r['_run'].folder == f), f)})"
+           for f in folders])]))
+    return f"{sit.name}, in {sit.bench}", sections
+
+
+def verb_table(sits):
+    """Over every knows2 situation: per verb and Ormaos arm, the runs that
+    ran it, the answers they gave after it, and how many were right."""
+    arms = [a for a in ARMS4 if a.startswith("ormaos") and any(a in s.arms for s in sits)]
+    stats = {}
+    for sit in sits:
+        for arm in arms:
+            for r in sit.of(arm):
+                for verb in r.get("_verbs", []):
+                    s = stats.setdefault(verb, {a: [0, 0, 0] for a in arms})[arm]
+                    s[0] += 1
+                    for q in sit.questions:
+                        kind = outcome_of(r, q["id"])[0]
+                        s[1] += kind != "null"
+                        s[2] += kind == "right"
+    order = sorted(stats, key=lambda v: (-sum(stats[v][a][1] for a in arms), v))
+    headers = ["Verb"] + [h for a in arms for h in (f"`{a}`: runs", "answered after it", "right")]
+    rows = [[f"`{v}`"] + [str(x) for a in arms for x in stats[v][a]] for v in order]
+    runs = {a: sum(len(s.of(a)) for s in sits) for a in arms}
+    return Table(headers, rows), runs
+
+
 # ---------------------------------------------------------------- index
 
 
-def index_page(k2, k1, fix, over):
-    model = joined(code(m) for m in sorted(set(k2.models) | set(k1.models) | set(fix.models)))
+def index_page(k2s, k1s, fixes, over, sits):
+    k2, k1, fix = k2s[0], k1s[0], fixes[0]
     cpu, io = over.workloads[0], over.workloads[1]
-    cpu_d, io_d = over.default(cpu[3]), over.default(io[3])
+    agents = sorted({r["_agent"] for runs in (k2s, k1s, fixes) for run in runs for r in run.records})
 
     # The headline: knows2's answers, ormaos against none
     o, n = k2.outcome_counts("ormaos"), k2.outcome_counts("none")
@@ -1707,24 +2687,7 @@ def index_page(k2, k1, fix, over):
                 f"{sum(o.values())} questions right, over its {len(k2.of('ormaos'))} runs; with only the folder "
                 f"(`none`), {n['right']} of {sum(n.values())}. Null answers: {o['null']} and {n['null']}. "
                 f"Wrong answers: {o['wrong']} and {n['wrong']}.")
-
-    # Three facts, each with its page
-    tasks = [k2.built["tasks"][t] for t in k2.names]
-    size_o = statistics.median(t["bytes_ormaos"] for t in tasks)
-    size_raw = statistics.median(t["trace_bytes"] for t in tasks)
-    tokens = {a: k2.median(a, "tokens") for a in k2.arms}
-    others = [a for a in k2.arms if a not in ("ormaos", "none")]
-    facts = Facts([
-        (f"{size_text(size_o)} vs {size_text(size_raw)}",
-         f"median size, over the {len(tasks)} executions of knows2, of the Ormaos recording (`.ormaos/`) and of "
-         "the VizTracer trace (`result.json`). [Per execution](/benchmarks/knows2/#results)"),
-        (f"{tokens['ormaos']:,.0f} vs {tokens['none']:,.0f}",
-         "median tokens per run in knows2, `ormaos` and `none`; "
-         + ", ".join(f"`{a}` {tokens[a]:,.0f}" for a in others) + ". [Per arm](/benchmarks/knows2/#results)"),
-        (f"x{cpu_d['ratio']:.2f} / x{io_d['ratio']:.2f}",
-         f"time of a run recorded with the default capability set, against the same run without Ormaos: "
-         f"{cpu[0]} / {io[0]}. [Every capability set](/benchmarks/overhead/)"),
-    ], cls="three")
+    from_run = (f"From the knows2 results folder of {k2.date}, agent " + joined(code(a) for a in k2.agents) + ".")
 
     def short(title):
         return title.split(": ", 1)[1][:1].upper() + title.split(": ", 1)[1][1:]
@@ -1745,7 +2708,7 @@ def index_page(k2, k1, fix, over):
          "The run, and why knows2 replaced it", "/benchmarks/knows/"),
         (f"fix · {fix.date} · {joined(fix.models)} · N = {len(fix.first)} runs, {len(fix.of(fix.arms[0]))} per arm",
          short(fix_title(fix)),
-         [P("A coding agent changes a program whose behaviour on one night differed from what its README says; "
+         [P("A coding agent changes a program that behaved otherwise than its README on one night; "
             "a check it does not see runs that night again. The metric `fixed`, per arm."),
           fixed_chart("c-fix", fix, width=500, compact=True, left=110, right=160)],
          "The programs, the check and every run", "/benchmarks/fix/"),
@@ -1756,6 +2719,24 @@ def index_page(k2, k1, fix, over):
           ratio_chart("c-overhead", over, width=500, left=250)],
          "Every capability set, and the machine", "/benchmarks/overhead/"),
     ]
+    # Where Ormaos changed the result: every situation, by ormaos minus none
+    ranked = sorted(sits, key=lambda x: (-x.change(), x.bench, x.name))
+    k2_sits = [x for x in sits if x.bench == "knows2"]
+    fix_sits = [x for x in sits if x.bench == "fix"]
+    changed = [x for x in sits if x.change()]
+    verbs, verb_runs = verb_table(k2_sits)
+
+    # Not measured yet
+    claude_models = {r["model"] for runs in (k2s, k1s, fixes) for run in runs for r in run.records
+                     if r["_agent"].startswith("claude-code")}
+    others = [x for x in ("Codex", "Gemini", "Grok") if not any(x.lower() in a.lower() for a in agents)]
+    if len(claude_models) < 2:
+        others.append("other Claude models")
+    loc = [b["lines_of_code"] for run in fixes for b in run.built["bugs"].values()]
+    none_fixed = sum(run.fixed("none") for run in fixes)
+    none_runs = sum(len(run.of("none")) for run in fixes)
+    public = committed_on(k2.commit)
+
     full = len(k2.full_marks())
     sections = [
         Section("top", "Benchmarks", [
@@ -1765,28 +2746,35 @@ def index_page(k2, k1, fix, over):
             P(headline, "headline"),
             Pair([score_chart("o-score", k2, "knows2", width=540, compact=True, left=110, right=170),
                   rnw_chart("o-rnw", k2, width=540, left=110, right=120)]),
-            facts,
+            P(from_run, "caption"),
         ], first=True),
-        Section("measured", "What is measured", [
-            UL([
-                "**What an agent knows** about an execution it did not see: factual questions about what happened "
-                "in it, graded against an oracle ([knows2](/benchmarks/knows2/), and the earlier "
-                "[knows](/benchmarks/knows/)).",
-                "**Whether the code an agent changes passes a check**, for programs whose behaviour on one night "
-                "differed from what their README says ([fix](/benchmarks/fix/)).",
-                "**The ways in**: the folder the execution left and nothing more (`none`), a VizTracer trace of "
-                "the execution (`raw`), or its Ormaos recording (`ormaos`, and in knows2 also `ormaos-values`). "
-                f"The agent is {model}, in a sandbox; the oracle and the check read neither the trace nor the "
-                "recording.",
-                f"**What recording adds to the time of a run**, per capability set, on {len(over.workloads)} "
-                "workloads ([overhead](/benchmarks/overhead/)).",
-            ]),
+        Section("situations", "Where Ormaos changed the result and where it did not", [
+            P(f"All {len(sits)} situations: the {len(k2_sits)} executions of knows2, with the mean score of their "
+              f"runs (0 to 1), and the {len(fix_sits)} programs of fix, with the first attempts that passed the "
+              "check. Sorted by the mean of `ormaos` minus the mean of `none`, over every run of every agent; "
+              f"in {len(changed)} of them the two differ. Each name links to the situation's page: what "
+              "happened, what the agent was given, and run 1 of each arm side by side."),
+            Bars(ranked, ARMS4),
+        ]),
+        Section("answered", "What Ormaos data answered", [
+            P(VERBS_RULE + " Over the " + joined(f"{verb_runs[a]} runs of `{a}`" for a in verb_runs)
+              + " in knows2; each situation's page has it per question."),
+            verbs,
         ]),
         Section("benchmarks", "The benchmarks", [Cards(cards, grid=True)]),
+        Section("not-measured", "Not measured yet", [UL([
+            "Other agents and models: " + joined(others) + ". Every run on these pages is "
+            + joined(code(a) for a in agents) + ".",
+            "RL environments: knows2 has one small grid world (`rl-env`), as a program an agent asks about; no "
+            "environment in which an agent is trained.",
+            f"Large codebases: the programs of fix have {min(loc)} to {max(loc)} lines of code.",
+            f"Harder repairs, where the agent alone fails: in fix, `none` passed the check in {none_fixed} of "
+            f"{none_runs} first attempts.",
+        ])]),
         Section("not-shown", "What these benchmarks do not show", [UL([
             "The programs and their executions were written for these benchmarks by the people who make Ormaos; "
             "they are not a sample of real programs.",
-            f"One model, one prompt per arm, one tracer with its default settings, and few runs: "
+            f"One prompt per arm, one tracer with its default settings, and few runs: "
             f"{len(k2.of(k2.arms[0]))} per arm in knows2, {len(fix.of(fix.arms[0]))} in fix. Several 95% "
             "intervals overlap; each page says which.",
             f"In knows2 the question writer and the agents are the same model, and in {full} of "
@@ -1795,16 +2783,41 @@ def index_page(k2, k1, fix, over):
             "another cost.",
             "Whether what happened is what should have happened: the benchmarks ask what happened, and the "
             "reader decides.",
+            f"The knows2 questions and the oracle's answers are public since {public}, the day they were "
+            "committed: a later run must not let the agent reach the network, other than the model's API.",
         ])]),
         Section("files", "The pages as files", [UL([
             "Each page is also Markdown, at its address with `.md` in place of the last slash: "
-            "[`/benchmarks.md`](/benchmarks.md), [`/benchmarks/knows2.md`](/benchmarks/knows2.md), and so on.",
+            "[`/benchmarks.md`](/benchmarks.md), [`/benchmarks/knows2.md`](/benchmarks/knows2.md), "
+            f"[`/benchmarks/{ranked[0].path.rstrip('/')}.md`]({md_url(ranked[0].path)}), and so on.",
             "[`/benchmarks/llms.txt`](/benchmarks/llms.txt) lists them for agents.",
             f"The pages are written by [`site/benchmarks/build.py`]({EXAMPLES}/blob/main/site/benchmarks/build.py) "
             "from the results files.",
         ])]),
     ]
     return "Benchmarks", sections
+
+
+def other_folders(runs, bench):
+    """When a benchmark has more than one results folder: the others, for
+    the end of its page."""
+    if len(runs) < 2:
+        return []
+    rows = []
+    for run in runs[1:]:
+        if bench == "fix":
+            per_arm = ", ".join(f"`{a}` {run.fixed(a)}/{len(run.of(a))}" for a in run.arms)
+            count = len(run.first)
+        else:
+            per_arm = ", ".join(f"`{a}` {run.mean(a):.2f}" for a in run.arms)
+            count = len(run.records)
+        rows.append([f"[`{rel(run.folder)}`]({tree(run.commit, run.folder)})", joined(code(a) for a in run.agents),
+                     run.date, str(count), per_arm])
+    return [Section("other-folders", "Other results folders", [
+        P(f"This page describes the first results folder of {bench}, `{rel(runs[0].folder)}`. These are the "
+          "others; every one counts on the situation pages and the overview."),
+        Table(["Results folder", "Agent", "Date", "Runs", "Per arm"], rows, numbers=False),
+    ])]
 
 
 # ---------------------------------------------------------------- llms.txt
@@ -1818,7 +2831,13 @@ def llms_txt(pages):
              "Each page is plain Markdown at the address below; the HTML page is the same address with a slash "
              "in place of `.md`.", "", "## Pages", ""]
     for path, title, description, _ in pages:
-        lines.append(f"- [{title}]({SITE}{md_url(path)}): {description}")
+        if not path.startswith("cases/"):
+            lines.append(f"- [{title}]({SITE}{md_url(path)}): {description}")
+    lines += ["", "## Situations", "", "One page per situation: what happened, what the agent was given, run 1 of "
+              "each arm side by side, and every run.", ""]
+    for path, title, _, _ in pages:
+        if path.startswith("cases/"):
+            lines.append(f"- [{title}]({SITE}{md_url(path)})")
     lines += ["", "## Results files", ""]
     for path, title, _, files in pages:
         for name, url in files:
@@ -1838,10 +2857,12 @@ def build(root):
     out = root / "benchmarks"
     h = runners()
     frame = Frame()
-    k2 = KnowsRun(KNOWS2, ARMS4, h)
-    k1 = KnowsRun(KNOWS, ARMS4, h)
-    fix = FixRun(FIX, h)
+    k2s = [KnowsRun(folder, ARMS4, h) for folder in results_folders(KNOWS2)]
+    k1s = [KnowsRun(folder, ARMS4, h) for folder in results_folders(KNOWS)]
+    fixes = [FixRun(folder, h) for folder in results_folders(FIX)]
+    k2, k1, fix = k2s[0], k1s[0], fixes[0]
     over = Overhead()
+    sits = knows2_situations(k2s, h) + fix_situations(fixes, h)
 
     def result_files(run):
         return [("results.jsonl", blob(run.commit, run.folder / "results.jsonl")),
@@ -1849,22 +2870,29 @@ def build(root):
                 ("report.md", blob(run.commit, run.folder / "report.md"))]
 
     pages = []
-    title, sections = index_page(k2, k1, fix, over)
-    pages.append(("", title, "what is measured, one card per benchmark, and what the benchmarks do not show",
-                  sections, []))
+    title, sections = index_page(k2s, k1s, fixes, over, sits)
+    pages.append(("", title, "where Ormaos changed the result and where it did not, situation by situation, "
+                  "what Ormaos data answered, one card per benchmark, and what is not measured yet", sections, []))
     title, sections = knows2_page(k2, h, frame)
+    sections[-1:-1] = other_folders(k2s, "knows2")
     pages.append(("knows2/", title, "the method, the charts, every question with the oracle's answer and every "
                   "run's answer, and what the agents said when they could not answer", sections, result_files(k2)))
     title, sections = knows_page(k1, k2)
+    sections[-1:-1] = other_folders(k1s, "knows")
     pages.append(("knows/", title, "the earlier run of the same executions, and why knows2 replaced it", sections,
                   result_files(k1)))
     title, sections = fix_page(fix)
+    sections[-1:-1] = other_folders(fixes, "fix")
     pages.append(("fix/", title, f"{len(fix.cases)} programs, {len(fix.arms)} arms, the metric fixed, scored by the "
                   "first attempt of every slot", sections,
                   result_files(fix)))
     title, sections = overhead_page(over)
     pages.append(("overhead/", title, f"the time a recorded run takes, per capability set, on {len(over.workloads)} workloads",
                   sections, [("RESULTS.md", f"{ORMAOS}/blob/{over.source['commit']}/{over.source['path']}")]))
+    for sit in sits:
+        title, sections = case_page(sit, h)
+        pages.append((sit.path, title, "what happened, what the agent was given, run 1 of each arm side by side, "
+                      "and every run", sections, []))
 
     if out.exists():
         shutil.rmtree(out)
