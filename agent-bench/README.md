@@ -77,6 +77,15 @@ At this size the difference is within the margin: the intervals overlap. The fou
 
 Options: `--bugs a,b`, `--arms none,raw`, `--timeout SECONDS`, `--jobs N` (agents at the same time, default 3), `--replacements N` (how often a marked attempt is run again, default 3), `--out DIR`, `--report DIR` (write the report of a finished run again).
 
+## The other benchmarks of this folder
+
+[`knows2`](knows2) asks an agent what happened in an execution instead of asking it to fix a bug: the same four arms, questions by a model that was not told what Ormaos records, graded against an oracle. [`harness`](harness) runs it in a controlled environment: a new container per run, on a network whose only way out is a proxy that allows the model's host.
+
+- The run of 2026-11-28, in the harness, 108 runs, Claude Code 2.1.322 with `claude-opus-5-5`: mean score none 0.68 (0.54 to 0.82), raw 0.87 (0.79 to 0.95), ormaos 0.95 (0.90 to 0.99), ormaos-values 0.95 (0.90 to 0.99); the intervals of raw and each Ormaos arm overlap. Report: [`harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/report.md`](harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/report.md).
+- The earlier run, of 2026-11-27, in bubblewrap with the network open: none 0.71, raw 0.87, ormaos 0.93, ormaos-values 0.95. Report: [`knows2/results/20261127-165801/report.md`](knows2/results/20261127-165801/report.md).
+
+The two runs are kept apart: every table, chart and situation page of the benchmark pages shows one results folder at a time, labelled with its environment and agent.
+
 ## What it does not show
 
 - Eight bugs written for this benchmark, by the people who make Ormaos, are not a sample of real bugs.

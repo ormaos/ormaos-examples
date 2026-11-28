@@ -2,17 +2,20 @@
 
 *Situation · knows2*
 
-A scheduled job. A scheduled job that asks a carrier's rate API for the freight of tomorrow's shipments and writes one quote per shipment. Source: [`freight-quote`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/freight-quote).
+A scheduled job. A scheduled job that asks a carrier's rate API for the freight of tomorrow's shipments and writes one quote per shipment. Source: [`freight-quote`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/freight-quote).
 
 Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.
 
-Mean score over every run: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00 (3 runs per arm). Agent: `claude-code / claude-opus-5-5`.
+Mean score, per results folder and agent; no number here adds up two of them:
+
+- 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00 (3 runs per arm)
+- 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00 (3 runs per arm)
 
 ## What happened
 
 The run wrote 26 quotes: 9 from the carrier stand-in's answer and 17 from the contract rate card, after the stand-in refused 17 requests with HTTP 429; the first quote from the rate card is `FR-8136`. `calls_used_today` went up by 9, the quotes add up to 114835 cents, and the job printed `quotes finished: OK`.
 
-The numbers are the oracle's answers to the questions below: [`oracle/freight-quote.json`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/oracle/freight-quote.json).
+The numbers are the oracle's answers to the questions below: [`oracle/freight-quote.json`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/oracle/freight-quote.json).
 
 ## What the agent was given
 
@@ -58,6 +61,352 @@ Last night cron ran `python3 job.py` in this folder; since then the dispatch lis
 ## Run 1 of each arm, side by side
 
 Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent's tool calls in order; under each `ormaos` command, the lines of its output that hold a value the agent wrote in `answers.json`, or its first 15 lines, with a link to the full output in the stream.
+
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+#### `none`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-none-1.jsonl)
+- Score 1.00: 8 right, 0 null, 0 wrong
+- 5 tool calls, 91,085 tokens, 41 s
+
+Commands, in order (5):
+
+1. ```text
+   cd /srv/freight-quote; ls -la; cat questions.json; cat job.py
+   ```
+2. ```text
+   cd /srv/freight-quote; cat README.md carrier.py quotes.py ratecard.py ratecard.csv shipments.py; ls -la data; cat data/carrier.json; head -5 data/*.csv
+   ```
+3. ```text
+   cd /srv/freight-quote; cat data/cron.log; echo; cat data/booked.csv; echo; cat data/shipments.csv; sqlite3 data/quotes.db "select * from quotes" 2>/dev/null || python3 -I -c "
+   import sqlite3;c=sqlite3.connect('data/quotes.db')
+   for r in c.execute('select rowid,* from quotes'):print(r)"; ls -la .ormaos seed 2>&1
+   ```
+4. ```text
+   cd /srv/freight-quote; python3 -I -c "
+   import sqlite3,json,csv,sys
+   sys.path.insert(0,'.')
+   from carrier import tariff_price
+   import ratecard
+   card=ratecard.load()
+   t=json.load(open('data/carrier.json'))['tariff']
+   b={r['shipment_id']:int(r['charged_cents']) for r in csv.DictReader(open('data/booked.csv'))}
+   c=sqlite3.connect('data/quotes.db');s=0
+   class S: pass
+   for sid,lane,svc,kg,amt,_ in c.execute('select * from quotes order by rowid'):
+     x=S();x.lane=lane;x.service=svc;x.chargeable_kg=kg
+   ```
+
+   … 3 more lines of this command
+5. ```text
+   cd /srv/freight-quote; cat > answers.json <<'E'
+   {
+     "q1": 26,
+     "q2": 9,
+     "q3": 17,
+     "q4": 17,
+     "q5": "FR-8136",
+     "q6": [],
+     "q7": 9,
+     "q8": 114835
+   }
+   E
+   ```
+
+   … 1 more line of this command
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `26` |
+| q2 | right | `9` |
+| q3 | right | `17` |
+| q4 | right | `17` |
+| q5 | right | `"FR-8136"` |
+| q6 | right | `[]` |
+| q7 | right | `9` |
+| q8 | right | `114835` |
+
+#### `raw`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-raw-1.jsonl)
+- Score 1.00: 8 right, 0 null, 0 wrong
+- 10 tool calls, 265,302 tokens, 79 s
+
+Commands, in order (10):
+
+1. ```text
+   cd /srv/freight-quote; ls -la; cat questions.json; cat job.py
+   ```
+2. ```text
+   cd /srv/freight-quote; cat carrier.py quotes.py ratecard.py ratecard.csv shipments.py README.md; ls -la data; cat data/carrier.json; head -5 data/*.csv
+   ```
+3. ```text
+   cd /srv/freight-quote; cat data/cron.log; cat data/booked.csv; sqlite3 data/quotes.db 'select * from quotes' 2>&1 || python3 -I -c "import sqlite3;[print(r) for r in sqlite3.connect('data/quotes.db').execute('select * from quotes')]"
+   ```
+4. ```text
+   cd /srv/freight-quote; python3 -I -c "
+   import json,collections
+   d=json.load(open('result.json'))
+   ev=d['traceEvents']
+   print(len(ev), d.keys())
+   c=collections.Counter(e.get('name') for e in ev)
+   for n,k in c.items():
+     if any(s in n for s in ('job.py','carrier.py','ratecard.py','quotes.py','shipments.py','send_error','do_GET','urlopen','HTTPError')): print(k,n)
+   print([e for e in ev if e.get('ph')!='X'][:5])
+   "
+   ```
+5. ```text
+   cd /srv/freight-quote; python3 -I -c "
+   import json
+   d=json.load(open('result.json'))
+   ev=[e for e in d['traceEvents'] if e.get('ph')=='X']
+   gets=sorted([e for e in ev if 'do_GET' in e['name']],key=lambda e:e['ts'])
+   for g in gets:
+     kids=[e for e in ev if e['tid']==g['tid'] and g['ts']<=e['ts']<=g['ts']+g['dur'] and e is not g]
+     names=[k['name'].split(' ')[0] for k in sorted(kids,key=lambda e:e['ts'])]
+     keep=[n for n in names if n in('dumps','tariff_price','send_error','load','loads','open','write','TextIOWrapper.write','float')  or 'write' in n or 'dump' in n or 'tariff' in n or 'send_error' in n]
+     print(g['ts'], keep, g.get('args'))
+   "
+   ```
+6. ```text
+   cd /srv/freight-quote; python3 -I -c "
+   import json
+   d=json.load(open('result.json'))
+   ev=[e for e in d['traceEvents'] if e.get('ph')=='X']
+   g=sorted([e for e in ev if 'do_GET' in e['name']],key=lambda e:e['ts'])[0]
+   for e in sorted([e for e in ev if e['tid']==g['tid'] and g['ts']<=e['ts']<=g['ts']+g['dur']],key=lambda e:e['ts']): print(e['ts'],e['dur'],e['name'],e.get('args'))
+   print(d['viztracer_metadata'])
+   " | head -80
+   ```
+7. ```text
+   cd /srv/freight-quote; python3 -I -c "
+   import json
+   d=json.load(open('result.json'))
+   ev=[e for e in d['traceEvents'] if e.get('ph')=='X']
+   gs=sorted([e for e in ev if 'do_GET' in e['name']],key=lambda e:e['ts'])
+   g=gs[0]
+   for e in sorted([e for e in ev if e['tid']==g['tid'] and g['ts']+100<=e['ts']<=g['ts']+g['dur']],key=lambda e:e['ts'])[:15]: print(e['ts'],e['dur'],e['name'])
+   print('---main between')
+   rs=sorted([e for e in ev if e['name'].startswith('rate (')],key=lambda e:e['ts'])
+   for r in rs[:3]: print(r['ts'],r['dur'],r['name'])
+   for e in sorted([e for e in ev if g['ts']+g['dur']<e['ts']<gs[1]['ts'] and e['dur']>1000],key=lambda e:e['ts']): print(e['tid'],e['ts'],e['dur'],e['name'])
+   "
+   ```
+8. ```text
+   cd /srv/freight-quote; python3 -I -c "
+   import json,collections
+   d=json.load(open('result.json'))
+   ev=[e for e in d['traceEvents'] if e.get('ph')=='X']
+   print(collections.Counter((e['pid'],e['tid']) for e in ev))
+   gs=sorted([e for e in ev if 'do_GET' in e['name']],key=lambda e:e['ts'])
+   print(gs[0]['pid'],gs[0]['tid'])
+   t=[e for e in ev if e['tid']==gs[0]['tid'] and e['pid']==gs[0]['pid']]
+   print(min(e['ts'] for e in t), max(e['ts']+e['dur'] for e in t), len(t))
+   for e in sorted(t,key=lambda e:-e['dur'])[:8]: print(e['ts'],e['dur'],e['name'])
+   print([e for e in d['traceEvents'] if e.get('ph')=='M'])
+   "
+   ```
+9. ```text
+   cd /srv/freight-quote; python3 -I -c "
+   import json,sqlite3,sys
+   sys.path.insert(0,'/srv/freight-quote')
+   " ; python3 -I - <<'EOF'
+   import json,sqlite3
+   d=json.load(open('/srv/freight-quote/result.json'))
+   ev=[e for e in d['traceEvents'] if e.get('ph')=='X']
+   for tid in range(4,30):
+       t=[e['name'].split(' ')[0] for e in ev if e['tid']==tid]
+       kind = '200' if 'tariff_price' in t and 'BaseHTTPRequestHandler.send_error' not in t else ('404' if 'tariff_price' in t else ('422' if '_io.TextIOWrapper.write' in t else 'noinc-err'))
+       print(tid, kind, min(e['ts'] for e in ev if e['tid']==tid))
+   st=json.load(open('/srv/freight-quote/data/carrier.json'))['tariff']
+   ```
+
+   … 14 more lines of this command
+10. ```text
+   cd /srv/freight-quote; cat > answers.json <<'EOF'
+   {"q1": 26, "q2": 9, "q3": 17, "q4": 17, "q5": "FR-8136", "q6": [], "q7": 9, "q8": 114835}
+   EOF
+   python3 -I -m json.tool answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `26` |
+| q2 | right | `9` |
+| q3 | right | `17` |
+| q4 | right | `17` |
+| q5 | right | `"FR-8136"` |
+| q6 | right | `[]` |
+| q7 | right | `9` |
+| q8 | right | `114835` |
+
+#### `ormaos`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-ormaos-1.jsonl)
+- Score 1.00: 8 right, 0 null, 0 wrong
+- 5 tool calls, 118,584 tokens, 34 s
+
+Commands, in order (5):
+
+1. ```text
+   cd /srv/freight-quote; ls -la; cat questions.json; .venv/bin/ormaos guide
+   ```
+
+   Output, the 7 lines of 183 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-ormaos-1.jsonl?plain=1#L3)):
+
+   ```text
+   -rw-rw-r-- 1 ubuntu ubuntu 4091 Nov 26 21:12 README.md
+   -rw-rw-r-- 1 ubuntu ubuntu 3927 Nov 26 21:13 carrier.py
+   -rw-rw-r-- 1 ubuntu ubuntu 2555 Nov 26 21:12 job.py
+   -rw-rw-r-- 1 ubuntu ubuntu 2970 Nov 26 21:12 quotes.py
+   -rw-rw-r-- 1 ubuntu ubuntu  276 Nov 26 21:12 ratecard.csv
+   -rw-rw-r-- 1 ubuntu ubuntu 1039 Nov 26 21:12 ratecard.py
+   -rw-rw-r-- 1 ubuntu ubuntu 1959 Nov 26 21:12 shipments.py
+   ```
+2. ```text
+   cd /srv/freight-quote; cat README.md job.py carrier.py quotes.py ratecard.py shipments.py ratecard.csv; ls -la data; .venv/bin/ormaos list; .venv/bin/ormaos show last --full
+   ```
+
+   Output, the 4 lines of 535 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-ormaos-1.jsonl?plain=1#L5)):
+
+   ```text
+   r1  2026-11-28 02:47:56  complete  exit 0  644.0ms  1 process, 430 calls, 20 exceptions (17 swallowed), 103 io  .venv/bin/python job.py
+   r1 exit 0 in 0.64s: 1 Python process, 430 calls, 20 exceptions (17 swallowed, 0 uncaught, 2 StopIteration taken by the interpreter)
+   io: 103 events (file 47, sqlite 30, http 26)
+   logs: 19 logging records (WARNING 17, INFO 2), 19 dropped by the level
+   ```
+3. ```text
+   cd /srv/freight-quote; .venv/bin/ormaos io r1 --kind http --limit 100; .venv/bin/ormaos exceptions r1 --limit 100; cat data/cron.log data/carrier.json data/shipments.csv
+   ```
+
+   Output, the 2 lines of 109 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-ormaos-1.jsonl?plain=1#L7)):
+
+   ```text
+   r1: 103 io events (file 47, sqlite 30, http 26), showing http
+   r1: 20 exceptions (17 swallowed, 0 uncaught, 2 StopIteration taken by the interpreter)
+   ```
+4. ```text
+   cd /srv/freight-quote; python3 -I -c "
+   import sqlite3;c=sqlite3.connect('file:data/quotes.db?mode=ro',uri=True)
+   for r in c.execute('select rowid,* from quotes order by rowid'):print(r)
+   print(c.execute('select count(*),sum(amount_cents) from quotes').fetchall())"; ls -la --time-style=full-iso data .ormaos/r1; .venv/bin/ormaos tree r1 --function price --limit 30
+   ```
+
+   Output, the 5 lines of 71 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-ormaos-1.jsonl?plain=1#L9)):
+
+   ```text
+   (10, 'FR-8136', 'MID-STH', 'standard', 16.0, 1528, '2026-11-28T02:47:57+00:00')
+   (17, 'FR-8143', 'NTH-WST', 'standard', 75.0, 5590, '2026-11-28T02:47:57+00:00')
+   (26, 'FR-8152', 'NTH-STH', 'standard', 40.0, 4250, '2026-11-28T02:47:57+00:00')
+   [(26, 114835)]
+   r1: 26 of the 430 calls match --function price (26 price; 0 raised)
+   ```
+5. ```text
+   cd /srv/freight-quote; cat > answers.json <<'E'
+   {"q1": 26, "q2": 9, "q3": 17, "q4": 17, "q5": "FR-8136", "q6": [], "q7": 9, "q8": 114835}
+   E
+   cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `26` |
+| q2 | right | `9` |
+| q3 | right | `17` |
+| q4 | right | `17` |
+| q5 | right | `"FR-8136"` |
+| q6 | right | `[]` |
+| q7 | right | `9` |
+| q8 | right | `114835` |
+
+#### `ormaos-values`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-ormaos-values-1.jsonl)
+- Score 1.00: 8 right, 0 null, 0 wrong
+- 5 tool calls, 112,810 tokens, 35 s
+
+Commands, in order (5):
+
+1. ```text
+   cd /srv/freight-quote; ls -la; cat questions.json; .venv/bin/ormaos guide
+   ```
+
+   Output, the 7 lines of 183 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-ormaos-values-1.jsonl?plain=1#L3)):
+
+   ```text
+   -rw-rw-r-- 1 ubuntu ubuntu 4091 Nov 26 21:12 README.md
+   -rw-rw-r-- 1 ubuntu ubuntu 3927 Nov 26 21:13 carrier.py
+   -rw-rw-r-- 1 ubuntu ubuntu 2555 Nov 26 21:12 job.py
+   -rw-rw-r-- 1 ubuntu ubuntu 2970 Nov 26 21:12 quotes.py
+   -rw-rw-r-- 1 ubuntu ubuntu  276 Nov 26 21:12 ratecard.csv
+   -rw-rw-r-- 1 ubuntu ubuntu 1039 Nov 26 21:12 ratecard.py
+   -rw-rw-r-- 1 ubuntu ubuntu 1959 Nov 26 21:12 shipments.py
+   ```
+2. ```text
+   cd /srv/freight-quote; cat job.py carrier.py quotes.py ratecard.py shipments.py; ls data; .venv/bin/ormaos list; .venv/bin/ormaos show last --full
+   ```
+
+   Output, the 4 lines of 427 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-ormaos-values-1.jsonl?plain=1#L5)):
+
+   ```text
+   r1  2026-11-28 02:47:58  complete  exit 0  661.0ms  1 process, 430 calls, 20 exceptions (17 swallowed), 103 io  .venv/bin/python job.py
+   r1 exit 0 in 0.66s: 1 Python process, 430 calls, 20 exceptions (17 swallowed, 0 uncaught, 2 StopIteration taken by the interpreter)
+   io: 103 events (file 47, sqlite 30, http 26)
+   logs: 19 logging records (WARNING 17, INFO 2), 19 dropped by the level
+   ```
+3. ```text
+   cd /srv/freight-quote; .venv/bin/ormaos io r1 --kind http --limit 100; .venv/bin/ormaos tree r1 --function price --limit 100; .venv/bin/ormaos exceptions r1
+   ```
+
+   Output, the 3 lines of 53 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-ormaos-values-1.jsonl?plain=1#L7)):
+
+   ```text
+   r1: 103 io events (file 47, sqlite 30, http 26), showing http
+   r1: 26 of the 430 calls match --function price (26 price; 0 raised)
+   r1: 20 exceptions (17 swallowed, 0 uncaught, 2 StopIteration taken by the interpreter)
+   ```
+4. ```text
+   cd /srv/freight-quote; .venv/bin/ormaos tree r1:c175; .venv/bin/ormaos exceptions r1:e3; python3 -c "
+   import sqlite3;c=sqlite3.connect('file:data/quotes.db?mode=ro',uri=True)
+   for r in c.execute('select * from quotes'):print(r)
+   print(c.execute('select count(*),sum(amount_cents) from quotes').fetchall())"; ls -la data; cat data/cron.log | tail -20; head -3 data/shipments.csv
+   ```
+
+   Output, the 3 lines of 58 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-ormaos-values-1.jsonl?plain=1#L9)):
+
+   ```text
+     same type, same handler: 17 in all: r1:e3 r1:e4 r1:e5 r1:e6 r1:e7 ...
+   ('FR-8136', 'MID-STH', 'standard', 16.0, 1528, '2026-11-28T02:47:58+00:00')
+   [(26, 114835)]
+   ```
+5. ```text
+   cd /srv/freight-quote; cat > answers.json <<'E'
+   {"q1": 26, "q2": 9, "q3": 17, "q4": 17, "q5": "FR-8136", "q6": [], "q7": 9, "q8": 114835}
+   E
+   cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `26` |
+| q2 | right | `9` |
+| q3 | right | `17` |
+| q4 | right | `17` |
+| q5 | right | `"FR-8136"` |
+| q6 | right | `[]` |
+| q7 | right | `9` |
+| q8 | right | `114835` |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
 
 #### `none`
 
@@ -390,6 +739,21 @@ Its answers
 
 Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its commands up to its last write of `answers.json`. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them.
 
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+| Question | `ormaos`: verbs (runs) | answered | right | `ormaos-values`: verbs (runs) | answered | right |
+|---|---|---|---|---|---|---|
+| q1 | show 3, exceptions 3, io 3, list 3, guide 3, tree 2 | 3/3 | 3/3 | show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 1 | 3/3 | 3/3 |
+| q2 | show 3, exceptions 3, io 3, list 3, guide 3, tree 2 | 3/3 | 3/3 | show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 1 | 3/3 | 3/3 |
+| q3 | show 3, exceptions 3, io 3, list 3, guide 3, tree 2 | 3/3 | 3/3 | show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 1 | 3/3 | 3/3 |
+| q4 | show 3, exceptions 3, io 3, list 3, guide 3, tree 2 | 3/3 | 3/3 | show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 1 | 3/3 | 3/3 |
+| q5 | show 3, exceptions 3, io 3, list 3, guide 3, tree 2 | 3/3 | 3/3 | show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 1 | 3/3 | 3/3 |
+| q6 | show 3, exceptions 3, io 3, list 3, guide 3, tree 2 | 3/3 | 3/3 | show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 1 | 3/3 | 3/3 |
+| q7 | show 3, exceptions 3, io 3, list 3, guide 3, tree 2 | 3/3 | 3/3 | show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 1 | 3/3 | 3/3 |
+| q8 | show 3, exceptions 3, io 3, list 3, guide 3, tree 2 | 3/3 | 3/3 | show 3, tree 3, io 3, list 3, guide 3, exceptions 2, logs 1 | 3/3 | 3/3 |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
+
 | Question | `ormaos`: verbs (runs) | answered | right | `ormaos-values`: verbs (runs) | answered | right |
 |---|---|---|---|---|---|---|
 | q1 | show 3, exceptions 3, io 3, list 3, guide 3, tree 1 | 3/3 | 3/3 | show 3, tree 3, exceptions 3, io 3, list 3, guide 3 | 3/3 | 3/3 |
@@ -403,7 +767,26 @@ Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its c
 
 ## Every run
 
-Every run of every arm.
+Every run of every arm, one table per results folder and agent.
+
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+| Arm | Run | Score | Right | Null | Wrong | `ormaos` verbs before answers.json | Tool calls | Tokens | Wall time | Stream |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `none` | 1 | 1.00 | 8 | 0 | 0 | – | 5 | 91,085 | 41 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-none-1.jsonl) |
+| `none` | 2 | 1.00 | 8 | 0 | 0 | – | 5 | 91,469 | 40 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-none-2.jsonl) |
+| `none` | 3 | 1.00 | 8 | 0 | 0 | – | 5 | 91,771 | 45 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-none-3.jsonl) |
+| `raw` | 1 | 1.00 | 8 | 0 | 0 | – | 10 | 265,302 | 79 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-raw-1.jsonl) |
+| `raw` | 2 | 1.00 | 8 | 0 | 0 | – | 10 | 237,559 | 87 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-raw-2.jsonl) |
+| `raw` | 3 | 1.00 | 8 | 0 | 0 | – | 9 | 189,490 | 72 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-raw-3.jsonl) |
+| `ormaos` | 1 | 1.00 | 8 | 0 | 0 | guide, list, show, io, exceptions, tree | 5 | 118,584 | 34 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-ormaos-1.jsonl) |
+| `ormaos` | 2 | 1.00 | 8 | 0 | 0 | guide, list, show, io, exceptions | 5 | 117,866 | 41 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-ormaos-2.jsonl) |
+| `ormaos` | 3 | 1.00 | 8 | 0 | 0 | guide, list, show, io, exceptions, tree | 5 | 116,054 | 42 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-ormaos-3.jsonl) |
+| `ormaos-values` | 1 | 1.00 | 8 | 0 | 0 | guide, list, show, io, tree, exceptions | 5 | 112,810 | 35 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-ormaos-values-1.jsonl) |
+| `ormaos-values` | 2 | 1.00 | 8 | 0 | 0 | guide, list, show, io, tree | 6 | 133,445 | 39 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-ormaos-values-2.jsonl) |
+| `ormaos-values` | 3 | 1.00 | 8 | 0 | 0 | guide, list, show, io, exceptions, tree, logs | 6 | 150,968 | 38 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/freight-quote-ormaos-values-3.jsonl) |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
 
 | Arm | Run | Score | Right | Null | Wrong | `ormaos` verbs before answers.json | Tool calls | Tokens | Wall time | Stream |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -423,4 +806,5 @@ Every run of every arm.
 ## The results files
 
 - The benchmark: [knows2](https://ormaos.com/benchmarks/knows2/#freight-quote)
-- Results folder: [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801), earlier: bubblewrap, network open
+- Results folder: [`agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641): 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+- Results folder: [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801): 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open

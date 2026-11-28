@@ -89,9 +89,13 @@
 <section class="band first" id="top" aria-labelledby="top-title">
 <p class="kicker">Situation · knows2</p>
 <h1 id="top-title">agent-change, in knows2</h1>
-<p class="lead">A change made by an agent. A small billing tool in a git repository that writes invoices and refunds, run at each of two commits: before and after a change that a coding agent made. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/agent-change"><code>use-cases/agent-change</code></a>.</p>
+<p class="lead">A change made by an agent. A small billing tool in a git repository that writes invoices and refunds, run at each of two commits: before and after a change that a coding agent made. Source: <a href="https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/use-cases/agent-change"><code>use-cases/agent-change</code></a>.</p>
 <p class="sentence">Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.</p>
-<p>Mean score over every run: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00 (3 runs per arm). Agent: <code>claude-code / claude-opus-5-5</code>.</p>
+<p>Mean score, per results folder and agent; no number here adds up two of them:</p>
+<ul class="rows">
+  <li>2026-11-28, <code>claude-code / claude-opus-5-5</code>, controlled: container, network limited to the model host: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00 (3 runs per arm)</li>
+  <li>2026-11-27, <code>claude-code / claude-opus-5-5</code>, earlier: bubblewrap, network open: <code>none</code> 1.00, <code>raw</code> 1.00, <code>ormaos</code> 1.00, <code>ormaos-values</code> 1.00 (3 runs per arm)</li>
+</ul>
 <nav class="toc" aria-label="On this page">
 <h2>On this page</h2>
 <ol>
@@ -108,7 +112,7 @@
 <section class="band" id="happened" aria-labelledby="happened-title">
 <h2 id="happened-title">What happened</h2>
 <p>From the run at the first commit (r1) to the run at the second (r2), the <code>total_cents</code> of <code>invoices.csv</code> went from 44270 to 41868 in all, and 9 orders changed total. In r2, <code>tiers.json</code> was opened 38 times, <code>discount_percent</code> returned 10 in 21 calls, and <code>line_price</code> dropped cents in an inexact division in 1 call.</p>
-<p>The numbers are the oracle&#x27;s answers to the questions below: <a href="https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/oracle/agent-change.json"><code>oracle/agent-change.json</code></a>.</p>
+<p>The numbers are the oracle&#x27;s answers to the questions below: <a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/oracle/agent-change.json"><code>oracle/agent-change.json</code></a>.</p>
 </section>
 
 <section class="band" id="given" aria-labelledby="given-title">
@@ -153,6 +157,249 @@
 <section class="band" id="side-by-side" aria-labelledby="side-by-side-title">
 <h2 id="side-by-side-title">Run 1 of each arm, side by side</h2>
 <p>Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent&#x27;s tool calls in order; under each <code>ormaos</code> command, the lines of its output that hold a value the agent wrote in <code>answers.json</code>, or its first 15 lines, with a link to the full output in the stream.</p>
+<h3>2026-11-28, <code>claude-code / claude-opus-5-5</code>, controlled: container, network limited to the model host</h3>
+<div class="sbs" style="--cols:4">
+<article class="arm-col a1">
+<h4><code>none</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-none-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">4 tool calls, 53,851 tokens, 26 s</p>
+<p class="part">Commands, in order (4)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/agent-change; ls -la; cat questions.json; git log --stat; cat run.py</pre></li>
+<li><pre class="cmd-text">cd /srv/agent-change; git show HEAD~1:billing.py; echo ----; cat billing.py; cat tiers.json returns.json invoices.csv refunds.csv .gitignore README.md; cat orders.json</pre></li>
+<li><pre class="cmd-text">cd /srv/agent-change; git status --short --ignored; mkdir -p /tmp/a &amp;&amp; cat &gt; /tmp/a/c.py &lt;&lt;&#x27;EOF&#x27;
+import json
+D=&#x27;/srv/agent-change/&#x27;
+o=json.load(open(D+&#x27;orders.json&#x27;));r=json.load(open(D+&#x27;returns.json&#x27;));t=json.load(open(D+&#x27;tiers.json&#x27;))
+P={&quot;gold&quot;:10,&quot;silver&quot;:5}
+c1=c2=gold=inex=0;s1=s2=diff=0;ref=[]
+def lp(it,cu,v):
+    global c1,c2,gold,inex
+    p=it[&#x27;unit_cents&#x27;]*it[&#x27;quantity&#x27;]
+    if v==1: c1+=1; return p
+    c2+=1; d=P.get(t.get(cu),0); gold+= d==10
+    if p*(100-d)%100: inex+=1</pre><p class="note">… 12 more lines of this command</p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; echo &#x27;{&quot;q1&quot;:38,&quot;q2&quot;:38,&quot;q3&quot;:44270,&quot;q4&quot;:41868,&quot;q5&quot;:9,&quot;q6&quot;:21,&quot;q7&quot;:1,&quot;q8&quot;:&quot;228,1620,1575&quot;}&#x27; &gt; answers.json; cat answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>44270</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>41868</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>9</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>21</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>1</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>&quot;228,1620,1575&quot;</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a2">
+<h4><code>raw</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-raw-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">5 tool calls, 71,834 tokens, 32 s</p>
+<p class="part">Commands, in order (5)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/agent-change; ls -la; cat questions.json; git log --stat; git show HEAD</pre></li>
+<li><pre class="cmd-text">cd /srv/agent-change; cat run.py README.md tiers.json returns.json invoices.csv refunds.csv .gitignore; git status --ignored; python3 -c &quot;
+import json
+for r in [&#x27;r1&#x27;,&#x27;r2&#x27;]:
+  d=json.load(open(f&#x27;result-{r}.json&#x27;))
+  ev=d[&#x27;traceEvents&#x27;]; print(r,len(ev), list(d.keys()))
+  from collections import Counter
+  print(Counter(e.get(&#x27;name&#x27;) for e in ev).most_common(25))
+  print(ev[0])
+&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/agent-change; python3 -c &quot;
+import json
+from collections import Counter
+for r in [&#x27;r1&#x27;,&#x27;r2&#x27;]:
+  ev=json.load(open(f&#x27;result-{r}.json&#x27;))[&#x27;traceEvents&#x27;]
+  c=Counter(e.get(&#x27;name&#x27;) for e in ev)
+  print(r,{k:v for k,v in c.items() if &#x27;agent-change&#x27; in k or k in (&#x27;_io.open&#x27;,&#x27;builtins.open&#x27;)})
+  print([e for e in ev if &#x27;line_price&#x27; in e.get(&#x27;name&#x27;,&#x27;&#x27;)][:2])
+  print(json.load(open(f&#x27;result-{r}.json&#x27;))[&#x27;viztracer_metadata&#x27;])
+&quot;
+cat &gt; /tmp/sim.py &lt;&lt;&#x27;E&#x27;
+import json</pre><p class="note">… 18 more lines of this command</p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; python3 -c &quot;
+import json
+ev=[e for e in json.load(open(&#x27;result-r2.json&#x27;))[&#x27;traceEvents&#x27;] if e.get(&#x27;ph&#x27;)==&#x27;X&#x27;]
+dp=[e for e in ev if e[&#x27;name&#x27;].startswith(&#x27;discount_percent&#x27;)]
+op=[e for e in ev if e[&#x27;name&#x27;]==&#x27;_io.open&#x27;]
+inside=[o for o in op if any(d[&#x27;ts&#x27;]&lt;=o[&#x27;ts&#x27;]&lt;=d[&#x27;ts&#x27;]+d[&#x27;dur&#x27;] for d in dp)]
+print(len(inside))
+others=[o for o in op if o not in inside]
+for o in others:
+  par=[e for e in ev if e[&#x27;ts&#x27;]&lt;o[&#x27;ts&#x27;]&lt;=e[&#x27;ts&#x27;]+e[&#x27;dur&#x27;] and e is not o]
+  print(min(par,key=lambda e:e[&#x27;dur&#x27;])[&#x27;name&#x27;] if par else None)
+&quot;</pre></li>
+<li><pre class="cmd-text">cd /srv/agent-change; cat &gt; answers.json &lt;&lt;&#x27;E&#x27;
+{
+  &quot;q1&quot;: 38,
+  &quot;q2&quot;: 38,
+  &quot;q3&quot;: 44270,
+  &quot;q4&quot;: 41868,
+  &quot;q5&quot;: 9,
+  &quot;q6&quot;: 21,
+  &quot;q7&quot;: 1,
+  &quot;q8&quot;: &quot;228,1620,1575&quot;
+}
+E</pre><p class="note">… 1 more line of this command</p></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>44270</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>41868</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>9</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>21</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>1</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>&quot;228,1620,1575&quot;</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a3">
+<h4><code>ormaos</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">5 tool calls, 83,694 tokens, 29 s</p>
+<p class="part">Commands, in order (5)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/agent-change; .venv/bin/ormaos guide; cat questions.json; ls -la</pre><pre class="out">drwxr-xr-x 1 root   root   4096 Nov 28 15:38 ..</pre><p class="note">Output: the 1 line of 185 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-1.jsonl?plain=1#L3">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; cat .gitignore README.md billing.py run.py tiers.json returns.json invoices.csv refunds.csv; git show 4e69e80 --stat; git diff 4e69e80 4a57343; .venv/bin/ormaos list</pre><pre class="out">9002,cedar,228
+9002,228
+9007,1620
+9011,1575
+ run.py       |  38 ++++++++++
+r2  2026-11-28 02:47:40  complete  exit 0  38.9ms  1 process, 113 calls, 0 exceptions (0 swallowed), 82 io  .venv/bin/python run.py</pre><p class="note">Output: the 6 lines of 194 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; .venv/bin/ormaos show r1; .venv/bin/ormaos show r2 --full; .venv/bin/ormaos io r2 --limit 200</pre><pre class="out">r1 exit 0 in 0.03s: 1 Python process, 75 calls, 0 exceptions (0 swallowed, 0 uncaught)
+command: .venv/bin/python run.py
+code: git commit 4e69e80822, no uncommitted changes
+io: 6 events (file 6)
+not collected: io: writes to the 2 files opened at run.py:18: opened for writing, and no `write` call by Python code was seen on a file of that name: if it was written, that was inside C code (`print(..., file=f)`, `csv.writer`)
+never recorded: values, and 20 more kinds of things (`ormaos show --full` lists them with the reason)
+next: ormaos tree r1:c1 | ormaos io r1
+r2 exit 0 in 0.04s: 1 Python process, 113 calls, 0 exceptions (0 swallowed, 0 uncaught)
+header: format provisional-0, ormaos 0.0.1, mode run, started 2026-11-28 02:47:40, platform linux, in .ormaos/r2
+working directory: /srv/agent-change
+environment: 5 variables, names only: HOME LANG PATH PWD PYTHONHASHSEED
+the command and what it started: cpu user 0.02s, cpu system 0.01s, largest memory of a process 21944 kB
+command: .venv/bin/python run.py
+code: git commit 4a57343a9f, no uncommitted changes
+process 1: pid 6, parent pid 2, no recorded parent; Python 3.14.4 at /srv/agent-change/.venv/bin/python; recorded: context, calls, exceptions, io, logs, dataframes, tensors; 113 calls, 0 exceptions, 1 thread, 0 tasks; ran 14.2ms; cpu user 0.01s; cpu system 0.01s; largest memory 21944 kB</pre><p class="note">Output: the first 15 of 52 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-1.jsonl?plain=1#L7">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; python3 -I - &lt;&lt;&#x27;EOF&#x27;
+import json
+o=json.load(open(&#x27;orders.json&#x27;));r=json.load(open(&#x27;returns.json&#x27;));t=json.load(open(&#x27;tiers.json&#x27;))
+P={&quot;gold&quot;:10,&quot;silver&quot;:5}
+n=0;inex=0;gold=0;s1=s2=0;diff=0;calls=0
+def lp(i,c,disc):
+    global inex,gold,calls
+    d=P.get(t.get(c),0) if disc else 0
+    if disc:
+        calls+=1
+        if d==10: gold+=1
+        if (i[&#x27;unit_cents&#x27;]*i[&#x27;quantity&#x27;]*(100-d))%100: inex+=1</pre><p class="note">… 9 more lines of this command</p><pre class="out">9002 cedar 240 228
+44270 41868 9 21 1 38 [228, 1620, 1575] 33
+r1: 38 of the 75 calls match --function line_price (38 line_price; 0 raised)
+r2: 38 of the 113 calls match --function discount_percent (38 discount_percent; 0 raised)</pre><p class="note">Output: the 4 lines of 25 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-1.jsonl?plain=1#L9">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; cat &gt; answers.json &lt;&lt;&#x27;EOF&#x27;
+{&quot;q1&quot;: 38, &quot;q2&quot;: 38, &quot;q3&quot;: 44270, &quot;q4&quot;: 41868, &quot;q5&quot;: 9, &quot;q6&quot;: 21, &quot;q7&quot;: 1, &quot;q8&quot;: &quot;228,1620,1575&quot;}
+EOF
+cat answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>44270</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>41868</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>9</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>21</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>1</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>&quot;228,1620,1575&quot;</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="arm-col a4">
+<h4><code>ormaos-values</code></h4>
+<p class="meta">Run 1, <a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-values-1.jsonl">stream</a></p><p class="meta">Score 1.00: 8 right, 0 null, 0 wrong</p><p class="meta">7 tool calls, 169,107 tokens, 38 s</p>
+<p class="part">Commands, in order (7)</p><ol class="steps">
+<li><pre class="cmd-text">cd /srv/agent-change; cat questions.json; ls -la; .venv/bin/ormaos guide</pre><pre class="out">{
+  &quot;questions&quot;: [
+    {
+      &quot;id&quot;: &quot;q1&quot;,
+      &quot;question&quot;: &quot;In r1, how many times in total was billing.line_price called (counting calls from both invoice_total and refund_amount)?&quot;,
+      &quot;format&quot;: &quot;A single integer, e.g. 42&quot;
+    },
+    {
+      &quot;id&quot;: &quot;q2&quot;,
+      &quot;question&quot;: &quot;In r2, how many times was tiers.json opened during the execution?&quot;,
+      &quot;format&quot;: &quot;A single integer, e.g. 42&quot;
+    },
+    {
+      &quot;id&quot;: &quot;q3&quot;,
+      &quot;question&quot;: &quot;In r1, what was the sum of the total_cents values over all 12 rows written to invoices.csv?&quot;,</pre><p class="note">Output: the first 15 of 185 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-values-1.jsonl?plain=1#L3">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; cat run.py billing.py tiers.json returns.json invoices.csv refunds.csv README.md; git show HEAD --stat; git show HEAD; .venv/bin/ormaos list; .venv/bin/ormaos show r1 --full; .venv/bin/ormaos show r2 --full</pre><pre class="out">9002,cedar,228
+9002,228
+9007,1620
+9011,1575
+ 1 file changed, 21 insertions(+), 4 deletions(-)</pre><p class="note">Output: the 5 lines of 260 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-values-1.jsonl?plain=1#L5">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; .venv/bin/ormaos tree r1 --function line_price --limit 200 | head -80; .venv/bin/ormaos tree r2 --function line_price --limit 200 | head -30; .venv/bin/ormaos tree r2 --function discount_percent --limit 5</pre><pre class="out">r1: 38 of the 75 calls match --function line_price (38 line_price; 0 raised)
+r2: 38 of the 113 calls match --function line_price (38 line_price; 0 raised)
+r2:c14 line_price(item: dict[3]=&quot;{\&quot;sku\&quot;: \&quot;PEN-01\&quot;, \&quot;unit_cents\&quot;: 120, \&quot;quantity\&quot;: 2}&quot;, ...) -&gt; int=228  billing.py:16  103us  io 2  calls below: 1
+r2: 38 of the 113 calls match --function discount_percent (38 discount_percent; 0 raised)</pre><p class="note">Output: the 4 lines of 78 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-values-1.jsonl?plain=1#L8">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; for r in r1 r2; do for f in invoice_total refund_amount; do echo &quot;== $r $f&quot;; .venv/bin/ormaos tree $r --function $f --limit 100 | grep -o &#x27;^[^ ]* \|-&gt; int=[0-9]*&#x27;; done; done; .venv/bin/ormaos tree r2 --function line_price --limit 100 | tail -12; .venv/bin/ormaos tree r2 --function discount_percent --limit 100 | grep -c &#x27;int=10 &#x27;; .venv/bin/ormaos io r2 --kind file | head -20</pre><pre class="out">-&gt; int=228
+-&gt; int=228
+-&gt; int=1620
+-&gt; int=1575
+r2:c98 line_price(item: dict[3]=&quot;{\&quot;sku\&quot;: \&quot;PEN-01\&quot;, \&quot;unit_cents\&quot;: 120, \&quot;quantity\&quot;: 2}&quot;, ...) -&gt; int=228  billing.py:16  95us  io 2  calls below: 1
+21</pre><p class="note">Output: the 6 lines of 95 that hold a value it wrote in answers.json. <a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-values-1.jsonl?plain=1#L10">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; .venv/bin/ormaos tree r2 --function line_price --limit 100 --json &gt; /tmp/lp.json; .venv/bin/ormaos tree r2 --function discount_percent --limit 100 --json &gt; /tmp/dp.json; python3 -c &quot;
+import json;d=json.load(open(&#x27;/tmp/lp.json&#x27;));print(list(d.keys()));c=d.get(&#x27;calls&#x27;) or d.get(&#x27;nodes&#x27;);print(json.dumps(c[0])[:1500])&quot;</pre><pre class="out">[&#x27;kind&#x27;, &#x27;version&#x27;, &#x27;recording&#x27;, &#x27;address&#x27;, &#x27;root&#x27;, &#x27;ancestors&#x27;, &#x27;filter&#x27;, &#x27;looked_at&#x27;, &#x27;matched&#x27;, &#x27;by_fn&#x27;, &#x27;raised&#x27;, &#x27;depth&#x27;, &#x27;limit&#x27;, &#x27;offset&#x27;, &#x27;nodes&#x27;, &#x27;not_shown&#x27;, &#x27;matches_not_shown&#x27;, &#x27;program_data&#x27;, &#x27;next&#x27;, &#x27;next_commands&#x27;]
+{&quot;address&quot;: &quot;r2:c8&quot;, &quot;file&quot;: &quot;billing.py&quot;, &quot;line&quot;: 16, &quot;fn&quot;: &quot;line_price&quot;, &quot;depth&quot;: 0, &quot;args&quot;: {&quot;item&quot;: {&quot;type&quot;: &quot;dict&quot;, &quot;len&quot;: 3, &quot;keys&quot;: {&quot;str&quot;: 3}, &quot;values&quot;: {&quot;str&quot;: 1, &quot;int&quot;: 2}, &quot;value&quot;: {&quot;sku&quot;: &quot;STAP-03&quot;, &quot;unit_cents&quot;: 990, &quot;quantity&quot;: 2}}, &quot;customer&quot;: {&quot;type&quot;: &quot;str&quot;, &quot;len&quot;: 8, &quot;value&quot;: &quot;borealis&quot;}}, &quot;out&quot;: &quot;returned&quot;, &quot;duration_s&quot;: 0.00017, &quot;thread&quot;: 1, &quot;process&quot;: 1, &quot;calls_below&quot;: 1, &quot;ret&quot;: {&quot;type&quot;: &quot;int&quot;, &quot;value&quot;: 1980}, &quot;io&quot;: 2}</pre><p class="note">Output: all 2 lines. <a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-values-1.jsonl?plain=1#L12">Full output</a></p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; python3 -c &quot;
+import json
+lp=json.load(open(&#x27;/tmp/lp.json&#x27;))[&#x27;nodes&#x27;];dp=json.load(open(&#x27;/tmp/dp.json&#x27;))[&#x27;nodes&#x27;]
+print(len(lp),len(dp),sum(1 for n in dp if n[&#x27;ret&#x27;][&#x27;value&#x27;]==10))
+# map discount by call order: discount call address = line_price+1
+dd={int(n[&#x27;address&#x27;].split(&#x27;c&#x27;)[1]):n[&#x27;ret&#x27;][&#x27;value&#x27;] for n in dp}
+k=0
+for n in lp:
+  a=int(n[&#x27;address&#x27;].split(&#x27;c&#x27;)[1]);it=n[&#x27;args&#x27;][&#x27;item&#x27;][&#x27;value&#x27;];d=dd[a+1]
+  v=it[&#x27;unit_cents&#x27;]*it[&#x27;quantity&#x27;]*(100-d)
+  assert v//100==n[&#x27;ret&#x27;][&#x27;value&#x27;]
+  k+= v%100!=0</pre><p class="note">… 5 more lines of this command</p></li>
+<li><pre class="cmd-text">cd /srv/agent-change; cat &gt; answers.json &lt;&lt;&#x27;E&#x27;
+{&quot;q1&quot;: 38, &quot;q2&quot;: 38, &quot;q3&quot;: 44270, &quot;q4&quot;: 41868, &quot;q5&quot;: 9, &quot;q6&quot;: 21, &quot;q7&quot;: 1, &quot;q8&quot;: &quot;228,1620,1575&quot;}
+E
+cat answers.json</pre></li>
+</ol>
+<p class="part">Its answers</p>
+<div class="table-wrap">
+<table class="plain mini">
+<thead><tr><th scope="col">Question</th><th scope="col">Graded</th><th scope="col">Answer</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q2</td><td>right</td><td><code>38</code></td></tr>
+<tr><td>q3</td><td>right</td><td><code>44270</code></td></tr>
+<tr><td>q4</td><td>right</td><td><code>41868</code></td></tr>
+<tr><td>q5</td><td>right</td><td><code>9</code></td></tr>
+<tr><td>q6</td><td>right</td><td><code>21</code></td></tr>
+<tr><td>q7</td><td>right</td><td><code>1</code></td></tr>
+<tr><td>q8</td><td>right</td><td><code>&quot;228,1620,1575&quot;</code></td></tr>
+</tbody>
+</table>
+</div>
+</article>
+</div>
+<h3>2026-11-27, <code>claude-code / claude-opus-5-5</code>, earlier: bubblewrap, network open</h3>
 <div class="sbs" style="--cols:4">
 <article class="arm-col a1">
 <h4><code>none</code></h4>
@@ -383,6 +630,23 @@ cat answers.json</pre></li>
 <section class="band" id="answered" aria-labelledby="answered-title">
 <h2 id="answered-title">What Ormaos data answered</h2>
 <p>Read from the streams: in each run of an Ormaos arm, the <code>ormaos</code> verbs in its commands up to its last write of <code>answers.json</code>. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them.</p>
+<h3>2026-11-28, <code>claude-code / claude-opus-5-5</code>, controlled: container, network limited to the model host</h3>
+<div class="table-wrap">
+<table class="plain">
+<thead><tr><th scope="col">Question</th><th scope="col"><code>ormaos</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th><th scope="col"><code>ormaos-values</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th></tr></thead>
+<tbody>
+<tr><td>q1</td><td>show 3, tree 3, list 3, guide 3, io 2, diff 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3, io 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q2</td><td>show 3, tree 3, list 3, guide 3, io 2, diff 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3, io 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q3</td><td>show 3, tree 3, list 3, guide 3, io 2, diff 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3, io 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q4</td><td>show 3, tree 3, list 3, guide 3, io 2, diff 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3, io 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q5</td><td>show 3, tree 3, list 3, guide 3, io 2, diff 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3, io 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q6</td><td>show 3, tree 3, list 3, guide 3, io 2, diff 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3, io 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q7</td><td>show 3, tree 3, list 3, guide 3, io 2, diff 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3, io 2</td><td>3/3</td><td>3/3</td></tr>
+<tr><td>q8</td><td>show 3, tree 3, list 3, guide 3, io 2, diff 2</td><td>3/3</td><td>3/3</td><td>show 3, tree 3, list 3, guide 3, io 2</td><td>3/3</td><td>3/3</td></tr>
+</tbody>
+</table>
+</div>
+<h3>2026-11-27, <code>claude-code / claude-opus-5-5</code>, earlier: bubblewrap, network open</h3>
 <div class="table-wrap">
 <table class="plain">
 <thead><tr><th scope="col">Question</th><th scope="col"><code>ormaos</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th><th scope="col"><code>ormaos-values</code>: verbs (runs)</th><th scope="col">answered</th><th scope="col">right</th></tr></thead>
@@ -402,7 +666,28 @@ cat answers.json</pre></li>
 
 <section class="band" id="runs" aria-labelledby="runs-title">
 <h2 id="runs-title">Every run</h2>
-<p>Every run of every arm.</p>
+<p>Every run of every arm, one table per results folder and agent.</p>
+<h3>2026-11-28, <code>claude-code / claude-opus-5-5</code>, controlled: container, network limited to the model host</h3>
+<div class="table-wrap">
+<table class="plain runs">
+<thead><tr><th scope="col">Arm</th><th scope="col">Run</th><th scope="col">Score</th><th scope="col">Right</th><th scope="col">Null</th><th scope="col">Wrong</th><th scope="col"><code>ormaos</code> verbs before answers.json</th><th scope="col">Tool calls</th><th scope="col">Tokens</th><th scope="col">Wall time</th><th scope="col">Stream</th></tr></thead>
+<tbody>
+<tr><td><code>none</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>53,851</td><td>26 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-none-1.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>48,087</td><td>24 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-none-2.jsonl">stream</a></td></tr>
+<tr><td><code>none</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>48,023</td><td>27 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-none-3.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>5</td><td>71,834</td><td>32 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-raw-1.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>53,203</td><td>28 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-raw-2.jsonl">stream</a></td></tr>
+<tr><td><code>raw</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>–</td><td>4</td><td>56,680</td><td>34 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-raw-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, io, tree</td><td>5</td><td>83,694</td><td>29 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, io, diff, tree</td><td>5</td><td>80,826</td><td>33 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, diff, tree</td><td>5</td><td>97,469</td><td>34 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-3.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>1</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree, io</td><td>7</td><td>169,107</td><td>38 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-values-1.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>2</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree</td><td>6</td><td>121,009</td><td>42 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-values-2.jsonl">stream</a></td></tr>
+<tr><td><code>ormaos-values</code></td><td>3</td><td>1.00</td><td>8</td><td>0</td><td>0</td><td>guide, list, show, tree, io</td><td>7</td><td>176,090</td><td>51 s</td><td><a href="https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/agent-change-ormaos-values-3.jsonl">stream</a></td></tr>
+</tbody>
+</table>
+</div>
+<h3>2026-11-27, <code>claude-code / claude-opus-5-5</code>, earlier: bubblewrap, network open</h3>
 <div class="table-wrap">
 <table class="plain runs">
 <thead><tr><th scope="col">Arm</th><th scope="col">Run</th><th scope="col">Score</th><th scope="col">Right</th><th scope="col">Null</th><th scope="col">Wrong</th><th scope="col"><code>ormaos</code> verbs before answers.json</th><th scope="col">Tool calls</th><th scope="col">Tokens</th><th scope="col">Wall time</th><th scope="col">Stream</th></tr></thead>
@@ -428,7 +713,8 @@ cat answers.json</pre></li>
 <h2 id="files-title">The results files</h2>
 <ul class="rows">
   <li>The benchmark: <a href="/benchmarks/knows2/#agent-change">knows2</a></li>
-  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801"><code>agent-bench/knows2/results/20261127-165801</code></a>, earlier: bubblewrap, network open</li>
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641"><code>agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641</code></a>: 2026-11-28, <code>claude-code / claude-opus-5-5</code>, controlled: container, network limited to the model host</li>
+  <li>Results folder: <a href="https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801"><code>agent-bench/knows2/results/20261127-165801</code></a>: 2026-11-27, <code>claude-code / claude-opus-5-5</code>, earlier: bubblewrap, network open</li>
 </ul>
 </section>
 

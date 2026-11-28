@@ -36,9 +36,9 @@ One page per situation: what happened, what the agent was given, run 1 of each a
 
 ## Results files
 
-- [knows2 results.jsonl](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/results.jsonl)
-- [knows2 streams](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/streams)
-- [knows2 report.md](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/report.md)
+- [knows2 results.jsonl](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/results.jsonl)
+- [knows2 events](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events)
+- [knows2 report.md](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/report.md)
 - [knows results.jsonl](https://github.com/ormaos/ormaos-examples/blob/e0ffe13724a3147b1ed40177890ef757b48c00eb/agent-bench/knows/results/20261127-140018/results.jsonl)
 - [knows streams](https://github.com/ormaos/ormaos-examples/tree/e0ffe13724a3147b1ed40177890ef757b48c00eb/agent-bench/knows/results/20261127-140018/streams)
 - [knows report.md](https://github.com/ormaos/ormaos-examples/blob/e0ffe13724a3147b1ed40177890ef757b48c00eb/agent-bench/knows/results/20261127-140018/report.md)

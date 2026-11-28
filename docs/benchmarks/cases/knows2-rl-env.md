@@ -2,17 +2,20 @@
 
 *Situation · knows2*
 
-A RL environment. A grid world in pure Python, where a courier walks from a depot to a customer, and a loop that runs episodes of it with a seeded policy. Source: [`use-cases/rl-env`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/rl-env).
+A RL environment. A grid world in pure Python, where a courier walks from a depot to a customer, and a loop that runs episodes of it with a seeded policy. Source: [`use-cases/rl-env`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/use-cases/rl-env).
 
 Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.
 
-Mean score over every run: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00 (3 runs per arm). Agent: `claude-code / claude-opus-5-5`.
+Mean score, per results folder and agent; no number here adds up two of them:
+
+- 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00 (3 runs per arm)
+- 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00 (3 runs per arm)
 
 ## What happened
 
 19 episodes ended with the courier at the customer, and episode 13 at the step limit; `_arrival_bonus` was called 0 times. Over 363 calls of `env.step()`, 89 moves were blocked by a wall or the edge of the grid, and the highest return of an episode was -6.7.
 
-The numbers are the oracle's answers to the questions below: [`oracle/rl-env.json`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/oracle/rl-env.json).
+The numbers are the oracle's answers to the questions below: [`oracle/rl-env.json`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/oracle/rl-env.json).
 
 ## What the agent was given
 
@@ -58,6 +61,334 @@ The folder the execution left, with what the arm adds, and 8 questions in `quest
 ## Run 1 of each arm, side by side
 
 Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent's tool calls in order; under each `ormaos` command, the lines of its output that hold a value the agent wrote in `answers.json`, or its first 15 lines, with a link to the full output in the stream.
+
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+#### `none`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-none-1.jsonl)
+- Score 1.00: 8 right, 0 null, 0 wrong
+- 4 tool calls, 44,102 tokens, 22 s
+
+Commands, in order (4):
+
+1. ```text
+   cd /srv/rl-env; ls -la; cat questions.json; cat run.py
+   ```
+2. ```text
+   cd /srv/rl-env; cat env.py README.md
+   ```
+3. ```text
+   mkdir -p /tmp/replay && cat > /tmp/replay/r.py <<'EOF'
+   import sys, random
+   sys.path.insert(0, "/srv/rl-env")
+   import env as E, run as R
+   calls={"bonus":0,"steps":0,"right":0}
+   ob=E.GridEnv._arrival_bonus
+   def b(self): calls["bonus"]+=1; return ob(self)
+   E.GridEnv._arrival_bonus=b
+   os_=E.GridEnv.step
+   def st(self,a):
+       calls["steps"]+=1
+       if a=="right": calls["right"]+=1
+   ```
+
+   … 12 more lines of this command
+4. ```text
+   cd /srv/rl-env; cat > answers.json <<'EOF'
+   {"q1": 19, "q2": 0, "q3": 89, "q4": 363, "q5": 13, "q6": 13, "q7": 162, "q8": -6.7}
+   EOF
+   cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `19` |
+| q2 | right | `0` |
+| q3 | right | `89` |
+| q4 | right | `363` |
+| q5 | right | `13` |
+| q6 | right | `13` |
+| q7 | right | `162` |
+| q8 | right | `-6.7` |
+
+#### `raw`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-raw-1.jsonl)
+- Score 1.00: 8 right, 0 null, 0 wrong
+- 4 tool calls, 49,212 tokens, 26 s
+
+Commands, in order (4):
+
+1. ```text
+   cd /srv/rl-env; ls -la; cat questions.json; cat run.py | head -100
+   ```
+2. ```text
+   cd /srv/rl-env; cat env.py README.md; python3 -c "
+   import json,collections
+   d=json.load(open('result.json'));ev=d['traceEvents']
+   print(len(ev)); print(collections.Counter(e.get('name') for e in ev).most_common(40)); print(ev[0])"
+   ```
+3. ```text
+   cd /srv/rl-env; mkdir -p /tmp/w; cp env.py run.py /tmp/w; cd /tmp/w; python3 -c "
+   import run,random
+   from env import GridEnv
+   import collections
+   c=collections.Counter()
+   orig=run.choose
+   def ch(*a,**k):
+       r=orig(*a,**k);c[r]+=1;return r
+   run.choose=ch
+   rng=random.Random(3);env=GridEnv();R=[]
+   lens=[];ends=[];arr=[0]
+   ob=env._arrival_bonus
+   ```
+
+   … 17 more lines of this command
+4. ```text
+   cd /srv/rl-env; echo '{"q1":19,"q2":0,"q3":89,"q4":363,"q5":13,"q6":13,"q7":162,"q8":-6.7}' > answers.json; cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `19` |
+| q2 | right | `0` |
+| q3 | right | `89` |
+| q4 | right | `363` |
+| q5 | right | `13` |
+| q6 | right | `13` |
+| q7 | right | `162` |
+| q8 | right | `-6.7` |
+
+#### `ormaos`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-ormaos-1.jsonl)
+- Score 1.00: 8 right, 0 null, 0 wrong
+- 7 tool calls, 118,605 tokens, 39 s
+
+Commands, in order (7):
+
+1. ```text
+   cd /srv/rl-env; ls -la; cat questions.json; .venv/bin/ormaos guide
+   ```
+
+   Output, the first 15 of 178 lines ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-ormaos-1.jsonl?plain=1#L3)):
+
+   ```text
+   total 32
+   drwxrwxr-x 4 ubuntu ubuntu 4096 Nov 28 02:47 .
+   drwxr-xr-x 1 root   root   4096 Nov 28 15:35 ..
+   drwxrwxr-x 3 ubuntu ubuntu 4096 Nov 28 02:47 .ormaos
+   drwxrwxr-x 5 ubuntu ubuntu 4096 Nov 28 02:47 .venv
+   -rw-rw-r-- 1 ubuntu ubuntu  704 Nov 27 16:30 README.md
+   -rw-rw-r-- 1 ubuntu ubuntu 1568 Nov 27 16:23 env.py
+   -rw-rw-r-- 1 ubuntu ubuntu 1629 Nov 28 02:47 questions.json
+   -rw-rw-r-- 1 ubuntu ubuntu 1250 Nov 27 16:22 run.py
+   {
+     "questions": [
+       {
+         "id": "q1",
+         "question": "Of the 20 episodes, how many ended with the courier at the customer at (5, 5), as opposed to ending because the 30-step limit was reached?",
+         "format": "An integer, e.g. 7"
+   ```
+2. ```text
+   cd /srv/rl-env; cat run.py env.py README.md; .venv/bin/ormaos list; .venv/bin/ormaos show last --full
+   ```
+
+   Output, the first 15 of 156 lines ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-ormaos-1.jsonl?plain=1#L5)):
+
+   ```text
+   """Run episodes of the grid world with a policy that mostly walks to the goal."""
+   
+   import random
+   
+   from env import MOVES, GridEnv
+   
+   EPISODES = 20
+   
+   
+   def choose(rng, position, goal, explore=0.3):
+       if rng.random() < explore:
+           return rng.choice(sorted(MOVES))
+       if position[0] != goal[0] and rng.random() < 0.5:
+           return "right" if goal[0] > position[0] else "left"
+       if position[1] != goal[1]:
+   ```
+3. ```text
+   cd /srv/rl-env; .venv/bin/ormaos show r1; for f in ended_at_goal ended_at_limit _arrival_bonus _bump step choose run_episode; do echo "== $f"; .venv/bin/ormaos tree r1 --function $f --limit 3 | tail -5; done
+   ```
+
+   Output, the first 15 of 42 lines ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-ormaos-1.jsonl?plain=1#L7)):
+
+   ```text
+   r1 exit 0 in 0.07s: 1 Python process, 1969 calls, 0 exceptions (0 swallowed, 0 uncaught)
+   command: .venv/bin/python run.py
+   code: git commit not read (the working directory is not inside a git repository)
+   never recorded: values, and 20 more kinds of things (`ormaos show --full` lists them with the reason)
+   next: ormaos tree r1:c1
+   == ended_at_goal
+   r1:c96 ended_at_goal(returns: list[0], total: float) -> NoneType  run.py:20  8us
+   r1:c175 ended_at_goal(returns: list[1 float], total: float) -> NoneType  run.py:20  10us
+   r1:c266 ended_at_goal(returns: list[2 float], total: float) -> NoneType  run.py:20  9us
+   ... 16 more: --offset 3
+   next: ormaos tree r1:c96 | ormaos tree r1:c175 | ormaos tree r1 --offset 3 --function ended_at_goal | ormaos tree r1 | ormaos exceptions r1
+   == ended_at_limit
+   r1: 1 of the 1969 calls matches --function ended_at_limit (1 ended_at_limit; 0 raised)
+   r1:c1346 ended_at_limit(returns: list[12 float], total: float) -> NoneType  run.py:24  11us
+   next: ormaos tree r1:c1346 | ormaos tree r1 | ormaos exceptions r1
+   ```
+4. ```text
+   cd /srv/rl-env; .venv/bin/ormaos tree r1 --function choose --limit 1000 --json > /tmp/c.json; .venv/bin/ormaos tree r1 --function run_episode --limit 100 --json > /tmp/r.json; python3 -c "
+   import json;d=json.load(open('/tmp/c.json'));print(list(d.keys()));s=json.dumps(d);print(s[:1500])"
+   ```
+
+   Output, the 1 line of 2 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-ormaos-1.jsonl?plain=1#L9)):
+
+   ```text
+   {"kind": "tree", "version": 1, "recording": "r1", "address": "r1", "root": null, "ancestors": [], "filter": {"file_glob": null, "function": "choose"}, "looked_at": 1969, "matched": 363, "by_fn": {"choose": 363}, "raised": 0, "depth": 0, "limit": 1000, "offset": 0, "nodes": [{"address": "r1:c8", "file": "run.py", "line": 10, "fn": "choose", "depth": 0, "args": {"rng": {"type": "random.Random"}, "position": {"type": "tuple", "len": 2, "items": {"int": 2}}, "goal": {"type": "tuple", "len": 2, "items": {"int": 2}}, "explore": {"type": "float"}}, "out": "returned", "duration_s": 2.5e-05, "thread": 1, "process": 1, "calls_below": 0, "ret": {"type": "str", "len": 4}}, {"address": "r1:c14", "file": "run.py", "line": 10, "fn": "choose", "depth": 0, "args": {"rng": {"type": "random.Random"}, "position": {"type": "tuple", "len": 2, "items": {"int": 2}}, "goal": {"type": "tuple", "len": 2, "items": {"int": 2}}, "explore": {"type": "float"}}, "out": "returned", "duration_s": 1.3e-05, "thread": 1, "process": 1, "calls_below": 0, "ret": {"type": "str", "len": 4}}, {"address": "r1:c19", "file": "run.py", "line": 10, "fn": "choose", "depth": 0, "args": {"rng": {"type": "random.Random"}, "position": {"type": "tuple", "len": 2, "items": {"int": 2}}, "goal": {"type": "tuple", "len": 2, "items": {"int": 2}}, "explore": {"type": "float"}}, "out": "returned", "duration_s": 1.3e-05, "thread": 1, "process": 1, "calls_below": 0, "ret": {"type": "str", "len": 5}}, {"address": "r1:c24", "file": "run.py"
+   ```
+5. ```text
+   cd /srv/rl-env; python3 -c "
+   import json;d=json.load(open('/tmp/c.json'));print(len(d['nodes']),sum(n['ret']['len']==5 for n in d['nodes']))
+   r=json.load(open('/tmp/r.json'))
+   # each episode: calls_below includes choose+step+_reward+_distance+_move+... ; count choose addresses between episodes
+   eps=[int(n['address'].split(':c')[1]) for n in r['nodes']]+[10**9]
+   cs=[int(n['address'].split(':c')[1]) for n in d['nodes']]
+   print([sum(eps[i]<c<eps[i+1] for c in cs) for i in range(20)])
+   "
+   ```
+6. ```text
+   mkdir -p /tmp/sim && cd /tmp/sim && cat > sim.py <<'EOF'
+   import sys; sys.path.insert(0,'/srv/rl-env')
+   import random, run
+   from env import GridEnv
+   rng=random.Random(3); env=GridEnv(); res=[]; rights=0
+   orig=run.choose
+   def ch(*a,**k):
+       global rights; r=orig(*a,**k); rights+= r=="right"; return r
+   run.choose=ch
+   for _ in range(20):
+       rets=[]; env_steps=0
+       run.run_episode(env,rng,rets); res.append((env.steps,round(rets[0],4),env.position==env.goal))
+   ```
+
+   … 3 more lines of this command
+7. ```text
+   cd /srv/rl-env; echo '{"q1":19,"q2":0,"q3":89,"q4":363,"q5":13,"q6":13,"q7":162,"q8":-6.7}' > answers.json; cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `19` |
+| q2 | right | `0` |
+| q3 | right | `89` |
+| q4 | right | `363` |
+| q5 | right | `13` |
+| q6 | right | `13` |
+| q7 | right | `162` |
+| q8 | right | `-6.7` |
+
+#### `ormaos-values`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-ormaos-values-1.jsonl)
+- Score 1.00: 8 right, 0 null, 0 wrong
+- 5 tool calls, 89,359 tokens, 27 s
+
+Commands, in order (5):
+
+1. ```text
+   cd /srv/rl-env; ls -la; cat questions.json; .venv/bin/ormaos guide
+   ```
+
+   Output, the first 15 of 178 lines ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-ormaos-values-1.jsonl?plain=1#L3)):
+
+   ```text
+   total 32
+   drwxrwxr-x 4 ubuntu ubuntu 4096 Nov 28 02:47 .
+   drwxr-xr-x 1 root   root   4096 Nov 28 15:36 ..
+   drwxrwxr-x 3 ubuntu ubuntu 4096 Nov 28 02:47 .ormaos
+   drwxrwxr-x 5 ubuntu ubuntu 4096 Nov 28 02:47 .venv
+   -rw-rw-r-- 1 ubuntu ubuntu  704 Nov 27 16:30 README.md
+   -rw-rw-r-- 1 ubuntu ubuntu 1568 Nov 27 16:23 env.py
+   -rw-rw-r-- 1 ubuntu ubuntu 1629 Nov 28 02:47 questions.json
+   -rw-rw-r-- 1 ubuntu ubuntu 1250 Nov 27 16:22 run.py
+   {
+     "questions": [
+       {
+         "id": "q1",
+         "question": "Of the 20 episodes, how many ended with the courier at the customer at (5, 5), as opposed to ending because the 30-step limit was reached?",
+         "format": "An integer, e.g. 7"
+   ```
+2. ```text
+   cd /srv/rl-env; cat run.py env.py README.md; .venv/bin/ormaos show last --full; .venv/bin/ormaos tree last --depth 2 --limit 30
+   ```
+
+   Output, the first 15 of 180 lines ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-ormaos-values-1.jsonl?plain=1#L5)):
+
+   ```text
+   """Run episodes of the grid world with a policy that mostly walks to the goal."""
+   
+   import random
+   
+   from env import MOVES, GridEnv
+   
+   EPISODES = 20
+   
+   
+   def choose(rng, position, goal, explore=0.3):
+       if rng.random() < explore:
+           return rng.choice(sorted(MOVES))
+       if position[0] != goal[0] and rng.random() < 0.5:
+           return "right" if goal[0] > position[0] else "left"
+       if position[1] != goal[1]:
+   ```
+3. ```text
+   cd /srv/rl-env; .venv/bin/ormaos tree last --json --limit 5000 --depth 10 > /tmp/t.json; head -c 3000 /tmp/t.json; echo; for f in _arrival_bonus ended_at_goal ended_at_limit _bump; do echo $f; .venv/bin/ormaos tree last --function $f --limit 100 | tail -5; done
+   ```
+
+   Output, the 1 line of 177 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-ormaos-values-1.jsonl?plain=1#L7)):
+
+   ```text
+   r1:c1969 ended_at_goal(returns: list[19 float]="[-11.9, -9.7, -9.8, -9.600000000000001, -17.1999999999999...", ...) -> NoneType  run.py:20  18us
+   ```
+4. ```text
+   cd /srv/rl-env; python3 -I -c '
+   import json,collections
+   d=json.load(open("/tmp/t.json"));n=d["nodes"];print(len(n),d.get("truncated"),[k for k in d if k!="nodes"])
+   c=collections.Counter(x["fn"] for x in n);print(c)
+   print(collections.Counter(x["ret"].get("value") for x in n if x["fn"]=="choose"))
+   eps=[];cur=None
+   for x in n:
+     if x["fn"]=="run_episode": cur=[0,0.0];eps.append(cur)
+     if x["fn"]=="GridEnv.step": cur[0]+=1; cur[1]+=x["ret"]["value"][1]
+     if x["fn"] in("ended_at_goal","ended_at_limit"): cur.append((x["fn"],x["args"]["total"].get("value")))
+   for i,e in enumerate(eps,1):print(i,e)
+   '
+   ```
+5. ```text
+   cd /srv/rl-env; echo '{"q1":19,"q2":0,"q3":89,"q4":363,"q5":13,"q6":13,"q7":162,"q8":-6.7}' > answers.json; cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `19` |
+| q2 | right | `0` |
+| q3 | right | `89` |
+| q4 | right | `363` |
+| q5 | right | `13` |
+| q6 | right | `13` |
+| q7 | right | `162` |
+| q8 | right | `-6.7` |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
 
 #### `none`
 
@@ -382,6 +713,21 @@ Its answers
 
 Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its commands up to its last write of `answers.json`. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them.
 
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+| Question | `ormaos`: verbs (runs) | answered | right | `ormaos-values`: verbs (runs) | answered | right |
+|---|---|---|---|---|---|---|
+| q1 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, guide 3, list 1 | 3/3 | 3/3 |
+| q2 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, guide 3, list 1 | 3/3 | 3/3 |
+| q3 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, guide 3, list 1 | 3/3 | 3/3 |
+| q4 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, guide 3, list 1 | 3/3 | 3/3 |
+| q5 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, guide 3, list 1 | 3/3 | 3/3 |
+| q6 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, guide 3, list 1 | 3/3 | 3/3 |
+| q7 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, guide 3, list 1 | 3/3 | 3/3 |
+| q8 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, guide 3, list 1 | 3/3 | 3/3 |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
+
 | Question | `ormaos`: verbs (runs) | answered | right | `ormaos-values`: verbs (runs) | answered | right |
 |---|---|---|---|---|---|---|
 | q1 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 |
@@ -395,7 +741,26 @@ Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its c
 
 ## Every run
 
-Every run of every arm.
+Every run of every arm, one table per results folder and agent.
+
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+| Arm | Run | Score | Right | Null | Wrong | `ormaos` verbs before answers.json | Tool calls | Tokens | Wall time | Stream |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `none` | 1 | 1.00 | 8 | 0 | 0 | – | 4 | 44,102 | 22 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-none-1.jsonl) |
+| `none` | 2 | 1.00 | 8 | 0 | 0 | – | 4 | 44,027 | 24 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-none-2.jsonl) |
+| `none` | 3 | 1.00 | 8 | 0 | 0 | – | 4 | 43,995 | 29 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-none-3.jsonl) |
+| `raw` | 1 | 1.00 | 8 | 0 | 0 | – | 4 | 49,212 | 26 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-raw-1.jsonl) |
+| `raw` | 2 | 1.00 | 8 | 0 | 0 | – | 6 | 71,306 | 33 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-raw-2.jsonl) |
+| `raw` | 3 | 1.00 | 8 | 0 | 0 | – | 4 | 55,024 | 28 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-raw-3.jsonl) |
+| `ormaos` | 1 | 1.00 | 8 | 0 | 0 | guide, list, show, tree | 7 | 118,605 | 39 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-ormaos-1.jsonl) |
+| `ormaos` | 2 | 1.00 | 8 | 0 | 0 | guide, list, show, tree | 6 | 98,596 | 40 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-ormaos-2.jsonl) |
+| `ormaos` | 3 | 1.00 | 8 | 0 | 0 | guide, list, show, tree | 5 | 86,568 | 41 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-ormaos-3.jsonl) |
+| `ormaos-values` | 1 | 1.00 | 8 | 0 | 0 | guide, show, tree | 5 | 89,359 | 27 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-ormaos-values-1.jsonl) |
+| `ormaos-values` | 2 | 1.00 | 8 | 0 | 0 | guide, show, tree | 6 | 101,314 | 32 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-ormaos-values-2.jsonl) |
+| `ormaos-values` | 3 | 1.00 | 8 | 0 | 0 | guide, list, show, tree | 6 | 101,545 | 36 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/rl-env-ormaos-values-3.jsonl) |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
 
 | Arm | Run | Score | Right | Null | Wrong | `ormaos` verbs before answers.json | Tool calls | Tokens | Wall time | Stream |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -415,4 +780,5 @@ Every run of every arm.
 ## The results files
 
 - The benchmark: [knows2](https://ormaos.com/benchmarks/knows2/#rl-env)
-- Results folder: [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801), earlier: bubblewrap, network open
+- Results folder: [`agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641): 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+- Results folder: [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801): 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open

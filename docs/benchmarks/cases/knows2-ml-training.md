@@ -2,17 +2,20 @@
 
 *Situation · knows2*
 
-A ML training. A PyTorch model trained on CPU that predicts how long a delivery takes, on data made from a seed; each batch is standardized, and a batch whose loss is not finite is left out. Source: [`use-cases/ml-training`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/use-cases/ml-training).
+A ML training. A PyTorch model trained on CPU that predicts how long a delivery takes, on data made from a seed; each batch is standardized, and a batch whose loss is not finite is left out. Source: [`use-cases/ml-training`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/use-cases/ml-training).
 
 Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.
 
-Mean score over every run: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00 (3 runs per arm). Agent: `claude-code / claude-opus-5-5`.
+Mean score, per results folder and agent; no number here adds up two of them:
+
+- 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00 (3 runs per arm)
+- 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open: `none` 1.00, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00 (3 runs per arm)
 
 ## What happened
 
 38 batches produced an optimizer update and 2 were left out because their loss was not finite: positions 10, 11. In each batch left out, the `weekend` column had the one value 0.0; 38 batches had both values of it.
 
-The numbers are the oracle's answers to the questions below: [`oracle/ml-training.json`](https://github.com/ormaos/ormaos-examples/blob/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801/oracle/ml-training.json).
+The numbers are the oracle's answers to the questions below: [`oracle/ml-training.json`](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/oracle/ml-training.json).
 
 ## What the agent was given
 
@@ -58,6 +61,301 @@ The folder the execution left, with what the arm adds, and 8 questions in `quest
 ## Run 1 of each arm, side by side
 
 Run 1 of each arm, always run 1: a fixed rule, not a choice. Each column lists the agent's tool calls in order; under each `ormaos` command, the lines of its output that hold a value the agent wrote in `answers.json`, or its first 15 lines, with a link to the full output in the stream.
+
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+#### `none`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-none-1.jsonl)
+- Score 1.00: 8 right, 0 null, 0 wrong
+- 3 tool calls, 38,371 tokens, 25 s
+
+Commands, in order (3):
+
+1. ```text
+   cd /srv/ml-training; ls -la; cat questions.json; cat train.py
+   ```
+2. ```text
+   cd /srv/ml-training; cat README.md; mkdir -p /tmp/an && cat > /tmp/an/a.py <<'EOF'
+   import sys; sys.path.insert(0,'/srv/ml-training')
+   import torch, train
+   from torch import nn
+   torch.manual_seed(0)
+   f,m=train.make_data()
+   print("weekend ones", int((f[:,3]==1).sum()))
+   model = nn.Sequential(nn.Linear(4, 16), nn.ReLU(), nn.Linear(16, 1))
+   opt = torch.optim.Adam(model.parameters(), lr=0.05)
+   skipped=[];upd=0;varied=0;last=None
+   for i,(b,t) in enumerate(train.batches(f,m)):
+       w=b[:,3]
+   ```
+
+   … 9 more lines of this command
+3. ```text
+   cd /srv/ml-training; cat > answers.json <<'EOF'
+   {"q1": 38, "q2": 2, "q3": [10, 11], "q4": "weekend", "q5": 92, "q6": 39, "q7": 0.0, "q8": 38}
+   EOF
+   cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `38` |
+| q2 | right | `2` |
+| q3 | right | `[10, 11]` |
+| q4 | right | `"weekend"` |
+| q5 | right | `92` |
+| q6 | right | `39` |
+| q7 | right | `0.0` |
+| q8 | right | `38` |
+
+#### `raw`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-raw-1.jsonl)
+- Score 1.00: 8 right, 0 null, 0 wrong
+- 4 tool calls, 47,125 tokens, 32 s
+
+Commands, in order (4):
+
+1. ```text
+   cd /srv/ml-training; ls -la; cat questions.json; python3 -c "
+   import json;d=json.load(open('result.json'));e=d['traceEvents'];print(len(e));print(e[:3])"
+   ```
+2. ```text
+   cd /srv/ml-training; cat train.py README.md; python3 -c "
+   import json,collections;d=json.load(open('result.json'));e=d['traceEvents']
+   c=collections.Counter(x['name'] for x in e if 'train.py' in x.get('name','') or 'step' in x.get('name','') or 'isfinite' in x.get('name',''))
+   print(c.most_common(40))
+   print(e[-3:])"
+   ```
+3. ```text
+   cd /srv/ml-training; python3 -c "
+   import json;d=json.load(open('result.json'));e=d['traceEvents']
+   ts=sorted([x for x in e if x.get('name','').startswith('train_step (')],key=lambda x:x['ts'])
+   au=[x for x in e if x.get('name','').startswith('apply_update (')]
+   sk=[i for i,t in enumerate(ts) if not any(t['ts']<=a['ts']<=t['ts']+t['dur'] for a in au)]
+   print(sk)
+   "
+   cat > /tmp/gen.py <<'EOF'
+   import random
+   rng=random.Random(5);W=[]
+   for _ in range(320):
+       rng.uniform(1,30);rng.randint(1,12);rng.randint(8,20)
+   ```
+
+   … 6 more lines of this command
+4. ```text
+   cd /srv/ml-training; echo '{"q1":38,"q2":2,"q3":[10,11],"q4":"weekend","q5":92,"q6":39,"q7":0.0,"q8":38}' > answers.json; cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `38` |
+| q2 | right | `2` |
+| q3 | right | `[10, 11]` |
+| q4 | right | `"weekend"` |
+| q5 | right | `92` |
+| q6 | right | `39` |
+| q7 | right | `0.0` |
+| q8 | right | `38` |
+
+#### `ormaos`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-1.jsonl)
+- Score 1.00: 8 right, 0 null, 0 wrong
+- 6 tool calls, 110,711 tokens, 30 s
+
+Commands, in order (6):
+
+1. ```text
+   cd /srv/ml-training; .venv/bin/ormaos guide; cat questions.json; ls -la
+   ```
+
+   Output, the 1 line of 179 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-1.jsonl?plain=1#L3)):
+
+   ```text
+   -rw-rw-r-- 1 ubuntu ubuntu   11 Nov 27 16:22 requirements.txt
+   ```
+2. ```text
+   cd /srv/ml-training; cat train.py README.md; .venv/bin/ormaos show last --full
+   ```
+
+   Output, the 8 lines of 130 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-1.jsonl?plain=1#L5)):
+
+   ```text
+       """Distance, parcels, hour of the day and a weekend flag; minutes to deliver."""
+           weekend = 1.0 if rng.random() < 0.3 else 0.0
+           features.append([distance, parcels, hour, weekend])
+           minutes.append(4 * distance + 2 * parcels + 6 * weekend + rng.gauss(0, 3))
+   A PyTorch model, trained on CPU, that predicts the minutes a delivery takes from four features: distance, number of parcels, hour of the day and a weekend flag. The data is made by the script, the same every time. Each batch of 8 rows is standardized, the model takes one Adam step per batch, and a batch whose loss is not a finite number is left out. The weights are saved to `model.pt`.
+   header: format provisional-0, ormaos 0.0.1, mode run, started 2026-11-28 02:47:19, platform linux, in .ormaos/r1
+   io: 10 events (file 10)
+   tensors: an array or a tensor was an argument or a result 400 times, 10 with NaN or inf: return of standardize at train.py:32  [r1:c56]
+   ```
+3. ```text
+   cd /srv/ml-training; .venv/bin/ormaos tree r1 --function apply_update | head -5; .venv/bin/ormaos tree r1 --function standardize --limit 100 | grep -n -i -E "nan|inf|standardize" | head -100
+   ```
+
+   Output, the 6 lines of 105 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-1.jsonl?plain=1#L7)):
+
+   ```text
+   r1: 38 of the 203 calls match --function apply_update (38 apply_update; 0 raised)
+   10:      returned: shape 8x4, float32, cpu, nan 0, inf 0, min -2.00666, max 1.62019
+   11:r1:c21 standardize(batch: Tensor[8x4 float32 cpu]) -> Tensor[8x4 float32 cpu]  train.py:32  86us
+   38:r1:c64 standardize(batch: Tensor[8x4 float32 cpu]) -> Tensor[8x4 float32 cpu]  train.py:32  64us
+   39:      batch: shape 8x4, float32, cpu, nan 0, inf 0, min 0, max 29.2082
+   92:r1:c154 standardize(batch: Tensor[8x4 float32 cpu]) -> Tensor[8x4 float32 cpu]  train.py:32  60us
+   ```
+4. ```text
+   cd /tmp && cat > /tmp/chk.py <<'EOF'
+   import random
+   rng=random.Random(5); w=[]
+   for _ in range(320):
+       rng.uniform(1,30); rng.randint(1,12); rng.randint(8,20)
+       w.append(1.0 if rng.random()<0.3 else 0.0); rng.gauss(0,3)
+   print(sum(w))
+   b=[w[i:i+8] for i in range(0,320,8)]
+   print([ (i,set(x)) for i,x in enumerate(b) if len(set(x))==1])
+   print(sum(len(set(x))>1 for x in b))
+   EOF
+   python3 -I /tmp/chk.py; /srv/ml-training/.venv/bin/ormaos tree r1 --function train_step --offset 37 | tail -8
+   ```
+
+   Output, the 3 lines of 6 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-1.jsonl?plain=1#L9)):
+
+   ```text
+   92.0
+   [(10, {0.0}), (11, {0.0})]
+   38
+   ```
+5. ```text
+   cd /srv/ml-training; .venv/bin/ormaos tree r1 --function train_step --limit 100 | tail -6
+   ```
+
+   Output, all 6 lines ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-1.jsonl?plain=1#L11)):
+
+   ```text
+         batch: shape 8x4, float32, cpu, nan 0, inf 0, min 0, max 24.2965
+         minutes: shape 8, float32, cpu, nan 0, inf 0, min 6.93798, max 109.77
+   r1:c198 train_step(model: torch.nn.modules.container.Sequential, optimizer: torch.optim.adam.Adam, ...) -> float  train.py:50  869us  calls below: 4
+         batch: shape 8x4, float32, cpu, nan 0, inf 0, min 0, max 26.8192
+         minutes: shape 8, float32, cpu, nan 0, inf 0, min 31.6748, max 122.531
+   next: ormaos tree r1:c5 | ormaos tree r1:c10 | ormaos tree r1 | ormaos exceptions r1
+   ```
+6. ```text
+   cd /srv/ml-training; cat > answers.json <<'EOF'
+   {"q1": 38, "q2": 2, "q3": [10, 11], "q4": "weekend", "q5": 92, "q6": 39, "q7": 0.0, "q8": 38}
+   EOF
+   cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `38` |
+| q2 | right | `2` |
+| q3 | right | `[10, 11]` |
+| q4 | right | `"weekend"` |
+| q5 | right | `92` |
+| q6 | right | `39` |
+| q7 | right | `0.0` |
+| q8 | right | `38` |
+
+#### `ormaos-values`
+
+- Run 1, [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-values-1.jsonl)
+- Score 1.00: 8 right, 0 null, 0 wrong
+- 5 tool calls, 100,420 tokens, 32 s
+
+Commands, in order (5):
+
+1. ```text
+   cd /srv/ml-training; .venv/bin/ormaos guide; cat questions.json; ls -la
+   ```
+
+   Output, the 1 line of 179 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-values-1.jsonl?plain=1#L3)):
+
+   ```text
+   -rw-rw-r-- 1 ubuntu ubuntu   11 Nov 27 16:22 requirements.txt
+   ```
+2. ```text
+   cd /srv/ml-training; cat train.py README.md; .venv/bin/ormaos list; .venv/bin/ormaos show last --full
+   ```
+
+   Output, the 9 lines of 134 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-values-1.jsonl?plain=1#L5)):
+
+   ```text
+       """Distance, parcels, hour of the day and a weekend flag; minutes to deliver."""
+           weekend = 1.0 if rng.random() < 0.3 else 0.0
+           features.append([distance, parcels, hour, weekend])
+           minutes.append(4 * distance + 2 * parcels + 6 * weekend + rng.gauss(0, 3))
+   A PyTorch model, trained on CPU, that predicts the minutes a delivery takes from four features: distance, number of parcels, hour of the day and a weekend flag. The data is made by the script, the same every time. Each batch of 8 rows is standardized, the model takes one Adam step per batch, and a batch whose loss is not a finite number is left out. The weights are saved to `model.pt`.
+   r1  2026-11-28 02:47:22  complete  exit 0  2.39s  1 process, 203 calls, 0 exceptions (0 swallowed), 10 io  .venv/bin/python train.py
+   header: format provisional-0, ormaos 0.0.1, mode run, started 2026-11-28 02:47:22, platform linux, in .ormaos/r1
+   io: 10 events (file 10)
+   tensors: an array or a tensor was an argument or a result 400 times, 10 with NaN or inf: return of standardize at train.py:32  [r1:c56]
+   ```
+3. ```text
+   cd /srv/ml-training; .venv/bin/ormaos tree r1 --function train_step --limit 100 | head -80; .venv/bin/ormaos tree r1 --function apply_update --limit 100 | tail -5; .venv/bin/ormaos tree r1 --function standardize --limit 100 | grep -i nan
+   ```
+
+   Output, the 2 lines of 165 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-values-1.jsonl?plain=1#L7)):
+
+   ```text
+         minutes: shape 8, float32, cpu, nan 0, inf 0, min 11.9655, max 129.572
+         minutes: shape 8, float32, cpu, nan 0, inf 0, min 10.0131, max 127.583
+   ```
+4. ```text
+   cd /srv/ml-training; .venv/bin/ormaos tree r1 --function train_step --limit 100 | grep -n "NoneType" ; .venv/bin/ormaos tree r1 --function train_step --limit 100 | grep -c "^r1:c"; cd /tmp && python3 -I -c "
+   import random
+   rng=random.Random(5);F=[]
+   for _ in range(320):
+       d=rng.uniform(1,30);p=rng.randint(1,12);h=rng.randint(8,20);w=1.0 if rng.random()<0.3 else 0.0
+       F.append([d,p,h,w]);rng.gauss(0,3)
+   print(sum(r[3] for r in F))
+   var=0
+   for b in range(40):
+       B=F[b*8:b*8+8]
+       const=[c for c in range(4) if len({r[c] for r in B})==1]
+       if const: print(b,const,B[0])
+   ```
+
+   … 3 more lines of this command
+
+   Output, the 4 lines of 8 that hold a value it wrote in answers.json ([full output](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-values-1.jsonl?plain=1#L9)):
+
+   ```text
+   92.0
+   10 [3] [3.470689668959116, 2, 18, 0.0]
+   11 [3] [18.406311245216944, 8, 13, 0.0]
+   varied 38
+   ```
+5. ```text
+   cd /srv/ml-training; cat > answers.json <<'EOF'
+   {"q1": 38, "q2": 2, "q3": [10, 11], "q4": "weekend", "q5": 92, "q6": 39, "q7": 0.0, "q8": 38}
+   EOF
+   cat answers.json
+   ```
+
+Its answers
+
+| Question | Graded | Answer |
+|---|---|---|
+| q1 | right | `38` |
+| q2 | right | `2` |
+| q3 | right | `[10, 11]` |
+| q4 | right | `"weekend"` |
+| q5 | right | `92` |
+| q6 | right | `39` |
+| q7 | right | `0.0` |
+| q8 | right | `38` |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
 
 #### `none`
 
@@ -365,6 +663,21 @@ Its answers
 
 Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its commands up to its last write of `answers.json`. A question counts for a verb when a run that ran the verb answered it (not null); a run that ran several verbs counts under each of them.
 
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+| Question | `ormaos`: verbs (runs) | answered | right | `ormaos-values`: verbs (runs) | answered | right |
+|---|---|---|---|---|---|---|
+| q1 | show 3, tree 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 |
+| q2 | show 3, tree 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 |
+| q3 | show 3, tree 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 |
+| q4 | show 3, tree 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 |
+| q5 | show 3, tree 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 |
+| q6 | show 3, tree 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 |
+| q7 | show 3, tree 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 |
+| q8 | show 3, tree 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
+
 | Question | `ormaos`: verbs (runs) | answered | right | `ormaos-values`: verbs (runs) | answered | right |
 |---|---|---|---|---|---|---|
 | q1 | show 3, tree 3, list 3, guide 3 | 3/3 | 3/3 | show 3, tree 3, guide 3, list 2 | 3/3 | 3/3 |
@@ -378,7 +691,26 @@ Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its c
 
 ## Every run
 
-Every run of every arm.
+Every run of every arm, one table per results folder and agent.
+
+### 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+
+| Arm | Run | Score | Right | Null | Wrong | `ormaos` verbs before answers.json | Tool calls | Tokens | Wall time | Stream |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `none` | 1 | 1.00 | 8 | 0 | 0 | – | 3 | 38,371 | 25 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-none-1.jsonl) |
+| `none` | 2 | 1.00 | 8 | 0 | 0 | – | 4 | 44,029 | 26 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-none-2.jsonl) |
+| `none` | 3 | 1.00 | 8 | 0 | 0 | – | 3 | 34,838 | 27 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-none-3.jsonl) |
+| `raw` | 1 | 1.00 | 8 | 0 | 0 | – | 4 | 47,125 | 32 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-raw-1.jsonl) |
+| `raw` | 2 | 1.00 | 8 | 0 | 0 | – | 4 | 45,853 | 30 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-raw-2.jsonl) |
+| `raw` | 3 | 1.00 | 8 | 0 | 0 | – | 5 | 62,619 | 38 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-raw-3.jsonl) |
+| `ormaos` | 1 | 1.00 | 8 | 0 | 0 | guide, show, tree | 6 | 110,711 | 30 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-1.jsonl) |
+| `ormaos` | 2 | 1.00 | 8 | 0 | 0 | guide, show, tree | 5 | 95,422 | 29 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-2.jsonl) |
+| `ormaos` | 3 | 1.00 | 8 | 0 | 0 | guide, show, tree | 5 | 110,893 | 41 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-3.jsonl) |
+| `ormaos-values` | 1 | 1.00 | 8 | 0 | 0 | guide, list, show, tree | 5 | 100,420 | 32 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-values-1.jsonl) |
+| `ormaos-values` | 2 | 1.00 | 8 | 0 | 0 | guide, list, show, tree | 6 | 122,453 | 40 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-values-2.jsonl) |
+| `ormaos-values` | 3 | 1.00 | 8 | 0 | 0 | guide, list, show, tree | 5 | 94,396 | 40 s | [stream](https://github.com/ormaos/ormaos-examples/blob/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641/events/ml-training-ormaos-values-3.jsonl) |
+
+### 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open
 
 | Arm | Run | Score | Right | Null | Wrong | `ormaos` verbs before answers.json | Tool calls | Tokens | Wall time | Stream |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -398,4 +730,5 @@ Every run of every arm.
 ## The results files
 
 - The benchmark: [knows2](https://ormaos.com/benchmarks/knows2/#ml-training)
-- Results folder: [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801), earlier: bubblewrap, network open
+- Results folder: [`agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641`](https://github.com/ormaos/ormaos-examples/tree/d2364198b76a10e9dc4d28a3fbca9e8189ff4c68/agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/20261128-122641): 2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the model host
+- Results folder: [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801): 2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open

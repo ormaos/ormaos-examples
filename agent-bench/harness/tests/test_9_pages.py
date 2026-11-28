@@ -14,6 +14,7 @@ from support import HARNESS
 
 REPO = HARNESS.parents[1]
 SMOKE = HARNESS / "results" / "knows2" / "claude-code-claude-opus-5-5" / "20261127-192608"
+OPUS = HARNESS / "results" / "knows2" / "claude-code-claude-opus-5-5" / "20261128-122641"
 
 
 def site():
@@ -56,13 +57,13 @@ class Pages(unittest.TestCase):
                 for folder in self.build.harness_folders(self.build.HARNESS_KNOWS2)]
 
     def test_a_complete_harness_run_gives_the_headline_and_the_knows2_page(self):
-        """The smoke folder, counted as a run only here."""
-        overview = (self.tested / "benchmarks.md").read_text()
+        overview = (self.shown / "benchmarks.md").read_text()
         self.assertIn('in the environment "controlled: container, network limited to the model host"', overview)
-        self.assertIn(f"agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/{SMOKE.name}", overview)
-        self.assertIn("answered 8 of 8 questions right, over its 1 runs; with only the folder (`none`), 1 of 8",
-                      overview)
-        knows2 = (self.tested / "benchmarks" / "knows2.md").read_text()
+        self.assertIn(f"agent-bench/harness/results/knows2/claude-code-claude-opus-5-5/{OPUS.name}", overview)
+        self.assertIn("answered 202 of 213 questions right, over its 27 runs; with only the folder (`none`), "
+                      "147 of 213", overview)
+        self.assertIn('2026-11-27, in the environment "earlier: bubblewrap, network open"', overview)
+        knows2 = (self.shown / "benchmarks" / "knows2.md").read_text()
         self.assertIn("### The container", knows2)
         self.assertIn("a proxy that answers for `api.anthropic.com` and refuses every other host", knows2)
         self.assertIn("Environment: controlled: container, network limited to the model host", knows2)
@@ -70,11 +71,49 @@ class Pages(unittest.TestCase):
         runs = knows2[knows2.index("## The runs of knows2"):knows2.index("## This run")]
         self.assertIn("agent-bench/knows2/results/20261127-165801", runs)
         self.assertIn("earlier: bubblewrap, network open", runs)
-        self.assertIn(SMOKE.name, runs)
+        self.assertIn(OPUS.name, runs)
         self.assertIn("this page", runs)
+
+    def test_the_knows2_page_checks_each_line_of_the_expectations(self):
+        knows2 = (self.shown / "benchmarks" / "knows2.md").read_text()
+        expected = knows2[knows2.index("## What was expected before the run"):]
+        self.assertIn((OPUS / "expectations.md").read_text().rstrip("\n"), expected)
+        lines = {row.split(" | ")[0].lstrip("| "): row.split(" | ")[1] for row in expected.splitlines()
+                 if row.startswith("| ") and " | " in row}
+        self.assertEqual(lines["Order of the mean scores: none < raw < ormaos <= ormaos-values."], "held")
+        self.assertEqual(lines["Each mean score within 0.07 of the earlier run."], "held")
+        self.assertEqual(lines["Wrong answers: at most 1 per arm."], "held")
+        self.assertEqual(lines["Whatever the result, it is published as it is."], "–")
+        self.assertIn("These 95% intervals overlap: `none` and `raw`; `raw` and `ormaos`", knows2)
+        self.assertIn("Every refusal was one the canary asked for", expected)
+        self.assertIn("| `github.com:443` | 1 | 1 |", expected)
+        self.assertIn("2026-11-28 · controlled: mean (95% interval)", expected)
+        self.assertIn("2026-11-27 · earlier: mean (95% interval)", expected)
+        self.assertIn("| `ormaos` | 91,495 | 5 | $4.68 | $0.173 |", knows2)
+
+    def test_no_number_adds_up_two_results_folders(self):
+        """Each situation page and the overview show every results folder
+        on its own, labelled with its environment and its agent."""
+        earlier = "2026-11-27, `claude-code / claude-opus-5-5`, earlier: bubblewrap, network open"
+        controlled = ("2026-11-28, `claude-code / claude-opus-5-5`, controlled: container, network limited to the "
+                      "model host")
+        case = (self.shown / "benchmarks" / "cases" / "knows2-order-sync.md").read_text()
+        self.assertIn(f"- {controlled}: `none` 0.12, `raw` 1.00, `ormaos` 1.00, `ormaos-values` 1.00", case)
+        self.assertIn(f"- {earlier}: `none` 0.38, `raw` 1.00, `ormaos` 0.92, `ormaos-values` 1.00", case)
+        for section in ("## Run 1 of each arm, side by side", "## What Ormaos data answered", "## Every run"):
+            part = case[case.index(section):]
+            part = part[:part.index("\n## ", 3)]
+            self.assertIn(f"### {controlled}", part, section)
+            self.assertIn(f"### {earlier}", part, section)
+            self.assertLess(part.index(controlled), part.index(earlier), section)
+        overview = (self.shown / "benchmarks.md").read_text()
+        self.assertIn(f"### knows2, {controlled} (the run above)", overview)
+        self.assertIn(f"### knows2, {earlier}", overview)
+        self.assertNotIn("over every run of every agent", overview)
 
     def test_what_a_harness_run_did_is_read_from_its_events(self):
         case = (self.tested / "benchmarks" / "cases" / "knows2-order-sync.md").read_text()
+        self.assertIn("### 2026-11-27, `claude-code / claude-opus-5-5`, controlled: container", case)
         self.assertIn(f"{SMOKE.name}/events/order-sync-ormaos-1.jsonl", case)
         self.assertNotIn(f"{SMOKE.name}/streams/", case)
         run = next(r for r in self.harness_runs() if r.folder == SMOKE)

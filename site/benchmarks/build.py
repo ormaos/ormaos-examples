@@ -58,6 +58,7 @@ import statistics
 import subprocess
 import sys
 import tempfile
+import urllib.parse
 from pathlib import Path
 
 sys.dont_write_bytecode = True
@@ -1684,11 +1685,140 @@ def knows2_runs(runs, shown):
     return Section("runs", "The runs of knows2", [
         P(f"This page, and the headline and the charts of the [overview](/benchmarks/), describe the run of "
           f"{shown.date}: the most recent complete run made in the controlled environment when there is one, "
-          "otherwise the first run. Every run in the table counts on the situation pages."),
+          "otherwise the first run. The situation pages show every run in the table, one results folder at a "
+          "time; no number on these pages adds up the runs of two folders."),
         Table(["Results folder", "Environment", "Agent", "Date", "Runs", "Mean score per arm", ""], rows,
               numbers=False),
         UL([about[e] for e in (CONTROLLED, EARLIER) if any(run.environment == e for run in runs)]),
     ])
+
+
+def canary_refusals(run):
+    """The targets the canary asked the proxy for and expected it to refuse,
+    in the proxy's own form, with how often."""
+    out = {}
+    for line in run.facts["canary"]:
+        m = re.match(r"PASS blocked: (\S+) through the proxy", line)
+        if m:
+            url = urllib.parse.urlsplit(m.group(1))
+            target = (f"{url.hostname}:443" if url.scheme == "https"
+                      else f"{url.scheme}://{url.hostname}{url.path or '/'}")
+            out[target] = out.get(target, 0) + 1
+    return out
+
+
+def proxy_refusals(run):
+    """Every target the proxy refused during the batch, with how often, and
+    how many of those the canary asked for."""
+    refused = {}
+    for entry in jsonl(run.folder / "proxy.jsonl"):
+        if entry.get("allowed") is False:
+            refused[entry["target"]] = refused.get(entry["target"], 0) + 1
+    canary = canary_refusals(run)
+    return [(target, times, min(times, canary.get(target, 0))) for target, times in sorted(refused.items())]
+
+
+def expectation_check(line, run, earlier):
+    """Whether a line of the expectations held, where it is a number: the
+    order of the mean scores, the distance to the earlier run, the wrong
+    answers. (held, how) with held True or False, or None when the line is
+    not a number."""
+    m = re.fullmatch(r"Order of the mean scores: (.+)\.", line)
+    if m:
+        parts = re.split(r"\s*(<=|<)\s*", m.group(1))
+        arms, ops = parts[0::2], parts[1::2]
+        if all(a in run.arms for a in arms):
+            means = {a: run.mean(a) for a in arms}
+            held = all(means[a] < means[b] if op == "<" else means[a] <= means[b]
+                       for a, op, b in zip(arms, ops, arms[1:]))
+            how = (" ".join(f"`{a}` {means[a]:.3f}" + (f" {op}" if op else "")
+                            for a, op in zip(arms, ops + [""]))
+                   + ": the exact means over the runs of each arm, here to 3 decimals.")
+            same = [(a, b) for a, b in zip(arms, arms[1:]) if means[a] == means[b]]
+            if same:
+                how += " Equal: " + "; ".join(f"`{a}` and `{b}`" for a, b in same) + "."
+            near = overlapping({a: run.interval(a) for a in arms})
+            near = [(a, b) for a, b in zip(arms, arms[1:]) if (a, b) in near]
+            if near:
+                how += (" These 95% intervals overlap: " + "; ".join(f"`{a}` and `{b}`" for a, b in near) + "; the "
+                        "order holds for the means, and the intervals do not show it.")
+            return held, how
+    m = re.fullmatch(r"Each mean score within ([\d.]+) of the earlier run\.", line)
+    if m and earlier is not None:
+        limit = float(m.group(1))
+        gaps = {a: abs(run.mean(a) - earlier.mean(a)) for a in run.arms if a in earlier.arms}
+        held = all(round(gap, 9) <= limit for gap in gaps.values())
+        return held, (f"Against the run of {earlier.date}: " + ", ".join(
+            f"`{a}` {run.mean(a):.3f} and {earlier.mean(a):.3f}, {gap:.3f} apart" for a, gap in gaps.items()) + ".")
+    m = re.fullmatch(r"Wrong answers: at most (\d+) per arm\.", line)
+    if m:
+        wrong = {a: run.outcome_counts(a)["wrong"] for a in run.arms}
+        return (all(n <= int(m.group(1)) for n in wrong.values()),
+                "Wrong answers: " + ", ".join(f"`{a}` {n}" for a, n in wrong.items()) + ".")
+    return None, "Not a number: quoted, not judged."
+
+
+def expected_section(run, runs):
+    """The expectations of a run of the harness, verbatim, and for each line
+    whether it held; the runs of knows2 side by side; what the proxy
+    refused."""
+    text = (run.folder / "expectations.md").read_text(encoding="utf-8")
+    earlier = [r for r in runs if not r.controlled and r.folder.name < run.folder.name]
+    earlier = earlier[-1] if earlier else None
+    rows = []
+    for line in text.splitlines():
+        if not line.startswith("- "):
+            continue
+        held, how = expectation_check(line[2:], run, earlier)
+        rows.append([line[2:], {True: "held", False: "did not hold", None: "–"}[held], how])
+    source = HARNESS / run.facts["expectations"]["file"]
+    added = added_in(source)
+    blocks = [
+        P(f"Written before the run: [`{rel(source)}`]({blob(added, source)}), added in commit "
+          f"[`{added[:7]}`]({EXAMPLES}/commit/{added}), sha256 `{run.facts['expectations']['sha256']}` when the run "
+          f"started ({run.facts['started']}); the build stops if the file changed since. The results folder keeps "
+          f"a copy, [`expectations.md`]({blob(run.commit, run.folder / 'expectations.md')}). Verbatim:"),
+        Pre("The expectations", text.rstrip("\n")),
+        P("Each line, and whether it held. Where a line is a number it is computed from the results files; "
+          "where it is not, it is quoted and not judged."),
+        Table(["Expected", "Held", "From the results files"], rows, numbers=False, cls="plain"),
+    ]
+    shown = [run] + [r for r in runs if r is not run and not getattr(r, "test", False)]
+    if len(shown) > 1:
+        heads = ["Arm"]
+        for r in shown:
+            heads += [f"{r.date} · {r.environment.split(':')[0]}: mean (95% interval)", "right / null / wrong"]
+        table = []
+        for arm in run.arms:
+            row = [code(arm)]
+            for r in shown:
+                if arm in r.arms:
+                    low, high = r.interval(arm)
+                    c = r.outcome_counts(arm)
+                    row += [f"{r.mean(arm):.2f} ({low:.2f} to {high:.2f})",
+                            f"{c['right']} / {c['null']} / {c['wrong']}"]
+                else:
+                    row += ["", ""]
+            table.append(row)
+        blocks += [
+            H(3, "The runs of knows2, side by side"),
+            P("Each column is one results folder; nothing in the table adds two of them up. "
+              + "; ".join(f"{r.date}: {r.environment}, {joined(code(a) for a in r.agents)}, "
+                          f"{len(r.of(r.arms[0]))} runs per arm" for r in shown) + "."),
+            Table(heads, table, numbers=False),
+        ]
+    refused = proxy_refusals(run)
+    canary_only = all(times == from_canary for _, times, from_canary in refused)
+    blocks += [
+        H(3, "What the proxy refused during the batch"),
+        P("Every target the proxy refused, from the canary before the first run to the end of the last run, "
+          f"from [`proxy.jsonl`]({blob(run.commit, run.folder / 'proxy.jsonl')}). "
+          + ("Every refusal was one the canary asked for: no run asked the proxy for a host it refused."
+             if canary_only else "Some refusals were not the canary's: a run asked the proxy for a host it refused.")),
+        Table(["Target", "Refused", "Of which the canary's"],
+              [[code(t), str(n), str(c)] for t, n, c in refused] or [["none", "0", "0"]]),
+    ]
+    return Section("expected", "What was expected before the run", blocks)
 
 
 def knows2_page(run, h, frame, runs):
@@ -1714,6 +1844,7 @@ def knows2_page(run, h, frame, runs):
         Facts([(f"{run.mean(a):.2f}", f"`{a}`, mean score, 95% interval "
                 f"{run.interval(a)[0]:.2f} to {run.interval(a)[1]:.2f}") for a in run.arms]),
         Toc([("method", "Method"), ("results", "Results")]
+            + ([("expected", "What was expected before the run")] if run.controlled else [])
             + [(n, KINDS[n]["heading"]) for n in run.names]
             + [("null-reasons", "What the agents said when they could not answer"), ("limits", "Limits"),
                ("runs", "The runs of knows2"), ("this-run", "This run")]),
@@ -1831,11 +1962,33 @@ def knows2_page(run, h, frame, runs):
         Table(["Task", "`raw` (bytes)", "`ormaos` (bytes)", "`ormaos-values` (bytes)"],
               [[n, f"{v['raw']:,}", f"{v['ormaos']:,}", f"{v['ormaos-values']:,}"] for n, v in sizes]))
 
+    pairs = overlapping({a: run.interval(a) for a in run.arms})
+    bench_run = h.base.bench_run
+    spend = []
+    for a in run.arms:
+        costs = [r["cost_usd"] for r in run.of(a) if r.get("cost_usd") is not None]
+        spend.append([code(a), f"{run.median(a, 'tokens'):,.0f}",
+                      f"{bench_run.median([r['tool_calls'] for r in run.of(a)]):g}",
+                      f"${sum(costs):.2f}" if costs else "–",
+                      f"${statistics.fmean(costs):.3f}" if costs else "–"])
+    base_tokens = {a: run.median(a, "tokens") for a in run.arms}
+    more = [a for a in run.arms if a.startswith("ormaos")]
+    plain = [a for a in run.arms if not a.startswith("ormaos")]
+    tokens_line = ("Median tokens per run of " + joined(f"`{a}`" for a in more) + ", as a multiple of "
+                   + joined(f"`{b}`" for b in plain) + ": "
+                   + "; ".join(f"`{a}` " + ", ".join(f"{base_tokens[a] / base_tokens[b]:.1f}x `{b}`" for b in plain)
+                               for a in more) + ".") if more and plain else ""
     sections.append(Section("results", "Results", [
         P("The score of a run is the share of the task's questions its `answers.json` got right. The interval "
           f"is a 95% bootstrap interval of the mean over the runs of the arm ({h.base.RESAMPLES:,} resamples), "
           "computed with the runner's own function."),
         score_chart("score", run, "knows2"),
+        P(overlap_sentence(pairs, run.arms) + " Where two intervals overlap, these runs do not show that one of "
+          "the two arms scores above the other."),
+        H(3, "Tokens and cost per arm"),
+        P(f"Tokens are input, output and cache tokens added up, and the cost is in US dollars, both as {cli} "
+          f"reports them. {tokens_line}"),
+        Table(["Arm", "Median tokens", "Median tool calls", "Cost, all runs", "Mean cost per run"], spend),
         rnw,
         P("Every wrong answer:" if wrong else "Every wrong answer: none."),
     ] + ([wrong_block] if wrong else []) + [
@@ -1852,6 +2005,9 @@ def knows2_page(run, h, frame, runs):
         P(cost_line),
         size_chart,
     ]))
+
+    if run.controlled:
+        sections.append(expected_section(run, runs))
 
     # One section per task
     for name in run.names:
@@ -2015,6 +2171,8 @@ FIX_MORNING = {
 
 
 class FixRun:
+    environment = "bubblewrap, network open"  # fix has no run of the harness
+
     def __init__(self, folder, h):
         self.folder, self.h = folder, h
         self.records = jsonl(folder / "results.jsonl")
@@ -2461,58 +2619,74 @@ def used_lines(output, answers, most=15):
 # ---------------------------------------------------------------- situations
 
 
+class Group:
+    """The runs of one agent in one results folder: what every number of a
+    situation is computed over. Two groups are never added up."""
+
+    def __init__(self, run, agent):
+        self.run, self.agent = run, agent
+        self.label = f"{run.date}, {code(agent)}, {run.environment}"
+        self.short = f"{run.date} · {run.environment.split(':')[0]}"
+
+    def __eq__(self, other):
+        return isinstance(other, Group) and (self.run, self.agent) == (other.run, other.agent)
+
+    def __hash__(self):
+        return hash((id(self.run), self.agent))
+
+    def holds(self, r):
+        return r["_run"] is self.run and r["_agent"] == self.agent
+
+
+def groups_of(records, first=None):
+    """The groups of the records, the results folder `first` first, then in
+    the order of the folders' names."""
+    out = []
+    for r in sorted(records, key=lambda r: (r["_run"] is not first, r["_run"].folder.name)):
+        group = Group(r["_run"], r["_agent"])
+        if group not in out:
+            out.append(group)
+    return out
+
+
 class Situation:
     """One execution an agent was asked about (knows2) or one program it was
-    asked to change (fix), with every run of every agent."""
+    asked to change (fix), with every run of every agent, kept apart by
+    results folder and agent (`groups`)."""
 
-    def __init__(self, bench, name, records, arms, page_url):
+    def __init__(self, bench, name, records, arms, page_url, first=None):
         self.bench, self.name, self.records, self.arms = bench, name, records, arms
         self.id = f"{bench}-{name}"
         self.path = f"cases/{self.id}/"
         self.url = f"/benchmarks/{self.path}"
         self.page_url = page_url
-        self.agents = []
-        for r in records:
-            if r["_agent"] not in self.agents:
-                self.agents.append(r["_agent"])
+        self.groups = groups_of(records, first)
 
     def score(self, r):
         return float(r["fixed"]) if self.bench == "fix" else r["score"]
 
-    def of(self, arm=None, agent=None):
-        rows = [r for r in self.records if arm in (None, r["arm"]) and agent in (None, r["_agent"])]
+    def arms_of(self, group):
+        return [a for a in self.arms if self.of(a, group)]
+
+    def of(self, arm=None, group=None):
+        rows = [r for r in self.records if arm in (None, r["arm"]) and (group is None or group.holds(r))]
         return sorted(rows, key=lambda r: (r["_run"].folder.name, r["run"]))
 
-    def mean(self, arm):
-        return statistics.fmean(self.score(r) for r in self.of(arm))
+    def mean(self, arm, group):
+        return statistics.fmean(self.score(r) for r in self.of(arm, group))
 
-    def change(self):
-        """The mean of ormaos minus the mean of none."""
-        return self.mean("ormaos") - self.mean("none")
+    def change(self, group):
+        """The mean of ormaos minus the mean of none, in one group."""
+        return self.mean("ormaos", group) - self.mean("none", group)
 
-    def value_text(self, arm):
+    def value_text(self, arm, group):
         if self.bench == "fix":
-            return f"{sum(1 for r in self.of(arm) if r['fixed'])}/{len(self.of(arm))}"
-        return f"{self.mean(arm):.2f}"
+            return f"{sum(1 for r in self.of(arm, group) if r['fixed'])}/{len(self.of(arm, group))}"
+        return f"{self.mean(arm, group):.2f}"
 
-    def run_label(self, r):
-        """The number of a run; with more than one results folder, also the
-        folder's date (its name, when two have the same date) and, in
-        knows2, the first word of its environment."""
-        runs = {id(x["_run"]): x["_run"] for x in self.of(agent=r["_agent"])}
-        if len(runs) == 1:
-            return str(r["run"])
-        run = r["_run"]
-        when = run.folder.name if sum(1 for x in runs.values() if x.date == run.date) > 1 else run.date
-        where = f", {run.environment.split(':')[0]}" if self.bench == "knows2" else ""
-        return f"{when}{where} · {r['run']}"
-
-    def first_run(self, arm, agent):
-        """Run 1 of the arm, in the results folder the pages describe when
-        the agent has runs there, otherwise in the agent's first folder."""
-        rows = self.of(arm, agent)
-        folder = self.run if any(r["_run"] is self.run for r in rows) else rows[0]["_run"]
-        rows = [r for r in rows if r["_run"] is folder]
+    def first_run(self, arm, group):
+        """Run 1 of the arm in the group."""
+        rows = self.of(arm, group)
         return next((r for r in rows if r["run"] == 1), rows[0])
 
 
@@ -2577,26 +2751,28 @@ class SideBySide(Block):
 
 
 class Bars(Block):
-    """The situations as rows: a link and a line, small bars per arm, and
-    the change from none to ormaos."""
+    """The situations as rows, the runs of one group (results folder and
+    agent) each: a link and a line, small bars per arm, and the change from
+    none to ormaos."""
 
-    def __init__(self, situations, arms):
-        self.situations, self.arms = situations, arms
+    def __init__(self, situations, arms, group):
+        self.situations, self.arms, self.group = situations, arms, group
 
     def svg(self, sit):
         row, width, bar = 15, 200, 130
-        arms = [a for a in self.arms if a in sit.arms]
+        g = self.group
+        arms = [a for a in self.arms if a in sit.arms_of(g)]
         out = [f'<svg class="mini" viewBox="0 0 {width} {row * len(arms)}" width="{width}" '
                f'height="{row * len(arms)}" role="img" aria-label="'
-               + esc(", ".join(f"{a} {sit.value_text(a)}" for a in arms)) + '">']
+               + esc(", ".join(f"{a} {sit.value_text(a, g)}" for a in arms)) + '">']
         for i, arm in enumerate(arms):
             y = i * row
-            share = sit.mean(arm)
+            share = sit.mean(arm, g)
             out.append(f'<rect class="track" x="0" y="{y + 3}" width="{bar}" height="8" rx="1.5"/>')
             if share:
                 out.append(f'<rect class="s{SLOT[arm]}" x="0" y="{y + 3}" width="{fmt(max(bar * share, 1.5))}" '
-                           f'height="8" rx="1.5"><title>{esc(arm)}: {esc(sit.value_text(arm))}</title></rect>')
-            out.append(f'<text x="{bar + 8}" y="{y + 11}">{esc(sit.value_text(arm))}</text>')
+                           f'height="8" rx="1.5"><title>{esc(arm)}: {esc(sit.value_text(arm, g))}</title></rect>')
+            out.append(f'<text x="{bar + 8}" y="{y + 11}">{esc(sit.value_text(arm, g))}</text>')
         out.append("</svg>")
         return "".join(out)
 
@@ -2609,7 +2785,7 @@ class Bars(Block):
         for sit in self.situations:
             out.append(f'<tr><td><a href="{esc(sit.url)}"><b>{esc(sit.name)}</b></a> '
                        f'<span class="bench">{esc(sit.bench)}</span><br><span class="line">{inline(sit.line)}</span>'
-                       f'</td><td>{self.svg(sit)}</td><td class="num">{sit.change():+.2f}</td></tr>')
+                       f'</td><td>{self.svg(sit)}</td><td class="num">{sit.change(self.group):+.2f}</td></tr>')
         out += ["</tbody>", "</table>", "</div>"]
         return "\n".join(out)
 
@@ -2617,16 +2793,10 @@ class Bars(Block):
         head = "| Situation | " + " | ".join(f"`{a}`" for a in self.arms) + " | `ormaos` − `none` |"
         lines = [head, "|---|" + "---:|" * (len(self.arms) + 1)]
         for sit in self.situations:
-            cells = [sit.value_text(a) if a in sit.arms else "" for a in self.arms]
+            cells = [sit.value_text(a, self.group) if a in sit.arms_of(self.group) else "" for a in self.arms]
             lines.append(f"| [{sit.name}]({SITE}{sit.url}) ({sit.bench}): {to_markdown_inline(sit.line)} | "
-                         + " | ".join(cells) + f" | {sit.change():+.2f} |")
+                         + " | ".join(cells) + f" | {sit.change(self.group):+.2f} |")
         return "\n".join(lines)
-
-
-def runs_note(sit):
-    agents = sit.agents
-    return ("Agent: " + code(agents[0]) + "." if len(agents) == 1 else
-            "Agents: " + joined(code(a) for a in agents) + ".")
 
 
 def knows2_situations(runs, h, shown):
@@ -2635,7 +2805,7 @@ def knows2_situations(runs, h, shown):
     for name in names:
         records = [r for run in runs for r in run.of(name=name)]
         arms = [a for a in ARMS4 if any(r["arm"] == a for r in records)]
-        sit = Situation("knows2", name, records, arms, f"/benchmarks/knows2/#{name}")
+        sit = Situation("knows2", name, records, arms, f"/benchmarks/knows2/#{name}", first=shown)
         run = next(run for run in [shown, *runs] if name in run.names)
         sit.run, sit.kind = run, KINDS[name]
         sit.line = sit.kind["line"]
@@ -2657,7 +2827,7 @@ def fix_situations(runs, h):
     for name, job, differs in first.cases:
         records = [r for run in runs for r in run.of(case=name)]
         arms = [a for a in ARMS4 if any(r["arm"] == a for r in records)]
-        sit = Situation("fix", name, records, arms, "/benchmarks/fix/")
+        sit = Situation("fix", name, records, arms, "/benchmarks/fix/", first=first)
         sit.run, sit.job, sit.differs = first, job, differs
         sit.line = f"a scheduled job that {job}; where it behaved otherwise than its README: {differs}"
         story = h.benchlib.scenario(name)
@@ -2743,7 +2913,7 @@ def column(sit, r):
                 what = f"all {_n(len(rows), 'line')}" if len(rows) <= 15 else f"the first 15 of {len(rows)} lines"
         shown.append((shown_command(step, cwd), output, what, stream_url(r, step.line)))
     tokens = r["_run"].h.base.bench_run.tokens_of(r)
-    head = [f"Run {sit.run_label(r)}, [stream]({stream_url(r)})",
+    head = [f"Run {r['run']}, [stream]({stream_url(r)})",
             f"{_n(r['tool_calls'], 'tool call')}, {tokens:,} tokens, {r['wall_seconds']:.0f} s"
             + (", out of time" if r.get("timed_out") else "")]
     end = []
@@ -2774,39 +2944,37 @@ def column(sit, r):
     return {"arm": r["arm"], "head": head, "steps": shown, "end": end}
 
 
-def every_run_table(sit):
-    many = len(sit.agents) > 1
+def every_run_table(sit, group):
     knows = sit.bench == "knows2"
-    headers = (["Agent"] if many else []) + ["Arm", "Run"] + (
+    headers = ["Arm", "Run"] + (
         ["Score", "Right", "Null", "Wrong", "`ormaos` verbs before answers.json"] if knows else ["Check", "Last line"]
     ) + ["Tool calls", "Tokens", "Wall time", "Stream"]
     rows = []
-    for agent in sit.agents:
-        for arm in sit.arms:
-            for r in sit.of(arm, agent):
-                tokens = r["_run"].h.base.bench_run.tokens_of(r)
-                if knows:
-                    kinds = [outcome_of(r, q["id"])[0] for q in sit.questions]
-                    middle = [f"{r['score']:.2f}", str(kinds.count("right")), str(kinds.count("null")),
-                              str(kinds.count("wrong")), ", ".join(r.get("_verbs", [])) or "–"]
-                else:
-                    middle = ["passed" if r["fixed"] else "did not pass", code(r["check"][-1])]
-                rows.append(([code(agent)] if many else []) + [code(arm), sit.run_label(r)] + middle
-                            + [str(r["tool_calls"]), f"{tokens:,}", f"{r['wall_seconds']:.0f} s",
-                               f"[stream]({stream_url(r)})"])
+    for arm in sit.arms_of(group):
+        for r in sit.of(arm, group):
+            tokens = r["_run"].h.base.bench_run.tokens_of(r)
+            if knows:
+                kinds = [outcome_of(r, q["id"])[0] for q in sit.questions]
+                middle = [f"{r['score']:.2f}", str(kinds.count("right")), str(kinds.count("null")),
+                          str(kinds.count("wrong")), ", ".join(r.get("_verbs", [])) or "–"]
+            else:
+                middle = ["passed" if r["fixed"] else "did not pass", code(r["check"][-1])]
+            rows.append([code(arm), str(r["run"])] + middle
+                        + [str(r["tool_calls"]), f"{tokens:,}", f"{r['wall_seconds']:.0f} s",
+                           f"[stream]({stream_url(r)})"])
     return Table(headers, rows, numbers=False, cls="plain runs")
 
 
-def verbs_by_question(sit):
-    """For each question, the verbs the runs that answered it had run before
-    answers.json, with how many of those runs ran each, and how many runs
-    got it right, per Ormaos arm."""
-    arms = [a for a in sit.arms if a.startswith("ormaos")]
+def verbs_by_question(sit, group):
+    """For each question, the verbs the runs of one group that answered it
+    had run before answers.json, with how many of those runs ran each, and
+    how many runs got it right, per Ormaos arm."""
+    arms = [a for a in sit.arms_of(group) if a.startswith("ormaos")]
     rows = []
     for q in sit.questions:
         row = [q["id"]]
         for arm in arms:
-            runs = sit.of(arm)
+            runs = sit.of(arm, group)
             answered = [r for r in runs if outcome_of(r, q["id"])[0] != "null"]
             count = {}
             for r in answered:
@@ -2833,9 +3001,11 @@ def case_page(sit, h):
            f"A scheduled job. By its README, it {sit.job}.")
           + f" Source: [`{rel(sit.source)}`]({tree(sit.run.commit, sit.source)}).", "lead"),
         P(SENTENCE, "sentence"),
-        P(("Mean score over every run: " if sit.bench == "knows2" else "Passed the check, first attempts: ")
-          + ", ".join(f"`{a}` {sit.value_text(a)}" for a in sit.arms)
-          + f" ({_n(len(sit.of(sit.arms[0])), 'run')} per arm). " + runs_note(sit)),
+        P(("Mean score" if sit.bench == "knows2" else "Passed the check, first attempts")
+          + (", per results folder and agent; no number here adds up two of them:" if len(sit.groups) > 1 else
+             ":")),
+        UL([f"{g.label}: " + ", ".join(f"`{a}` {sit.value_text(a, g)}" for a in sit.arms_of(g))
+            + f" ({_n(len(sit.of(sit.arms_of(g)[0], g)), 'run')} per arm)" for g in sit.groups]),
         Toc([("happened", "What happened"), ("given", "What the agent was given"),
              ("side-by-side", "Run 1 of each arm, side by side")]
             + ([("answered", "What Ormaos data answered")] if sit.bench == "knows2" else [])
@@ -2865,35 +3035,40 @@ def case_page(sit, h):
                                  "output in the stream." if sit.bench == "knows2" else
                                  "; under each `ormaos` command, the first 15 lines of its output, with a link "
                                  "to the full output in the stream."))]
-    for agent in sit.agents:
-        if len(sit.agents) > 1:
-            sbs.append(H(3, code(agent)))
-        sbs.append(SideBySide([column(sit, sit.first_run(a, agent)) for a in sit.arms]))
+    many = len(sit.groups) > 1
+    for g in sit.groups:
+        if many:
+            sbs.append(H(3, g.label))
+        sbs.append(SideBySide([column(sit, sit.first_run(a, g)) for a in sit.arms_of(g)]))
     sections = [first, Section("happened", "What happened", happened),
                 Section("given", "What the agent was given", given),
                 Section("side-by-side", "Run 1 of each arm, side by side", sbs)]
     if sit.bench == "knows2":
-        sections.append(Section("answered", "What Ormaos data answered", [P(VERBS_RULE), verbs_by_question(sit)]))
-    sections.append(Section("runs", "Every run", [
-        P(("Every run of every arm" if sit.bench == "knows2" else "The first attempt of every run of every arm")
-          + (", of every agent." if len(sit.agents) > 1 else ".")), every_run_table(sit)]))
-    folders = sorted({r["_run"].folder for r in sit.records})
+        answered = [P(VERBS_RULE)]
+        for g in sit.groups:
+            answered += ([H(3, g.label)] if many else []) + [verbs_by_question(sit, g)]
+        sections.append(Section("answered", "What Ormaos data answered", answered))
+    every = [P(("Every run of every arm" if sit.bench == "knows2" else "The first attempt of every run of every arm")
+               + (", one table per results folder and agent." if many else "."))]
+    for g in sit.groups:
+        every += ([H(3, g.label)] if many else []) + [every_run_table(sit, g)]
+    sections.append(Section("runs", "Every run", every))
     sections.append(Section("files", "The results files", [UL(
         [f"The benchmark: [{sit.bench}]({sit.page_url})"]
-        + [f"Results folder: [`{rel(run.folder)}`]({tree(run.commit, run.folder)})"
-           + (f", {run.environment}" if sit.bench == "knows2" else "")
-           for run in (next(r["_run"] for r in sit.records if r["_run"].folder == f) for f in folders)])]))
+        + [f"Results folder: [`{rel(g.run.folder)}`]({tree(g.run.commit, g.run.folder)}): {g.label}"
+           for g in sit.groups])]))
     return f"{sit.name}, in {sit.bench}", sections
 
 
-def verb_table(sits):
-    """Over every knows2 situation: per verb and Ormaos arm, the runs that
-    ran it, the answers they gave after it, and how many were right."""
-    arms = [a for a in ARMS4 if a.startswith("ormaos") and any(a in s.arms for s in sits)]
+def verb_table(sits, group):
+    """Over every knows2 situation, the runs of one group: per verb and
+    Ormaos arm, the runs that ran it, the answers they gave after it, and
+    how many were right."""
+    arms = [a for a in ARMS4 if a.startswith("ormaos") and any(a in s.arms_of(group) for s in sits)]
     stats = {}
     for sit in sits:
         for arm in arms:
-            for r in sit.of(arm):
+            for r in sit.of(arm, group):
                 for verb in r.get("_verbs", []):
                     s = stats.setdefault(verb, {a: [0, 0, 0] for a in arms})[arm]
                     s[0] += 1
@@ -2904,7 +3079,7 @@ def verb_table(sits):
     order = sorted(stats, key=lambda v: (-sum(stats[v][a][1] for a in arms), v))
     headers = ["Verb"] + [h for a in arms for h in (f"`{a}`: runs", "answered after it", "right")]
     rows = [[f"`{v}`"] + [str(x) for a in arms for x in stats[v][a]] for v in order]
-    runs = {a: sum(len(s.of(a)) for s in sits) for a in arms}
+    runs = {a: sum(len(s.of(a, group)) for s in sits) for a in arms}
     return Table(headers, rows), runs
 
 
@@ -2924,6 +3099,11 @@ def index_page(k2, k2s, k1s, fixes, over, sits):
                 f"Wrong answers: {o['wrong']} and {n['wrong']}.")
     from_run = (f"From the knows2 run of {k2.date}, in the environment \"{k2.environment}\", agent "
                 + joined(code(a) for a in k2.agents) + f": [`{rel(k2.folder)}`]({tree(k2.commit, k2.folder)}).")
+    others = [run for run in k2s if run is not k2]
+    if others:
+        from_run += (" " + ("The other runs of knows2 are" if len(others) > 1 else "The other run of knows2 is")
+                     + " on [its page](/benchmarks/knows2/#runs), each on its own: "
+                     + joined(f"{run.date}, in the environment \"{run.environment}\"" for run in others) + ".")
 
     def short(title):
         return title.split(": ", 1)[1][:1].upper() + title.split(": ", 1)[1][1:]
@@ -2955,12 +3135,28 @@ def index_page(k2, k2s, k1s, fixes, over, sits):
           ratio_chart("c-overhead", over, width=500, left=250)],
          "Every capability set, and the machine", "/benchmarks/overhead/"),
     ]
-    # Where Ormaos changed the result: every situation, by ormaos minus none
-    ranked = sorted(sits, key=lambda x: (-x.change(), x.bench, x.name))
+    # Where Ormaos changed the result: every situation, by ormaos minus none,
+    # one table per results folder and agent, the run the overview
+    # describes first.
     k2_sits = [x for x in sits if x.bench == "knows2"]
     fix_sits = [x for x in sits if x.bench == "fix"]
-    changed = [x for x in sits if x.change()]
-    verbs, verb_runs = verb_table(k2_sits)
+    k2_groups = groups_of([r for x in k2_sits for r in x.records], k2)
+    fix_groups = groups_of([r for x in fix_sits for r in x.records], fixes[0])
+    tables = []
+    for bench, group in [("knows2", g) for g in k2_groups] + [("fix", g) for g in fix_groups]:
+        these = [x for x in (k2_sits if bench == "knows2" else fix_sits) if x.of(group=group)]
+        ranked = sorted(these, key=lambda x: (-x.change(group), x.name))
+        changed = [x for x in these if x.change(group)]
+        tables += [H(3, f"{bench}, {group.label}" + (" (the run above)" if group.run is k2 else "")),
+                   P(f"{_n(len(these), 'situation')}; `ormaos` and `none` differ in {len(changed)}."),
+                   Bars(ranked, ARMS4, group)]
+    answered = []
+    for group in k2_groups:
+        verbs, verb_runs = verb_table(k2_sits, group)
+        answered += [H(3, f"knows2, {group.label}" + (" (the run above)" if group.run is k2 else "")),
+                     P("Over the " + joined(f"{verb_runs[a]} runs of `{a}`" for a in verb_runs) + "."),
+                     verbs]
+    pairs = overlapping({a: k2.interval(a) for a in k2.arms})
 
     # Not measured yet
     claude_models = {r["model"] for runs in (k2s, k1s, fixes) for run in runs for r in run.records
@@ -2983,20 +3179,20 @@ def index_page(k2, k2s, k1s, fixes, over, sits):
             Pair([score_chart("o-score", k2, "knows2", width=540, compact=True, left=110, right=170),
                   rnw_chart("o-rnw", k2, width=540, left=110, right=120)]),
             P(from_run, "caption"),
+            P(overlap_sentence(pairs, k2.arms) + " Where two intervals overlap, these runs do not show that one "
+              "of the two arms scores above the other."),
         ], first=True),
         Section("situations", "Where Ormaos changed the result and where it did not", [
-            P(f"All {len(sits)} situations: the {len(k2_sits)} executions of knows2, with the mean score of their "
-              f"runs (0 to 1), and the {len(fix_sits)} programs of fix, with the first attempts that passed the "
-              "check. Sorted by the mean of `ormaos` minus the mean of `none`, over every run of every agent; "
-              f"in {len(changed)} of them the two differ. Each name links to the situation's page: what "
-              "happened, what the agent was given, and run 1 of each arm side by side."),
-            Bars(ranked, ARMS4),
-        ]),
+            P(f"The {len(k2_sits)} executions of knows2, with the mean score of their runs (0 to 1), and the "
+              f"{len(fix_sits)} programs of fix, with the first attempts that passed the check: one table per "
+              "results folder and agent, each labelled with its environment, and none adds up the runs of two. "
+              "In each table the situations are sorted by the mean of `ormaos` minus the mean of `none`. Each "
+              "name links to the situation's page: what happened, what the agent was given, and run 1 of each "
+              "arm side by side."),
+        ] + tables),
         Section("answered", "What Ormaos data answered", [
-            P(VERBS_RULE + " Over the " + joined(f"{verb_runs[a]} runs of `{a}`" for a in verb_runs)
-              + " in knows2; each situation's page has it per question."),
-            verbs,
-        ]),
+            P(VERBS_RULE + " One table per results folder of knows2; each situation's page has it per question."),
+        ] + answered),
         Section("benchmarks", "The benchmarks", [Cards(cards, grid=True)]),
         Section("not-measured", "Not measured yet", [UL([
             "Other agents and models: " + joined(others) + ". Every run on these pages is "
@@ -3027,7 +3223,7 @@ def index_page(k2, k2s, k1s, fixes, over, sits):
         Section("files", "The pages as files", [UL([
             "Each page is also Markdown, at its address with `.md` in place of the last slash: "
             "[`/benchmarks.md`](/benchmarks.md), [`/benchmarks/knows2.md`](/benchmarks/knows2.md), "
-            f"[`/benchmarks/{ranked[0].path.rstrip('/')}.md`]({md_url(ranked[0].path)}), and so on.",
+            f"[`/benchmarks/{sits[0].path.rstrip('/')}.md`]({md_url(sits[0].path)}), and so on.",
             "[`/benchmarks/llms.txt`](/benchmarks/llms.txt) lists them for agents.",
             f"The pages are written by [`site/benchmarks/build.py`]({EXAMPLES}/blob/main/site/benchmarks/build.py) "
             "from the results files.",
@@ -3053,7 +3249,7 @@ def other_folders(runs, bench):
                      run.date, str(count), per_arm])
     return [Section("other-folders", "Other results folders", [
         P(f"This page describes the first results folder of {bench}, `{rel(runs[0].folder)}`. These are the "
-          "others; every one counts on the situation pages and the overview."),
+          "others; the situation pages and the overview show each of them on its own."),
         Table(["Results folder", "Agent", "Date", "Runs", "Per arm"], rows, numbers=False),
     ])]
 

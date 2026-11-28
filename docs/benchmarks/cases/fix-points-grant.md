@@ -6,7 +6,9 @@ A scheduled job. By its README, it grants loyalty points for purchases. Source: 
 
 Ormaos records and shows what happened inside your Python execution — the runtime context for your agent and for you.
 
-Passed the check, first attempts: `none` 3/3, `raw` 3/3, `ormaos` 3/3 (3 runs per arm). Agent: `claude-code / claude-opus-5-5`.
+Passed the check, first attempts:
+
+- 2026-11-26, `claude-code / claude-opus-5-5`, bubblewrap, network open: `none` 3/3, `raw` 3/3, `ormaos` 3/3 (3 runs per arm)
 
 ## What happened
 
@@ -339,4 +341,4 @@ The first attempt of every run of every arm.
 ## The results files
 
 - The benchmark: [fix](https://ormaos.com/benchmarks/fix/)
-- Results folder: [`agent-bench/results/20261126-220703`](https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703)
+- Results folder: [`agent-bench/results/20261126-220703`](https://github.com/ormaos/ormaos-examples/tree/88bec53c78471c6086564b4de8a00084c4dc4ae6/agent-bench/results/20261126-220703): 2026-11-26, `claude-code / claude-opus-5-5`, bubblewrap, network open
