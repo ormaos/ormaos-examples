@@ -30,6 +30,7 @@ class ClaudeCode(Adapter):
         "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",  # no telemetry, no error reports, no update check
         "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1",
     }
+    renew = "claude -p ok"
     CREDENTIAL = ".claude/.credentials.json"
     # Of the login, what the command line needs to call the model. Not the
     # refresh token: with it an agent could get new tokens after the run,
@@ -50,7 +51,8 @@ class ClaudeCode(Adapter):
         return [login[key] for key in ("accessToken", "refreshToken") if login.get(key)]
 
     def credential_seconds(self, source_home):
-        expires = self._login(source_home).get("expiresAt")
+        copy = json.loads(self.home_files(source_home)[self.CREDENTIAL])
+        expires = copy["claudeAiOauth"].get("expiresAt")
         return None if expires is None else expires / 1000 - time.time()
 
     def argv(self, text, model, effort):

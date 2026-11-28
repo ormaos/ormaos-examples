@@ -2,10 +2,13 @@
 the same conditions.
 
     python3 harness.py run specs/smoke.toml     # canary, then every run of the spec, then the report
+    python3 harness.py run specs/smoke.toml --continue results/<benchmark>/<agent>-<model>/<time>
+                                                # a batch that stopped: only the runs that never started
     python3 harness.py canary claude-code       # only the canary of an agent
     python3 harness.py images claude-code       # build the images again
     python3 harness.py report results/<benchmark>/<agent>-<model>/<time>
-    python3 harness.py check                    # every results folder: expectations unchanged, events valid
+    python3 harness.py check                    # every results folder: expectations unchanged, events valid,
+                                                # report.md what they say; writes nothing
 
 See README.md.
 """
@@ -37,6 +40,8 @@ def main(argv=None):
     run = commands.add_parser("run", help="run a spec")
     run.add_argument("spec", type=Path)
     run.add_argument("--jobs", type=int, default=1, help="runs at the same time (default 1)")
+    run.add_argument("--continue", dest="resume", type=Path, metavar="FOLDER",
+                     help="the results folder of a batch that stopped: start only the runs that never started")
     for name in ("canary", "images"):
         commands.add_parser(name).add_argument("agent")
     commands.add_parser("report").add_argument("folder", type=Path)
@@ -44,7 +49,8 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.command == "run":
-            runner.Batch(args.spec, runtime=need_runtime(), jobs=args.jobs).run()
+            runner.Batch(args.spec, runtime=need_runtime(), jobs=args.jobs, resume=bool(args.resume),
+                         out=args.resume.resolve() if args.resume else None).run()
         elif args.command == "images":
             base, agent = need_runtime().images(adapters.load(args.agent), rebuild=True)
             print(json.dumps({"base": base, "agent": agent}, indent=2))
@@ -55,7 +61,7 @@ def main(argv=None):
         elif args.command == "check":
             folders = sorted(path.parent for path in (HARNESS / "results").glob("*/*/*/run.json"))
             for folder in folders:
-                report.write(folder)
+                report.check(folder)
                 print(f"ok  {folder.relative_to(HARNESS)}")
             print(f"{len(folders)} results folders")
     except (Refused, runtimes.RuntimeError_, ValueError) as error:

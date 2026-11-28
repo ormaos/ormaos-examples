@@ -119,8 +119,7 @@ class Committed(unittest.TestCase):
         """Fails when the expectations of a run were changed after it, when
         a planned run has no result, or when its events do not fit."""
         for run in sorted((HARNESS / "results").glob("*/*/*/run.json")):
-            before = (run.parent / "report.md").read_text()
-            self.assertEqual(report.write(run.parent), before, run.parent)
+            report.check(run.parent)
 
 
 if __name__ == "__main__":

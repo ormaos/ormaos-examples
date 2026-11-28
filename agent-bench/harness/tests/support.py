@@ -59,6 +59,12 @@ class FakeAdapter(adapters.Adapter):
     efforts = ("high",)
     env = {}
     containerfile = HARNESS / "image" / "Containerfile"
+    renew = "zz login"
+    lefts = ()  # what credential_seconds answers, call by call; after them, None
+
+    def credential_seconds(self, source_home):
+        self.lefts = list(self.lefts)
+        return self.lefts.pop(0) if self.lefts else None
 
     def home_files(self, source_home):
         return {".zz/credential": SECRET.encode()}

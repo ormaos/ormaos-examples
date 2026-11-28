@@ -10,6 +10,7 @@ A spec is ``specs/<name>.toml``:
     effort = "default"                # or a level the agent's command line knows
     n = 1                             # runs per task and arm
     time_limit_seconds = 900          # for one run
+    test = true                       # left out, or true: a test of the harness, never shown as a result
 
 A batch does not start unless ``expectations/<name>.md`` exists: what is
 expected of the run, written before it. Its sha256 is stored with the
@@ -25,7 +26,7 @@ from pathlib import Path
 HARNESS = Path(__file__).resolve().parents[1]
 REQUIRED = {"benchmark": str, "arms": list, "agent": str, "model": str, "effort": str,
             "n": int, "time_limit_seconds": int}
-OPTIONAL = {"tasks": list}
+OPTIONAL = {"tasks": list, "test": bool}
 
 
 class Refused(Exception):
@@ -44,6 +45,9 @@ def load(path):
     for key, kind in REQUIRED.items():
         if not isinstance(spec.get(key), kind) or isinstance(spec.get(key), bool):
             raise Refused(f"{path.name}: {key} is missing or not {kind.__name__}")
+    for key, kind in OPTIONAL.items():
+        if key in spec and not isinstance(spec[key], kind):
+            raise Refused(f"{path.name}: {key} is not {kind.__name__}")
     unknown = set(spec) - set(REQUIRED) - set(OPTIONAL)
     if unknown:
         raise Refused(f"{path.name}: unknown keys: {', '.join(sorted(unknown))}")

@@ -49,6 +49,12 @@ AGENT_FOLDERS = {
 HOME_INSIDE = "/home/agent"
 REDACTED = "[the credential, removed by the harness]"
 HELLO = "Reply with the one word: ready"
+# A run does not start with a credential that expires sooner than this: the
+# batch stops before it, and is continued after the credential is renewed.
+MARGIN = 20 * 60
+TEST = "TEST.md"
+TEST_TEXT = ("# A test of the harness\n\nThis folder is a test of the harness (its spec says `test = true`), not a "
+             "result. The benchmark pages do not show it, and nothing may be concluded from its scores.\n")
 
 
 def agent_config(folder):
@@ -96,8 +102,11 @@ def plan_of(spec, benchmark):
 
 class Batch:
     def __init__(self, spec_path, *, runtime=None, root=HARNESS, source_home=None, out=None, jobs=1,
-                 say=print, grader=grading.blind):
+                 say=print, grader=grading.blind, resume=False):
         self.root = Path(root)
+        self.spec_path, self.resume = Path(spec_path), resume
+        if resume and out is None:
+            raise Refused("to continue a batch, name its results folder")
         self.spec = specs.load(spec_path)
         self.spec_sha = specs.sha256(spec_path)
         self.expectations = specs.expectations(self.spec["name"], self.root)
@@ -114,6 +123,7 @@ class Batch:
                                           / f"{self.adapter.name}-{self.spec['model']}" / stamp)
         self.network = f"ormaos-harness-{stamp}-{os.getpid()}"
         self.lock = threading.Lock()
+        self.stopped = None
 
     # before the first run
 
@@ -126,11 +136,43 @@ class Batch:
             if found:
                 raise Refused(f"the folder of {name}/{arm} holds agent configuration: {', '.join(found)}")
 
+    def renewal(self):
+        return self.adapter.renew or f"log in to {self.adapter.name} again on this machine"
+
     def check_credential(self):
         left = self.adapter.credential_seconds(self.source_home)
-        if left is not None and left < self.spec["time_limit_seconds"] + 120:
-            raise Refused(f"the credential of {self.adapter.name} is good for {left:.0f} s more, less than one "
-                          "run may take: log in again on this machine, then start the batch")
+        if left is not None and left < MARGIN:
+            raise Refused(f"the credential of {self.adapter.name} expires in {left / 60:.0f} min, and a run does "
+                          f"not start with less than {MARGIN // 60}. Renew it, then start again:\n"
+                          f"    {self.renewal()}")
+
+    def slot_name(self, slot):
+        return "{}-{}-{}".format(*slot)
+
+    def started(self, slot):
+        """Whether a run of this slot ever started: its folder is there."""
+        return (self.out / "work" / self.slot_name(slot)).exists()
+
+    def check_same(self):
+        """Before a batch is continued: it is the same batch."""
+        if not (self.out / "run.json").exists():
+            raise Refused(f"{self.out} has no run.json: there is no batch to continue")
+        facts = specs.verify(self.out, self.root)  # the expectations have not changed
+        if facts["finished"]:
+            raise Refused(f"{self.out} is finished: there is nothing to continue")
+        if facts["spec"] != self.spec or facts["spec_sha256"] != self.spec_sha:
+            raise Refused(f"{self.spec_path.name} is not the spec this batch started with")
+        agent = facts["agent"]
+        if (agent["name"], agent["cli_version"], agent["hosts"], agent["tools"]) != (
+                self.adapter.name, self.adapter.cli_version, list(self.adapter.hosts), self.adapter.tools):
+            raise Refused(f"the adapter of {self.adapter.name} is not the one this batch started with")
+        if json.loads((self.out / "build.json").read_text()) != self.benchmark.manifest():
+            raise Refused(f"the task folders were built again since this batch started: {self.out / 'build.json'} "
+                          "is not their manifest")
+        for name in sorted({name for name, _, _ in self.plan}):
+            if (self.out / "oracle" / f"{name}.json").read_bytes() != Path(self.benchmark.oracle(name)).read_bytes():
+                raise Refused(f"the oracle's answers of {name} are not those this batch started with")
+        return facts
 
     def env(self, proxy):
         return {"HOME": HOME_INSIDE, "LANG": "C.UTF-8", "PATH": "/usr/local/bin:/usr/bin:/bin",
@@ -250,13 +292,17 @@ class Batch:
     def run(self):
         self.check_folders()
         self.check_credential()
-        if (self.out / "results.jsonl").exists() or (self.out / "run.json").exists():
+        if self.resume:
+            self.facts = self.check_same()
+        elif (self.out / "results.jsonl").exists() or (self.out / "run.json").exists():
             raise Refused(f"{self.out} already has results: a slot is run once")
         self.runtime = self.runtime or runtimes.Runtime()
         self.images = self.runtime.images(self.adapter)
         python = self.runtime.do("run", "--rm", self.images[0]["tag"], "python3", "--version").stdout.split()[-1]
         if ".".join(python.split(".")[:2]) != self.benchmark.python():
             raise Refused(f"the image has Python {python}, the tasks were built with {self.benchmark.python()}")
+        if self.resume and [self.facts["images"][k]["id"] for k in ("base", "agent")] != [i["id"] for i in self.images]:
+            raise Refused("the images are not those this batch started with")
         with tempfile.TemporaryDirectory(prefix="harness-") as scratch:
             try:
                 proxy = self.runtime.network_up(self.network, self.adapter.hosts)
@@ -264,9 +310,23 @@ class Batch:
                 self.say("canary:\n" + said)
                 if not passed:
                     raise Refused("the canary failed: the batch does not start\n" + said)
-                self.start(said, python)
+                if self.resume:
+                    self.again(said)
+                else:
+                    self.start(said, python)
+                # Only the slots that never started: a slot is run once.
+                todo = [slot for slot in self.plan if not self.started(slot)]
+                waiting = []
                 with open(self.out / "results.jsonl", "a", encoding="utf-8") as results:
                     def slot(name, arm, run):
+                        with self.lock:
+                            left = None if self.stopped else self.adapter.credential_seconds(self.source_home)
+                            if left is not None and left < MARGIN:
+                                self.stopped = {"at": datetime.now().isoformat(timespec="seconds"),
+                                                "before": [name, arm, run], "credential_seconds": round(left)}
+                            if self.stopped:
+                                waiting.append((name, arm, run))
+                                return
                         record = self.one(name, arm, run, proxy, scratch)
                         with self.lock:
                             results.write(json.dumps(record) + "\n")
@@ -275,13 +335,17 @@ class Batch:
                                      f"{record['wall_seconds']:.0f} s, {record['tool_calls']} tool calls, "
                                      f"{record['final']}")
                     with ThreadPoolExecutor(max_workers=self.jobs) as pool:
-                        for future in [pool.submit(slot, *each) for each in self.plan]:
+                        for future in [pool.submit(slot, *each) for each in todo]:
                             future.result()
             finally:
                 if (self.out / "run.json").exists():
-                    (self.out / "proxy.jsonl").write_text(self.runtime.proxy_log(self.network), encoding="utf-8")
+                    with open(self.out / "proxy.jsonl", "a", encoding="utf-8") as log:
+                        log.write(self.runtime.proxy_log(self.network))
                 self.runtime.network_down(self.network)
-        self.finish()
+        if self.stopped:
+            self.stop(len(waiting))
+        else:
+            self.finish()
         return self.out
 
     def start(self, canary, python):
@@ -293,6 +357,8 @@ class Batch:
         (self.out / "build.json").write_text(json.dumps(self.benchmark.manifest(), indent=2) + "\n")
         (self.out / "canary.txt").write_text(canary + "\n", encoding="utf-8")
         shutil.copy(self.expectations, self.out / "expectations.md")
+        if self.spec.get("test"):
+            (self.out / TEST).write_text(TEST_TEXT, encoding="utf-8")
         self.facts = {
             "spec": self.spec, "spec_sha256": self.spec_sha,
             "expectations": {"file": f"expectations/{self.spec['name']}.md",
@@ -306,11 +372,42 @@ class Batch:
             "canary": canary.splitlines(),
             "plan": [list(slot) for slot in self.plan],
             "started": datetime.now().isoformat(timespec="seconds"),
+            "stops": [],
             "finished": None,
         }
+        self.save()
+
+    def save(self):
         (self.out / "run.json").write_text(json.dumps(self.facts, indent=2) + "\n", encoding="utf-8")
+
+    def again(self, canary):
+        """A batch that stopped is continued: the canary ran again."""
+        now = datetime.now().isoformat(timespec="seconds")
+        with open(self.out / "canary.txt", "a", encoding="utf-8") as kept:
+            kept.write(f"\ncontinued {now}\n{canary}\n")
+        self.facts["canary"] += canary.splitlines()
+        self.facts.setdefault("continued", []).append(now)
+        self.save()
+
+    def stop(self, waiting):
+        """The credential is about to expire: the runs that have not started
+        do not start. They are not failures and they are not dropped."""
+        self.facts.setdefault("stops", []).append(self.stopped)
+        self.save()
+        report.write(self.out, self.root)
+        name, arm, run = self.stopped["before"]
+        try:
+            spec, out = self.spec_path.resolve().relative_to(self.root), self.out.resolve().relative_to(self.root)
+        except ValueError:
+            spec, out = self.spec_path, self.out
+        self.say(f"\nstopped before {name}, {arm}, run {run}: the credential of {self.adapter.name} expires in "
+                 f"{self.stopped['credential_seconds'] / 60:.0f} min, and a run does not start with less than "
+                 f"{MARGIN // 60}.\n{len(self.plan) - waiting} of {len(self.plan)} runs started; {waiting} are "
+                 "not started. Nothing is run again and nothing is dropped.\n"
+                 f"  renew the credential:  {self.renewal()}\n"
+                 f"  continue this batch:   python3 harness.py run {spec} --continue {out}")
 
     def finish(self):
         self.facts["finished"] = datetime.now().isoformat(timespec="seconds")
-        (self.out / "run.json").write_text(json.dumps(self.facts, indent=2) + "\n", encoding="utf-8")
+        self.save()
         self.say("\n" + report.write(self.out, self.root))

@@ -26,6 +26,7 @@ class Adapter:
     tools = {}           # the command line's name of every tool it is given -> "shell" or "file"
     efforts = ()         # the values of "effort" in a run spec, besides "default"
     env = {}             # the environment of the command line, besides HOME and the proxy
+    renew = None         # the command that renews the credential on this machine, for the runner to print
 
     @property
     def containerfile(self):
@@ -41,8 +42,8 @@ class Adapter:
         raise NotImplementedError
 
     def credential_seconds(self, source_home):
-        """How long the credential is still good for, or None when it does
-        not say."""
+        """How long the credential is still good for, read from the copy a
+        run gets (``home_files``), or None when it does not say."""
         return None
 
     def argv(self, text, model, effort):

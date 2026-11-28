@@ -35,6 +35,20 @@ def total(tokens):
 
 
 def write(out, root=specs.HARNESS):
+    text = render(out, root)
+    (Path(out) / "report.md").write_text(text, encoding="utf-8")
+    return text
+
+
+def check(out, root=specs.HARNESS):
+    """Fail unless the folder still builds and its report.md is what its
+    files say. Writes nothing."""
+    path = Path(out) / "report.md"
+    if not path.exists() or path.read_text(encoding="utf-8") != render(out, root):
+        raise specs.Refused(f"{out}: report.md is not what the results and the events say")
+
+
+def render(out, root=specs.HARNESS):
     out = Path(out)
     run = specs.verify(out, root)
     spec, agent, images = run["spec"], run["agent"], run["images"]
@@ -49,11 +63,16 @@ def write(out, root=specs.HARNESS):
                 raise specs.Refused(f"{record['events']}: {key} of the result is not that of the events")
     arms = [arm for arm in spec["arms"] if any(r["arm"] == arm for r in records)]
     lines = [f"# agent-bench/harness: {spec['benchmark']}, {agent['name']}, {spec['model']}", ""]
+    if (out / "TEST.md").exists():
+        lines += ["**A test of the harness, not a result.** Nothing may be concluded from its scores.", ""]
     lines += [
         f"Spec `{spec['name']}`: {len(run['plan'])} runs planned, {len(records)} run; the first attempt of every "
         f"task, arm and run, all of them. Agent {agent['name']} {agent['cli_version']}, model {spec['model']}, "
         f"effort {spec['effort']}, {spec['n']} per task and arm, {spec['time_limit_seconds']} s per run, "
-        f"{run['jobs']} at a time. Started {run['started']}, finished {run['finished'] or 'not finished'}.", "",
+        f"{run['jobs']} at a time. Started {run['started']}, finished {run['finished'] or 'not finished'}."
+        + "".join(f" Stopped {stop['at']} before {', '.join(map(str, stop['before']))}: the credential was about "
+                  "to expire." for stop in run.get("stops", []))
+        + "".join(f" Continued {when}, with the runs that had not started." for when in run.get("continued", [])), "",
         f"- Expectations: `{run['expectations']['file']}`, sha256 `{run['expectations']['sha256']}` when the "
         "run started; it has not changed since.",
         f"- Base image `{images['base']['id']}`, agent image `{images['agent']['id']}`, Python {images['python']}, "
@@ -84,7 +103,15 @@ def write(out, root=specs.HARNESS):
     lines += ["", "Tokens are input, output and cache tokens added up, and the cost is in US dollars, both as "
               "the agent's command line reports them; different vendors count tokens differently. With one run "
               "per arm there is no interval.", ""]
-    lines += ["## Every run", "", "| Task | Arm | Run | Score | Wall time | Tool calls | Tokens | Cost | Ended |",
+    names = [name for name in dict.fromkeys(slot[0] for slot in run["plan"]) if any(r["task"] == name for r in records)]
+    lines += ["## Per task", "", "Mean score of the runs of each task and arm.", "",
+              "| Task | Questions | " + " | ".join(arms) + " |", "|---|---|" + "---|" * len(arms)]
+    for name in names:
+        mine = [r for r in records if r["task"] == name]
+        means = [[r["score"] for r in mine if r["arm"] == arm] for arm in arms]
+        lines.append(f"| {name} | {len(mine[0]['right'])} | "
+                     + " | ".join(f"{statistics.fmean(m):.2f}" if m else "-" for m in means) + " |")
+    lines += ["", "## Every run", "", "| Task | Arm | Run | Score | Wall time | Tool calls | Tokens | Cost | Ended |",
               "|---|---|---|---|---|---|---|---|---|"]
     for r in records:
         tokens = total(r["tokens"])
@@ -93,7 +120,12 @@ def write(out, root=specs.HARNESS):
                      f"{'-' if r['cost_usd'] is None else '$%.2f' % r['cost_usd']} | {r['final']} |")
     missing = [slot for slot in run["plan"] if tuple(slot) not in {(r["task"], r["arm"], r["run"]) for r in records}]
     lines += ["", "## Not as planned", ""]
-    lines += [f"- {name}, {arm}, run {n}: no result (the batch stopped before it)" for name, arm, n in missing]
+    for name, arm, n in missing:
+        if (out / "work" / f"{name}-{arm}-{n}").exists() or (out / "events" / f"{name}-{arm}-{n}.jsonl").exists():
+            lines.append(f"- {name}, {arm}, run {n}: started, and left no result")
+        else:
+            lines.append(f"- {name}, {arm}, run {n}: not started (the batch stopped before it; it is not a "
+                         "failure and it is not dropped)")
     lines += [f"- {r['task']}, {r['arm']}, run {r['run']}: {problem}" for r in records for problem in r["violations"]]
     lines += [f"- {r['task']}, {r['arm']}, run {r['run']}: {r['error']}" for r in records if r["error"]]
     if lines[-1] == "":
@@ -112,6 +144,4 @@ def write(out, root=specs.HARNESS):
               "- Tokens and cost are each vendor's own count.",
               "- The agent can read its own credential in its home folder.",
               "- The system prompt and the tool descriptions are each command line's own.", ""]
-    text = "\n".join(lines)
-    (out / "report.md").write_text(text, encoding="utf-8")
-    return text
+    return "\n".join(lines)
