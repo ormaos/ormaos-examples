@@ -977,6 +977,12 @@ table.answers td {
   overflow-wrap: anywhere;
 }
 
+/* A long hash in a sentence breaks where it must, not past the screen. */
+p code,
+li code {
+  overflow-wrap: anywhere;
+}
+
 table.answers {
   table-layout: fixed;
 }
