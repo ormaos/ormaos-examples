@@ -1,0 +1,9 @@
+# knows2, every task, the four arms, three runs each, with Claude Code.
+# It does not start until expectations/knows2-opus.md is written.
+benchmark = "knows2"
+arms = ["none", "raw", "ormaos", "ormaos-values"]
+agent = "claude-code"
+model = "claude-opus-5-5"
+effort = "default"
+n = 3
+time_limit_seconds = 900

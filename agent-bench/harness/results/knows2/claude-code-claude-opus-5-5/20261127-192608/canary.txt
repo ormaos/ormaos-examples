@@ -1,0 +1,10 @@
+PASS blocked: https://github.com through the proxy (curl exit 7: curl: (7) CONNECT tunnel failed, response 403)
+PASS blocked: https://raw.githubusercontent.com through the proxy (curl exit 7: curl: (7) CONNECT tunnel failed, response 403)
+PASS blocked: http://example.com through the proxy (curl exit 22: curl: (22) The requested URL returned error: 403)
+PASS blocked: https://github.com without the proxy (curl exit 6: curl: (6) Could not resolve host: github.com)
+PASS blocked: https://1.1.1.1 without the proxy (curl exit 7: curl: (7) Failed to connect to 1.1.1.1 port 443 after 0 ms: Could not connect to server)
+PASS blocked: https://api.anthropic.com/ without the proxy (curl exit 6: curl: (6) Could not resolve host: api.anthropic.com)
+PASS blocked: the name github.com does not resolve from inside
+PASS reached: https://api.anthropic.com/ through the proxy (HTTP 404)
+PASS home: ~ holds only .claude/.credentials.json
+PASS model: claude-code 2.1.322 answered as claude-opus-5-5 through the proxy, with no tool beyond shell and files and no extension

@@ -10,6 +10,12 @@ Every number on the pages is read from a results file by this script:
 - agent-bench/knows2/results/<run>/ and agent-bench/knows/results/<run>/:
   results.jsonl, build.json, report.md, oracle/, streams/ and the
   questions.json each agent got in work/;
+- agent-bench/harness/results/knows2/<agent>-<model>/<run>/: the runs of
+  knows2 made by the harness, in the controlled environment: results.jsonl,
+  build.json, report.md, run.json, oracle/, events/ (the common event
+  schema, never what a command line printed in its own format) and work/.
+  A folder with TEST.md, or whose plan has a run without a result, is not
+  shown;
 - agent-bench/results/<run>/: results.jsonl, build.json, report.md;
 - site/benchmarks/overhead/RESULTS.md: a copy of bench/RESULTS.md of
   ormaos-python, with the commit it was taken from in source.json.
@@ -19,6 +25,15 @@ bootstrap of agent-bench/knows/run.py, the Wilson interval of
 agent-bench/benchlib.py), and every row of a summary table is checked
 against the same row of the run's own report.md: the build stops if they
 differ. The prompts of knows2 are the text its run.py gives each agent.
+
+The build fails when a results folder of the harness no longer fits its
+run: its expectations file changed after the run started (its sha256 is in
+run.json), a planned run of a finished batch has no result, or report.md is
+not what the results and the events say.
+
+The headline and the charts of the overview, and the knows2 page, come from
+the most recent complete run of knows2 made by the harness when there is
+one, otherwise from the first results folder of agent-bench/knows2.
 
 The commits named on the pages are those that added each results file, so
 the build needs the full git history.
@@ -61,6 +76,12 @@ OVERHEAD = HERE / "overhead"
 KNOWS2 = BENCH / "knows2" / "results"
 KNOWS = BENCH / "knows" / "results"
 FIX = BENCH / "results"
+HARNESS = BENCH / "harness"
+HARNESS_KNOWS2 = HARNESS / "results" / "knows2"
+
+# The two environments a run of knows2 was made in, as the pages name them.
+CONTROLLED = "controlled: container, network limited to the model host"
+EARLIER = "earlier: bubblewrap, network open"
 
 SITE = "https://ormaos.com"
 EXAMPLES = "https://github.com/ormaos/ormaos-examples"
@@ -254,15 +275,45 @@ def agent_of(record):
     as it is; one written by the claude command line (it has the "claude"
     version) is claude-code."""
     given = record.get("agent")
-    if isinstance(given, str) and given:
+    harness = "cli_version" in record  # a line the harness wrote: "agent" is the command line's name
+    if isinstance(given, str) and given and not harness:
         return given
     if isinstance(given, dict):
         record = {**record, **given}
-    cli = record.get("cli") or ("claude-code" if record.get("claude") else "unknown")
+    cli = given if harness else record.get("cli") or ("claude-code" if record.get("claude") else "unknown")
     parts = [cli, record.get("model") or "unknown model"]
-    if record.get("effort"):
+    if record.get("effort") and record["effort"] != "default":
         parts.append(str(record["effort"]))
     return " / ".join(parts)
+
+
+def harness_core():
+    """core/spec.py, core/report.py and core/events.py of the harness."""
+    if str(HARNESS) not in sys.path:
+        sys.path.insert(0, str(HARNESS))
+    from core import events, report, spec
+    return spec, report, events
+
+
+def harness_folders(results):
+    """The committed results folders of the harness under `results`
+    (<agent>-<model>/<time>/), oldest first."""
+    listed = git("ls-files", "--", f"{rel(results)}/*/*/results.jsonl")
+    return sorted({(REPO / line).parent for line in listed.splitlines()}, key=lambda folder: folder.name)
+
+
+def check_harness():
+    """Every committed results folder of the harness still fits its run:
+    the expectations have the sha256 they had when the run started, no
+    planned run of a finished batch is without a result, the events are
+    valid and report.md is what they say."""
+    spec, report, _ = harness_core()
+    listed = git("ls-files", "--", f"{rel(HARNESS)}/results/*/*/*/run.json")
+    for line in sorted(listed.splitlines()):
+        try:
+            report.check((REPO / line).parent)
+        except spec.Refused as refused:
+            raise SystemExit(f"agent-bench/harness: {refused}") from None
 
 
 def committed_on(commit):
@@ -1306,7 +1357,13 @@ svg.mini rect.s4 { fill: var(--series-4); }
 
 
 class KnowsRun:
-    """One results folder of knows or knows2."""
+    """One results folder of knows or knows2, written by its own runner."""
+
+    controlled = False
+    environment = EARLIER
+    summary_headers = ["Arm", "Runs", "Mean score", "95% interval", "Median wall time", "Median tool calls",
+                       "Median tokens", "Ran the program again", "Timed out"]
+    limits = "Limits"  # the section of report.md that lists them
 
     def __init__(self, folder, arms, h):
         self.folder, self.h = folder, h
@@ -1321,7 +1378,7 @@ class KnowsRun:
         self.runs = sorted({r["run"] for r in self.records})
         self.commit = added_in(folder / "results.jsonl")
         self.models = sorted({r["model"] for r in self.records})
-        self.claude = sorted({r["claude"] for r in self.records})
+        self.claude = sorted({r.get("claude") or r["cli_version"] for r in self.records})
         self.date = date_of(folder)
 
     def of(self, arm=None, name=None, run=None):
@@ -1393,6 +1450,17 @@ class KnowsRun:
     def full_marks(self):
         return [n for n in self.names if all(self.mean(a, n) == 1.0 for a in self.arms)]
 
+    def check_outcomes(self, rows):
+        same_as_report(rows, self.report, "Arm | Answers", rel(self.folder) + " outcomes")
+
+    def dropped_text(self, name, qid):
+        """The words of a dropped question, in quotes."""
+        for line in self.report.splitlines():
+            m = re.match(r"- ([\w-]+), (q\d+): (\".*?\") Reason:", line)
+            if m and (m.group(1), m.group(2)) == (name, qid):
+                return m.group(3)
+        return ""
+
     def last_text(self, record):
         """What the agent said last: its last text block in the stream."""
         last = None
@@ -1403,6 +1471,86 @@ class KnowsRun:
                     if part.get("type") == "text" and part["text"].strip():
                         last = part["text"]
         return last
+
+
+class HarnessRun(KnowsRun):
+    """One results folder of knows2 written by agent-bench/harness: the same
+    tasks, texts and grading, in the controlled environment. What an agent
+    said and did is read from events/, the harness's common schema."""
+
+    controlled = True
+    environment = CONTROLLED
+    summary_headers = ["Arm", "Runs", "Mean score", "95% interval", "Median wall time", "Median tool calls",
+                       "Median tokens", "Timed out"]
+    limits = "Not controlled"
+
+    def __init__(self, folder, arms, h):
+        self.facts = json.loads((folder / "run.json").read_text(encoding="utf-8"))
+        super().__init__(folder, arms, h)
+        self.test = (folder / "TEST.md").exists()
+        done = {(r["task"], r["arm"], r["run"]) for r in self.records}
+        self.complete = bool(self.facts.get("finished")) and done == {tuple(slot) for slot in self.facts["plan"]}
+        if not all(line.startswith("PASS ") for line in self.facts["canary"]):
+            raise SystemExit(f"{rel(folder)}: a line of its canary does not say PASS")
+
+    def summary_rows(self):
+        """The rows of the report's table per arm, made again from
+        results.jsonl, in the report's own formats."""
+        bench_run = self.h.base.bench_run
+
+        def middle(values, form):
+            value = bench_run.median(values)
+            return "-" if value is None else form.format(value)
+
+        rows = []
+        for arm in self.arms:
+            records = self.of(arm)
+            low, high = self.interval(arm)
+            rows.append([arm, str(len(records)), f"{self.mean(arm):.2f}",
+                         "-" if len(records) < 2 else f"{low:.2f} to {high:.2f}",
+                         middle([r["wall_seconds"] for r in records], "{:,.0f}") + " s",
+                         middle([r["tool_calls"] for r in records], "{:g}"),
+                         middle([bench_run.tokens_of(r) for r in records], "{:,.0f}"),
+                         str(sum(1 for r in records if r["timed_out"]))])
+        theirs = [[row[i] for i in (0, 1, 2, 3, 7, 8, 9)] for row in report_rows(self.report, "Arm | Runs")]
+        if [row[:7] for row in rows] != theirs:
+            raise SystemExit(f"{rel(self.folder)}: the table differs from report.md\n  built:  {rows}\n"
+                             f"  report: {theirs}")
+        return rows
+
+    def check_outcomes(self, rows):
+        theirs = [[row[0], str(sum(int(row[i]) for i in (4, 5, 6))), row[4], row[5], row[6]]
+                  for row in report_rows(self.report, "Arm | Runs")]
+        if rows != theirs:
+            raise SystemExit(f"{rel(self.folder)} outcomes: the table differs from report.md\n  built:  {rows}\n"
+                             f"  report: {theirs}")
+
+    def dropped_text(self, name, qid):
+        return dumped(self.h.question(name, qid))
+
+    def last_text(self, record):
+        """What the agent said last: its last assistant_text event."""
+        said = [e["text"] for e in jsonl(self.folder / record["events"])
+                if e["type"] == "assistant_text" and e["text"].strip()]
+        return said[-1] if said else None
+
+    def container_text(self):
+        """The environment of the run, from its run.json."""
+        agent, spec = self.facts["agent"], self.facts["spec"]
+        return ("Each run copies the task's folder and mounts it at `/srv/<task>` in a new container of one "
+                f"image: Ubuntu, Python {self.facts['images']['python']} and uv, with the agent's command line "
+                f"(`{agent['name']}` {agent['cli_version']}) added as one layer. The containers are on a network "
+                "without a route out; the only way out is a proxy that answers for "
+                + joined(code(host) for host in agent["hosts"]) + " and refuses every other host. Before the "
+                "first run a canary on that network checked that `https://github.com` and "
+                "`https://raw.githubusercontent.com` do not answer and that the model's host does. Each run gets "
+                "a new home folder that holds the agent's credential and nothing else, the prompt, the tools "
+                + joined(code(tool) for tool in agent["tools"]) + f", and a time limit of "
+                f"{spec['time_limit_seconds']} s. The folder a run leaves is graded outside the container, by a "
+                "process that is not told which agent ran. The harness: "
+                f"[`agent-bench/harness`]({tree(self.commit, HARNESS)}). The execution was played once per arm "
+                "and once more for the oracle, in separate copies mounted at the same path, and the build "
+                "stopped if the copies did not leave the same files.")
 
 
 def score_chart(cid, run, name, width=None, compact=False, left=130, right=190):
@@ -1423,16 +1571,15 @@ def score_chart(cid, run, name, width=None, compact=False, left=130, right=190):
     if compact:
         table = Table(["Arm", "Runs", "Mean score", "95% interval"], [[code(r[0])] + r[1:4] for r in summary])
     else:
-        table = Table(["Arm", "Runs", "Mean score", "95% interval", "Median wall time", "Median tool calls",
-                       "Median tokens", "Ran the program again", "Timed out"], [[code(r[0])] + r[1:] for r in summary])
+        table = Table(run.summary_headers, [[code(r[0])] + r[1:] for r in summary])
     return Chart(svg, title, desc, table, width)
 
 
 def rnw_chart(cid, run, width=None, left=130, right=150):
     """Right, null and wrong answers per arm, stacked."""
     counts = {arm: run.outcome_counts(arm) for arm in run.arms}
-    same_as_report([[a, str(sum(c.values())), str(c["right"]), str(c["null"]), str(c["wrong"])]
-                    for a, c in counts.items()], run.report, "Arm | Answers", rel(run.folder) + " outcomes")
+    run.check_outcomes([[a, str(sum(c.values())), str(c["right"]), str(c["null"]), str(c["wrong"])]
+                        for a, c in counts.items()])
     title = "Right, null and wrong answers per arm"
     desc = ("Every answer of every run of each arm, stacked: right, null, wrong. "
             + "; ".join(f"{a}: {c['right']} right, {c['null']} null, {c['wrong']} wrong"
@@ -1464,7 +1611,7 @@ def task_chart(cid, run, name):
 # ---------------------------------------------------------------- footer of every page
 
 
-def about_run(anchor, folder, commit, ormaos_commit, models, claude, date, extra, commands, needs):
+def about_run(anchor, folder, commit, ormaos_commit, models, claude, date, extra, commands, needs, run=None):
     short, ormaos_short = commit[:7], ormaos_commit[:7]
     files = [f"[`results.jsonl`]({blob(commit, folder / 'results.jsonl')}): one line per run",
              f"[`streams/`]({tree(commit, folder / 'streams')}): what every agent said and did",
@@ -1475,6 +1622,25 @@ def about_run(anchor, folder, commit, ormaos_commit, models, claude, date, extra
              "Model: " + joined(code(m) for m in models) + ", with the `claude` command line "
              + joined(claude),
              f"Date: {date}"]
+    if run is not None:
+        items.insert(1, f"Environment: {run.environment}")
+    if run is not None and run.controlled:
+        facts = run.facts
+        agent, images = facts["agent"], facts["images"]
+        items[4] = ("Model: " + joined(code(m) for m in models) + f", with the agent `{agent['name']}`, command line "
+                    + joined(claude) + (f", effort {facts['spec']['effort']}" if facts["spec"]["effort"] != "default"
+                                        else ""))
+        items += [f"Images: base `{images['base']['id']}`, with the agent's command line `{images['agent']['id']}`; "
+                  f"Python {images['python']}; {facts['runtime']}",
+                  "Hosts the proxy allowed: " + joined(code(host) for host in agent["hosts"]),
+                  f"Expectations, written before the run: [`expectations.md`]({blob(commit, folder / 'expectations.md')}), "
+                  f"sha256 `{facts['expectations']['sha256']}` when the run started"]
+        files[1] = (f"[`events/`]({tree(commit, folder / 'events')}): what every agent said and did, in the "
+                    f"harness's [event schema]({blob(commit, HARNESS / 'EVENTS.md')})")
+        files += [f"[`run.json`]({blob(commit, folder / 'run.json')}): the spec, the images, the canary, the plan",
+                  f"[`canary.txt`]({blob(commit, folder / 'canary.txt')}) and "
+                  f"[`proxy.jsonl`]({blob(commit, folder / 'proxy.jsonl')}): the network check before the first "
+                  "run, and what the proxy refused during the batch"]
     return Section(anchor, "This run", [
         UL(items),
         P("The results files, on GitHub:"),
@@ -1491,6 +1657,9 @@ def clone_commands(commit, ormaos_commit, folder):
             f"cd ormaos-examples && git checkout {commit[:7]} && cd {folder}"]
 
 
+HARNESS_NEEDS = ("Linux with podman or docker, Python 3.11 or newer, git, the agent's command line signed in on the "
+                 "machine, and a checkout of ormaos-python next to this repository. The harness does not start a "
+                 "spec without its expectations file. The run sends the folders it makes to the model's API.")
 NEEDS = ("Linux with [bubblewrap](https://github.com/containers/bubblewrap), Python 3.12 or newer, git, the "
          "`claude` command line signed in, and a checkout of ormaos-python next to this repository. The run "
          "sends the folders it makes to the model's API.")
@@ -1499,18 +1668,37 @@ NEEDS = ("Linux with [bubblewrap](https://github.com/containers/bubblewrap), Pyt
 # ---------------------------------------------------------------- knows2
 
 
-def knows2_page(run, h, frame):
+def knows2_runs(runs, shown):
+    """Every run of knows2, with the environment it was made in."""
+    rows = [[f"[`{rel(run.folder)}`]({tree(run.commit, run.folder)})", run.environment,
+             joined(code(a) for a in run.agents), run.date, str(len(run.records)),
+             ", ".join(f"`{a}` {run.mean(a):.2f}" for a in run.arms), "this page" if run is shown else ""]
+            for run in runs]
+    about = {
+        CONTROLLED: f"**{CONTROLLED}.** Made by [`agent-bench/harness`]({tree(shown.commit, HARNESS)}): every run "
+                    "in a new container, on a network whose only way out is a proxy that allows the model's host; "
+                    "a canary checks it before the first run.",
+        EARLIER: f"**{EARLIER}.** Made by knows2's own runner: every run in bubblewrap, with the network of the "
+                 "machine.",
+    }
+    return Section("runs", "The runs of knows2", [
+        P(f"This page, and the headline and the charts of the [overview](/benchmarks/), describe the run of "
+          f"{shown.date}: the most recent complete run made in the controlled environment when there is one, "
+          "otherwise the first run. Every run in the table counts on the situation pages."),
+        Table(["Results folder", "Environment", "Agent", "Date", "Runs", "Mean score per arm", ""], rows,
+              numbers=False),
+        UL([about[e] for e in (CONTROLLED, EARLIER) if any(run.environment == e for run in runs)]),
+    ])
+
+
+def knows2_page(run, h, frame, runs):
     built = run.built
     model = joined(code(m) for m in run.models)
     n_tasks, n_arms, n_runs = len(run.names), len(run.arms), len(run.runs)
     dropped = {name: built["tasks"][name]["dropped"] for name in run.names if built["tasks"][name]["dropped"]}
     written = sum(built["tasks"][n]["questions"] + len(built["tasks"][n]["dropped"]) for n in run.names)
     kept = sum(built["tasks"][n]["questions"] for n in run.names)
-    dropped_text = {}
-    for line in run.report.splitlines():
-        m = re.match(r"- ([\w-]+), (q\d+): (\".*?\") Reason:", line)
-        if m:
-            dropped_text[(m.group(1), m.group(2))] = m.group(3)
+    cli = "the agent's command line" if run.controlled else "the claude command line"
     readme = (BENCH / "knows2" / "README.md").read_text(encoding="utf-8")
     writer_prompt = re.search(r"^> (Write .*)$", readme, re.M).group(1)
     ended = [r for r in run.records if r["timed_out"] or r["error"] or r["answers_file"] != "read"]
@@ -1521,12 +1709,14 @@ def knows2_page(run, h, frame):
           "written by a model that was not told what Ormaos records; its answers are graded against an oracle "
           "that reads neither the trace nor the recording.", "lead"),
         P(SENTENCE, "sentence"),
+        P(f"The run of {run.date}, in the environment \"{run.environment}\". [Every run of knows2](#runs).",
+          "caption"),
         Facts([(f"{run.mean(a):.2f}", f"`{a}`, mean score, 95% interval "
                 f"{run.interval(a)[0]:.2f} to {run.interval(a)[1]:.2f}") for a in run.arms]),
         Toc([("method", "Method"), ("results", "Results")]
             + [(n, KINDS[n]["heading"]) for n in run.names]
             + [("null-reasons", "What the agents said when they could not answer"), ("limits", "Limits"),
-               ("this-run", "This run")]),
+               ("runs", "The runs of knows2"), ("this-run", "This run")]),
     ], first=True)]
 
     arm_rows = [
@@ -1569,10 +1759,10 @@ def knows2_page(run, h, frame):
         H(3, "The drop rule"),
         P("A question is dropped only when the oracle cannot give one unambiguous answer to it: not because an "
           "arm cannot answer it, not because it is hard, not because of what any agent answered. Dropped:"),
-        UL([f"`{name}`, {qid}, {dropped_text.get((name, qid), '')}: {reason}"
+        UL([f"`{name}`, {qid}, {run.dropped_text(name, qid)}: {reason}"
             for name, qs in dropped.items() for qid, reason in qs.items()] or ["none"]),
-        H(3, "The sandbox"),
-        P("Each run copies the task's folder and mounts it at `/srv/<task>` inside bubblewrap, with nothing else "
+        H(3, "The container" if run.controlled else "The sandbox"),
+        P(run.container_text() if run.controlled else "Each run copies the task's folder and mounts it at `/srv/<task>` inside bubblewrap, with nothing else "
           "of the machine but the system (`/usr` and `/etc`, read-only), the `claude` program and its login. "
           f"`claude -p --model {', '.join(run.models)} --safe-mode --strict-mcp-config` gets the prompt, with "
           "the tools Bash, Read, Grep, Glob, Edit and Write, and the runner's time limit. The network is not cut: the agent "
@@ -1605,7 +1795,7 @@ def knows2_page(run, h, frame):
     tok_rows = [(a, SLOT[a], run.median(a, "tokens"), f"{a}: median {run.median(a, 'tokens'):,.0f} tokens")
                 for a in run.arms]
     tok_title = "Median tokens per run, per arm"
-    tok_desc = ("Input, output and cache tokens added up, as the claude command line reports them; the median "
+    tok_desc = (f"Input, output and cache tokens added up, as {cli} reports them; the median "
                 "over the runs of each arm. " + "; ".join(f"{a} {v:,.0f}" for a, _, v, _ in tok_rows) + ".")
     wall_rows = [(a, SLOT[a], run.median(a, "wall_seconds"),
                   f"{a}: median {run.median(a, 'wall_seconds'):.1f} s") for a in run.arms]
@@ -1613,7 +1803,8 @@ def knows2_page(run, h, frame):
     wall_desc = ("From the start of the agent to its end, the median over the runs of each arm, in seconds. "
                  + "; ".join(f"{a} {v:.1f} s" for a, _, v, _ in wall_rows) + ".")
     cost = [r["cost_usd"] for r in run.records if r.get("cost_usd") is not None]
-    cost_line = (f"Cost, as the claude command line reports it (`total_cost_usd`): ${sum(cost):.2f} for "
+    cost_line = (f"Cost, as {cli} reports it" + ("" if run.controlled else " (`total_cost_usd`)")
+                 + f": ${sum(cost):.2f} for "
                  f"{len(cost)} runs; mean per run, " + ", ".join(
                      f"`{a}` ${statistics.fmean([r['cost_usd'] for r in run.of(a)]):.3f}" for a in run.arms) + ".")
 
@@ -1726,14 +1917,19 @@ def knows2_page(run, h, frame):
     ] + said))
 
     sections.append(Section("limits", "Limits", [
-        P("As the run's report lists them:"),
-        UL(section_lines(run.report, "Limits")),
+        P("What the run's report lists as not controlled:" if run.controlled else "As the run's report lists them:"),
+        UL(section_lines(run.report, run.limits)),
     ]))
+    sections.append(knows2_runs(runs, run))
+    commands = clone_commands(run.commit, built["ormaos_commit"], "agent-bench/knows2") + ["python3 build.py"]
+    if run.controlled:
+        commands += [f"cd ../harness && python3 harness.py run specs/{run.facts['spec']['name']}.toml"]
+    else:
+        commands += [f"python3 run.py --runs {len(run.runs)} --replacements 0"]
     sections.append(about_run(
         "this-run", run.folder, run.commit, built["ormaos_commit"], run.models, run.claude, run.date,
-        f"; VizTracer {built['viztracer']}; {built['python']}",
-        clone_commands(run.commit, built["ormaos_commit"], "agent-bench/knows2")
-        + ["python3 build.py", f"python3 run.py --runs {len(run.runs)} --replacements 0"], NEEDS))
+        f"; VizTracer {built['viztracer']}; {built['python']}", commands,
+        HARNESS_NEEDS if run.controlled else NEEDS, run=run))
     title = "knows2: what an agent knows about an execution"
     return title, sections
 
@@ -2104,12 +2300,13 @@ _STEPS = {}
 
 
 class Step:
-    def __init__(self, tool, given):
+    def __init__(self, tool, given, shell=None):
         self.tool, self.input, self.output, self.line = tool, given or {}, None, None
+        self.shell = tool == "Bash" if shell is None else shell
 
     @property
     def command(self):
-        return self.input.get("command", "") if self.tool == "Bash" else ""
+        return self.input.get("command", "") if self.shell else ""
 
 
 def read_steps(path):
@@ -2137,6 +2334,31 @@ def read_steps(path):
                     step.output, step.line = text, number
     _STEPS[path] = cwd, steps
     return cwd, steps
+
+
+def event_steps(path):
+    """The tool calls of a run of the harness, in order, from its events;
+    `line` is the line of the call's result in the events file."""
+    if path in _STEPS:
+        return _STEPS[path]
+    steps, by_id = [], {}
+    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        event = json.loads(line)
+        if event["type"] == "tool_call":
+            by_id[event["id"]] = Step(event["tool"], event["input"], shell=event["kind"] == "shell")
+            steps.append(by_id[event["id"]])
+        elif event["type"] == "tool_result" and event["id"] in by_id:
+            by_id[event["id"]].output, by_id[event["id"]].line = event["output"], number
+    _STEPS[path] = steps
+    return steps
+
+
+def steps_of(r):
+    """(the folder the agent ran in, its tool calls in order) of a run."""
+    run = r["_run"]
+    if getattr(run, "controlled", False):
+        return f"/srv/{r['task']}", event_steps(run.folder / r["events"])
+    return read_steps(run.folder / r["stream"])
 
 
 def ormaos_calls(command):
@@ -2274,18 +2496,30 @@ class Situation:
         return f"{self.mean(arm):.2f}"
 
     def run_label(self, r):
-        folders = {x["_run"].folder for x in self.of(agent=r["_agent"])}
-        return str(r["run"]) if len(folders) == 1 else f"{r['_run'].date} · {r['run']}"
+        """The number of a run; with more than one results folder, also the
+        folder's date (its name, when two have the same date) and, in
+        knows2, the first word of its environment."""
+        runs = {id(x["_run"]): x["_run"] for x in self.of(agent=r["_agent"])}
+        if len(runs) == 1:
+            return str(r["run"])
+        run = r["_run"]
+        when = run.folder.name if sum(1 for x in runs.values() if x.date == run.date) > 1 else run.date
+        where = f", {run.environment.split(':')[0]}" if self.bench == "knows2" else ""
+        return f"{when}{where} · {r['run']}"
 
     def first_run(self, arm, agent):
-        """Run 1 of the arm, in the agent's first results folder."""
+        """Run 1 of the arm, in the results folder the pages describe when
+        the agent has runs there, otherwise in the agent's first folder."""
         rows = self.of(arm, agent)
-        return next((r for r in rows if r["run"] == 1 and r["_run"] is rows[0]["_run"]), rows[0])
+        folder = self.run if any(r["_run"] is self.run for r in rows) else rows[0]["_run"]
+        rows = [r for r in rows if r["_run"] is folder]
+        return next((r for r in rows if r["run"] == 1), rows[0])
 
 
 def stream_url(r, line=None):
     run = r["_run"]
-    return blob(run.commit, run.folder / r["stream"]) + (f"?plain=1#L{line}" if line else "")
+    path = r["events"] if getattr(run, "controlled", False) else r["stream"]
+    return blob(run.commit, run.folder / path) + (f"?plain=1#L{line}" if line else "")
 
 
 def outcome_of(r, qid):
@@ -2395,14 +2629,14 @@ def runs_note(sit):
             "Agents: " + joined(code(a) for a in agents) + ".")
 
 
-def knows2_situations(runs, h):
+def knows2_situations(runs, h, shown):
     out = []
     names = [n for n in h.tasks.NAMES if any(n in run.names for run in runs)]
     for name in names:
         records = [r for run in runs for r in run.of(name=name)]
         arms = [a for a in ARMS4 if any(r["arm"] == a for r in records)]
         sit = Situation("knows2", name, records, arms, f"/benchmarks/knows2/#{name}")
-        run = next(run for run in runs if name in run.names)
+        run = next(run for run in [shown, *runs] if name in run.names)
         sit.run, sit.kind = run, KINDS[name]
         sit.line = sit.kind["line"]
         sit.questions, sit.oracle = run.questions(name), run.oracle(name)
@@ -2412,7 +2646,7 @@ def knows2_situations(runs, h):
         sit.happened = HAPPENED[name](sit.oracle, says)
         for r in records:
             if r["arm"].startswith("ormaos"):
-                r["_verbs"] = verbs_before_answers(read_steps(r["_run"].folder / r["stream"])[1])
+                r["_verbs"] = verbs_before_answers(steps_of(r)[1])
         out.append(sit)
     return out
 
@@ -2496,7 +2730,7 @@ def diff_of(sit, r):
 
 def column(sit, r):
     """What one run did, for its column."""
-    cwd, steps = read_steps(r["_run"].folder / r["stream"])
+    cwd, steps = steps_of(r)
     answers = r.get("answers") if isinstance(r.get("answers"), dict) else {}
     shown = []
     for step in steps:
@@ -2646,8 +2880,9 @@ def case_page(sit, h):
     folders = sorted({r["_run"].folder for r in sit.records})
     sections.append(Section("files", "The results files", [UL(
         [f"The benchmark: [{sit.bench}]({sit.page_url})"]
-        + [f"Results folder: [`{rel(f)}`]({tree(next(r['_run'].commit for r in sit.records if r['_run'].folder == f), f)})"
-           for f in folders])]))
+        + [f"Results folder: [`{rel(run.folder)}`]({tree(run.commit, run.folder)})"
+           + (f", {run.environment}" if sit.bench == "knows2" else "")
+           for run in (next(r["_run"] for r in sit.records if r["_run"].folder == f) for f in folders)])]))
     return f"{sit.name}, in {sit.bench}", sections
 
 
@@ -2676,8 +2911,8 @@ def verb_table(sits):
 # ---------------------------------------------------------------- index
 
 
-def index_page(k2s, k1s, fixes, over, sits):
-    k2, k1, fix = k2s[0], k1s[0], fixes[0]
+def index_page(k2, k2s, k1s, fixes, over, sits):
+    k1, fix = k1s[0], fixes[0]
     cpu, io = over.workloads[0], over.workloads[1]
     agents = sorted({r["_agent"] for runs in (k2s, k1s, fixes) for run in runs for r in run.records})
 
@@ -2687,14 +2922,15 @@ def index_page(k2s, k1s, fixes, over, sits):
                 f"{sum(o.values())} questions right, over its {len(k2.of('ormaos'))} runs; with only the folder "
                 f"(`none`), {n['right']} of {sum(n.values())}. Null answers: {o['null']} and {n['null']}. "
                 f"Wrong answers: {o['wrong']} and {n['wrong']}.")
-    from_run = (f"From the knows2 results folder of {k2.date}, agent " + joined(code(a) for a in k2.agents) + ".")
+    from_run = (f"From the knows2 run of {k2.date}, in the environment \"{k2.environment}\", agent "
+                + joined(code(a) for a in k2.agents) + f": [`{rel(k2.folder)}`]({tree(k2.commit, k2.folder)}).")
 
     def short(title):
         return title.split(": ", 1)[1][:1].upper() + title.split(": ", 1)[1][1:]
 
     cards = [
         (f"knows2 · {k2.date} · {joined(k2.models)} · N = {len(k2.records)} runs, "
-         f"{len(k2.of(k2.arms[0]))} per arm",
+         f"{len(k2.of(k2.arms[0]))} per arm · {k2.environment.split(':')[0]}",
          "What an agent knows about an execution",
          [P(f"{len(k2.names)} executions, questions by a model that was not told what Ormaos records, graded "
             "against an oracle. Mean score per arm, from 0 to 1."),
@@ -2784,7 +3020,9 @@ def index_page(k2s, k1s, fixes, over, sits):
             "Whether what happened is what should have happened: the benchmarks ask what happened, and the "
             "reader decides.",
             f"The knows2 questions and the oracle's answers are public since {public}, the day they were "
-            "committed: a later run must not let the agent reach the network, other than the model's API.",
+            "committed: " + (f"in the run of {k2.date} the agent could reach the model's host and no other."
+                             if k2.controlled else
+                             "a later run must not let the agent reach the network, other than the model's API."),
         ])]),
         Section("files", "The pages as files", [UL([
             "Each page is also Markdown, at its address with `.md` in place of the last slash: "
@@ -2852,29 +3090,37 @@ def llms_txt(pages):
 # ---------------------------------------------------------------- build
 
 
-def build(root):
-    """Write root/benchmarks/ and root/benchmarks.md."""
+def build(root, tests=False):
+    """Write root/benchmarks/ and root/benchmarks.md. With `tests`, the
+    harness's test folders (TEST.md) count as runs: for the test of this
+    script, never for the pages."""
     out = root / "benchmarks"
+    check_harness()
     h = runners()
     frame = Frame()
-    k2s = [KnowsRun(folder, ARMS4, h) for folder in results_folders(KNOWS2)]
+    earlier = [KnowsRun(folder, ARMS4, h) for folder in results_folders(KNOWS2)]
+    controlled = [run for run in (HarnessRun(folder, ARMS4, h) for folder in harness_folders(HARNESS_KNOWS2))
+                  if run.complete and (tests or not run.test)]
+    k2s = earlier + controlled
     k1s = [KnowsRun(folder, ARMS4, h) for folder in results_folders(KNOWS)]
     fixes = [FixRun(folder, h) for folder in results_folders(FIX)]
-    k2, k1, fix = k2s[0], k1s[0], fixes[0]
+    # The run the overview and the knows2 page describe.
+    k2 = controlled[-1] if controlled else earlier[0]
+    k1, fix = k1s[0], fixes[0]
     over = Overhead()
-    sits = knows2_situations(k2s, h) + fix_situations(fixes, h)
+    sits = knows2_situations(k2s, h, k2) + fix_situations(fixes, h)
 
     def result_files(run):
+        said = "events" if getattr(run, "controlled", False) else "streams"
         return [("results.jsonl", blob(run.commit, run.folder / "results.jsonl")),
-                ("streams", tree(run.commit, run.folder / "streams")),
+                (said, tree(run.commit, run.folder / said)),
                 ("report.md", blob(run.commit, run.folder / "report.md"))]
 
     pages = []
-    title, sections = index_page(k2s, k1s, fixes, over, sits)
+    title, sections = index_page(k2, k2s, k1s, fixes, over, sits)
     pages.append(("", title, "where Ormaos changed the result and where it did not, situation by situation, "
                   "what Ormaos data answered, one card per benchmark, and what is not measured yet", sections, []))
-    title, sections = knows2_page(k2, h, frame)
-    sections[-1:-1] = other_folders(k2s, "knows2")
+    title, sections = knows2_page(k2, h, frame, k2s)
     pages.append(("knows2/", title, "the method, the charts, every question with the oracle's answer and every "
                   "run's answer, and what the agents said when they could not answer", sections, result_files(k2)))
     title, sections = knows_page(k1, k2)

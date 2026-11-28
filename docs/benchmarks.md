@@ -24,7 +24,7 @@ In knows2, with an Ormaos recording (`ormaos`) the agent answered 198 of 213 que
 | `ormaos` | 213 | 198 | 14 | 1 |
 | `ormaos-values` | 213 | 202 | 11 | 0 |
 
-*From the knows2 results folder of 2026-11-27, agent `claude-code / claude-opus-5-5`.*
+*From the knows2 run of 2026-11-27, in the environment "earlier: bubblewrap, network open", agent `claude-code / claude-opus-5-5`: [`agent-bench/knows2/results/20261127-165801`](https://github.com/ormaos/ormaos-examples/tree/091b688f01b0b233631f0fe714935ebc52ab7fd9/agent-bench/knows2/results/20261127-165801).*
 
 ## Where Ormaos changed the result and where it did not
 
@@ -70,7 +70,7 @@ Read from the streams: in each run of an Ormaos arm, the `ormaos` verbs in its c
 
 ### What an agent knows about an execution
 
-*knows2 · 2026-11-27 · claude-opus-5-5 · N = 108 runs, 27 per arm*
+*knows2 · 2026-11-27 · claude-opus-5-5 · N = 108 runs, 27 per arm · earlier*
 
 9 executions, questions by a model that was not told what Ormaos records, graded against an oracle. Mean score per arm, from 0 to 1.
 
